@@ -260,7 +260,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
   };
   const pieOptions = {
     animation: { animateRotate: true, duration: 1200 },
-    plugins: { legend: { display: true, position: 'bottom' } },
+    plugins: { legend: { display: true, position: 'bottom' as 'bottom' } },
     cutout: '60%',
   };
   // Bar chart data for performance improvements
@@ -284,8 +284,33 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
   };
   const barOptions = {
     responsive: true,
-    plugins: { legend: { position: 'top' } },
+    plugins: {
+      legend: { position: 'top' as 'top' },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y;
+            if (label === 'Before Migration') {
+              return `Before Migration (Sybase): ${value} lines`;
+            } else if (label === 'After Migration') {
+              return `After Migration (Oracle): ${value} lines`;
+            }
+            return `${label}: ${value}`;
+          }
+        }
+      },
+    },
     animation: { duration: 1200 },
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: 'Lines of Code',
+        },
+        beginAtZero: true,
+      },
+    },
   };
   // Download handlers
   const handleDownloadTxt = () => {
@@ -359,6 +384,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
             </div>
             <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
               <h3 className="text-base font-semibold mb-2">Performance Improvements</h3>
+              <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (Lines of Code)</span>
               <Bar data={barData} options={barOptions} style={{ maxHeight: 220 }} />
             </div>
           </div>
