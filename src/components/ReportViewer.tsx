@@ -263,10 +263,14 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
     plugins: { legend: { display: true, position: 'bottom' as 'bottom' } },
     cutout: '60%',
   };
-  // Bar chart data for performance improvements
-  const fileNames = report.results.map(r => r.originalFile.name);
-  const beforeLines = report.results.map(r => r.performance?.originalLines || 0);
-  const afterLines = report.results.map(r => r.performance?.convertedLines || 0);
+  // Pagination state for bar chart
+  const [barPage, setBarPage] = useState(0);
+  const filesPerPage = 10;
+  const totalPages = Math.ceil(report.results.length / filesPerPage);
+  const pagedResults = report.results.slice(barPage * filesPerPage, (barPage + 1) * filesPerPage);
+  const fileNames = pagedResults.map(r => r.originalFile.name);
+  const beforeLines = pagedResults.map(r => r.performance?.originalLines || 0);
+  const afterLines = pagedResults.map(r => r.performance?.convertedLines || 0);
   const barData = {
     labels: fileNames,
     datasets: [
@@ -386,6 +390,13 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
               <h3 className="text-base font-semibold mb-2">Performance Improvements</h3>
               <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (Lines of Code)</span>
               <Bar data={barData} options={barOptions} style={{ maxHeight: 220 }} />
+              {totalPages > 1 && (
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" variant="outline" onClick={() => setBarPage(barPage - 1)} disabled={barPage === 0}>Prev</Button>
+                  <span className="text-xs text-gray-500">Page {barPage + 1} of {totalPages}</span>
+                  <Button size="sm" variant="outline" onClick={() => setBarPage(barPage + 1)} disabled={barPage === totalPages - 1}>Next</Button>
+                </div>
+              )}
             </div>
           </div>
           
