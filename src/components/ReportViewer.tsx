@@ -9,6 +9,11 @@ import { ConversionReport } from '@/types';
 import { deployToOracle } from '@/utils/databaseUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { Pie, Bar } from 'react-chartjs-2';
+import { Chart, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+Chart.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -242,69 +247,120 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
     }
   };
   
+  // Pie chart data
+  const pieData = {
+    labels: ['Success', 'Warning', 'Error'],
+    datasets: [
+      {
+        data: [report.successCount, report.warningCount, report.errorCount],
+        backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+        borderWidth: 1,
+      },
+    ],
+  };
+  const pieOptions = {
+    animation: { animateRotate: true, duration: 1200 },
+    plugins: { legend: { display: true, position: 'bottom' } },
+    cutout: '60%',
+  };
+  // Bar chart data for performance improvements
+  const fileNames = report.results.map(r => r.originalFile.name);
+  const beforeLines = report.results.map(r => r.performance?.originalLines || 0);
+  const afterLines = report.results.map(r => r.performance?.convertedLines || 0);
+  const barData = {
+    labels: fileNames,
+    datasets: [
+      {
+        label: 'Before Migration',
+        data: beforeLines,
+        backgroundColor: '#60a5fa',
+      },
+      {
+        label: 'After Migration',
+        data: afterLines,
+        backgroundColor: '#22d3ee',
+      },
+    ],
+  };
+  const barOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    animation: { duration: 1200 },
+  };
+  // Download handlers
+  const handleDownloadTxt = () => {
+    const blob = new Blob([report.summary], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `oracle-migration-report-${report.timestamp.split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: 'Report Downloaded', description: 'TXT report downloaded.' });
+  };
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.text('Oracle Migration Report', 10, 10);
+    doc.text(report.summary, 10, 20);
+    doc.save(`oracle-migration-report-${report.timestamp.split('T')[0]}.pdf`);
+    toast({ title: 'Report Downloaded', description: 'PDF report downloaded.' });
+  };
+  const handleDownloadExcel = () => {
+    const ws = XLSX.utils.json_to_sheet(report.results.map(r => ({
+      File: r.originalFile.name,
+      Type: r.originalFile.type,
+      Status: r.status,
+      Issues: r.issues?.length || 0,
+      'Before Lines': r.performance?.originalLines || 0,
+      'After Lines': r.performance?.convertedLines || 0,
+    })));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `oracle-migration-report-${report.timestamp.split('T')[0]}.xlsx`);
+    toast({ title: 'Report Downloaded', description: 'Excel report downloaded.' });
+  };
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+            <div className="flex flex-col gap-1">
               <CardTitle className="text-2xl">Migration Report</CardTitle>
               <CardDescription>
-                Generated on {new Date(report.timestamp).toLocaleString()} | Report ID: {report.timestamp.split('T')[0]}-{Date.now().toString().slice(-6)}
+                {new Date(report.timestamp).toLocaleString()} &bull; {report.filesProcessed} files processed
               </CardDescription>
+              <div className="flex flex-row gap-3 mt-2">
+                <Badge className="flex items-center gap-1 bg-green-100 text-green-700"><Check className="h-4 w-4" /> {report.successCount} Success</Badge>
+                <Badge className="flex items-center gap-1 bg-yellow-100 text-yellow-700"><AlertTriangle className="h-4 w-4" /> {report.warningCount} Warning</Badge>
+                <Badge className="flex items-center gap-1 bg-red-100 text-red-700"><X className="h-4 w-4" /> {report.errorCount} Error</Badge>
+              </div>
             </div>
-            <Badge variant="outline" className="text-base font-normal px-3 py-1">
-              {report.successCount + report.warningCount} of {report.filesProcessed} Successful
-            </Badge>
+            <div className="flex flex-col gap-2 items-end">
+              <div className="flex gap-2">
+                <Button onClick={handleDownloadTxt} className="flex items-center gap-2" size="sm">TXT</Button>
+                <Button onClick={handleDownloadPdf} className="flex items-center gap-2" size="sm">PDF</Button>
+                <Button onClick={handleDownloadExcel} className="flex items-center gap-2" size="sm">Excel</Button>
+              </div>
+              <Button onClick={handleDownload} className="flex items-center gap-2 mt-1">
+                <Download className="h-4 w-4" /> Download Full Report
+              </Button>
+            </div>
           </div>
         </CardHeader>
         
         <CardContent>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-md text-center">
-              <div className="flex justify-center mb-2">
-                <Check className="h-6 w-6 text-green-500" />
-              </div>
-              <p className="text-sm text-muted-foreground mb-1">Success</p>
-              <p className="text-2xl font-bold">{report.successCount}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+              <h3 className="text-base font-semibold mb-2">Status Distribution</h3>
+              <Pie data={pieData} options={pieOptions} style={{ maxWidth: 220 }} />
             </div>
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-md text-center">
-              <div className="flex justify-center mb-2">
-                <AlertTriangle className="h-6 w-6 text-yellow-500" />
-              </div>
-              <p className="text-sm text-muted-foreground mb-1">Warnings</p>
-              <p className="text-2xl font-bold">{report.warningCount}</p>
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+              <h3 className="text-base font-semibold mb-2">Performance Improvements</h3>
+              <Bar data={barData} options={barOptions} style={{ maxHeight: 220 }} />
             </div>
-            <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-md text-center">
-              <div className="flex justify-center mb-2">
-                <X className="h-6 w-6 text-red-500" />
-              </div>
-              <p className="text-sm text-muted-foreground mb-1">Errors</p>
-              <p className="text-2xl font-bold">{report.errorCount}</p>
-            </div>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2">Processed Files</h3>
-            <ScrollArea className="h-[200px] border rounded-md p-4">
-              <div className="space-y-2">
-                {report.results.map(result => (
-                  <div key={result.id} className="flex justify-between items-center p-2 border-b">
-                    <div className="flex items-center">
-                      {result.status === 'success' ? (
-                        <Check className="h-4 w-4 text-green-500 mr-2" />
-                      ) : result.status === 'warning' ? (
-                        <AlertTriangle className="h-4 w-4 text-yellow-500 mr-2" />
-                      ) : (
-                        <X className="h-4 w-4 text-red-500 mr-2" />
-                      )}
-                      <span>{result.originalFile.name}</span>
-                    </div>
-                    <Badge>{result.originalFile.type}</Badge>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
           </div>
           
           <div className="mb-6">
