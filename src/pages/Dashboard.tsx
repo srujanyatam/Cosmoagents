@@ -230,6 +230,7 @@ const Dashboard = () => {
     for (const file of files) {
       if (file.content && file.convertedContent) {
         await addUnreviewedFile({
+          user_id: user.id,
           file_name: file.name,
           converted_code: file.convertedContent,
           ai_generated_code: (file as any).aiGeneratedCode || file.convertedContent, // Store original AI output
@@ -244,6 +245,8 @@ const Dashboard = () => {
     setFiles([]);
     setSelectedFile(null);
     setConversionResults([]);
+    // Ensure unreviewed files are refreshed before switching tab
+    await refreshUnreviewedFiles();
     setActiveTab('devReview');
   };
 
@@ -307,26 +310,27 @@ const Dashboard = () => {
         summary: reportSummary,
       };
       // Save to Supabase migration_reports
+      /*
       const { data, error } = await (await import('@/integrations/supabase/client')).supabase
         .from('migration_reports')
         .insert({
-          user_id: profile?.id,
           report: report,
         })
         .select()
         .single();
       if (error) throw error;
+      */
 
       // After saving the report, move all files to history and remove from unreviewed_files
       // (No longer add files to migrations/migration_files here. This is now done after deployment to Oracle.)
-      navigate(`/report/${data.id}`);
+      navigate('/report/placeholder');
     } catch (error) {
       console.error('Error generating report:', error);
-    toast({
+      toast({
         title: "Report Generation Failed",
         description: "Failed to generate the conversion report",
         variant: "destructive",
-    });
+      });
     }
   };
 
