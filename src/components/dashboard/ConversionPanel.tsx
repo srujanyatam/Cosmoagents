@@ -6,6 +6,7 @@ import { FileText, Download } from 'lucide-react';
 import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
 
 interface FileItem {
   id: string;
@@ -107,6 +108,23 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
     onUploadRedirect();
   };
 
+  // Helper for progress/estimate
+  const isBatchMode = selectedFileIds.length > 0;
+  const filesForProgress = isBatchMode ? files.filter(f => selectedFileIds.includes(f.id)) : files;
+  const totalToConvert = isBatchMode ? selectedFileIds.length : files.length;
+  const convertedCount = filesForProgress.filter(f => f.conversionStatus === 'success').length;
+  const inProgressCount = convertingFileIds.filter(id => filesForProgress.some(f => f.id === id)).length;
+  const percent = totalToConvert > 0 ? Math.round(((convertedCount + inProgressCount) / totalToConvert) * 100) : 0;
+  const filesRemaining = totalToConvert - convertedCount - inProgressCount;
+  const avgTimePerFile = 6; // seconds, more realistic
+  const estimatedTime = filesRemaining > 0 ? filesRemaining * avgTimePerFile : 0;
+  function formatTime(sec: number) {
+    if (sec <= 0) return '0s';
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  }
+
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -152,6 +170,13 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
           >
             Reset Migration
           </Button>
+        </div>
+        <div className="flex flex-col items-end min-w-[120px] bg-white/90 border border-gray-200 rounded p-3 mb-2 w-full shadow-md">
+          <Progress value={percent} className="h-3 w-full mb-2 transition-all duration-1000 shadow-inner" />
+          <div className="flex justify-between items-center w-full">
+            <span className="text-xs text-gray-700 font-medium">{percent}%</span>
+            <span className="text-xs text-gray-500">{totalToConvert > 0 ? `Est: ${formatTime(estimatedTime)}` : 'No files selected'}</span>
+          </div>
         </div>
         <FileTreeView
           files={files}
