@@ -382,6 +382,44 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
     ],
   };
   
+  // Data Type Mapping Quality
+  const autoMapped = report.results.reduce((sum, r) => sum + (r.dataTypeMapping?.filter((d: any) => d.quality === 'auto').length || 0), 0);
+  const manualMapped = report.results.reduce((sum, r) => sum + (r.dataTypeMapping?.filter((d: any) => d.quality === 'manual').length || 0), 0);
+  const unmapped = report.results.reduce((sum, r) => sum + (r.dataTypeMapping?.filter((d: any) => d.quality === 'unmapped').length || 0), 0);
+  const dataTypePieData = {
+    labels: ['Auto-mapped', 'Manual-mapped', 'Unmapped'],
+    datasets: [
+      {
+        data: [autoMapped, manualMapped, unmapped],
+        backgroundColor: ['#22c55e', '#eab308', '#ef4444'],
+        borderWidth: 1,
+      },
+    ],
+  };
+  const dataTypePieOptions = {
+    animation: { animateRotate: true, duration: 1200 },
+    plugins: { legend: { display: true, position: 'bottom' as 'bottom' } },
+    cutout: '60%',
+  };
+  // Schema Change
+  const schemaChange = (report as any).schemaChange || { tablesAdded: 0, tablesRemoved: 0, tablesChanged: 0, columnsAdded: 0, columnsRemoved: 0, columnsChanged: 0 };
+  const schemaBarData = {
+    labels: ['Tables Added', 'Tables Removed', 'Tables Changed', 'Columns Added', 'Columns Removed', 'Columns Changed'],
+    datasets: [
+      {
+        label: 'Schema Change',
+        data: [schemaChange.tablesAdded, schemaChange.tablesRemoved, schemaChange.tablesChanged, schemaChange.columnsAdded, schemaChange.columnsRemoved, schemaChange.columnsChanged],
+        backgroundColor: '#60a5fa',
+      },
+    ],
+  };
+  const schemaBarOptions = {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    animation: { duration: 1200 },
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'Count' } } },
+  };
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Card>
@@ -396,8 +434,8 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                 <Badge className="flex items-center gap-1 bg-green-100 text-green-700"><Check className="h-4 w-4" /> {report.successCount} Success</Badge>
                 <Badge className="flex items-center gap-1 bg-yellow-100 text-yellow-700"><AlertTriangle className="h-4 w-4" /> {report.warningCount} Warning</Badge>
                 <Badge className="flex items-center gap-1 bg-red-100 text-red-700"><X className="h-4 w-4" /> {report.errorCount} Error</Badge>
-                <Badge className="flex items-center gap-1 bg-blue-100 text-blue-700"><span className="font-bold">{totalManualEdits}</span> Manual Edits</Badge>
-                <Badge className="flex items-center gap-1 bg-purple-100 text-purple-700"><span className="font-bold">{avgComplexityChange}</span> Avg. Complexity Δ</Badge>
+                <Badge className="flex items-center gap-1 bg-blue-100 text-blue-700"><span className="font-bold">{autoMapped}</span> Auto-mapped</Badge>
+                <Badge className="flex items-center gap-1 bg-purple-100 text-purple-700"><span className="font-bold">{schemaChange.tablesAdded + schemaChange.tablesRemoved + schemaChange.tablesChanged + schemaChange.columnsAdded + schemaChange.columnsRemoved + schemaChange.columnsChanged}</span> Schema Changes</Badge>
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
@@ -432,28 +470,12 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
               )}
             </div>
             <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-              <h3 className="text-base font-semibold mb-2">Cyclomatic Complexity</h3>
-              <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (Complexity Score)</span>
-              <Bar data={complexityBarData} options={barOptions} style={{ maxHeight: 220 }} />
-              {totalPages > 1 && (
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" variant="outline" onClick={() => setComplexityPage(complexityPage - 1)} disabled={complexityPage === 0}>Prev</Button>
-                  <span className="text-xs text-gray-500">Page {complexityPage + 1} of {totalPages}</span>
-                  <Button size="sm" variant="outline" onClick={() => setComplexityPage(complexityPage + 1)} disabled={complexityPage === totalPages - 1}>Next</Button>
-                </div>
-              )}
+              <h3 className="text-base font-semibold mb-2">Data Type Mapping Quality</h3>
+              <Pie data={dataTypePieData} options={dataTypePieOptions} style={{ maxWidth: 220 }} />
             </div>
             <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-              <h3 className="text-base font-semibold mb-2">Comment Ratio</h3>
-              <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (% of lines that are comments)</span>
-              <Bar data={commentBarData} options={barOptions} style={{ maxHeight: 220 }} />
-              {totalPages > 1 && (
-                <div className="flex gap-2 mt-2">
-                  <Button size="sm" variant="outline" onClick={() => setCommentPage(commentPage - 1)} disabled={commentPage === 0}>Prev</Button>
-                  <span className="text-xs text-gray-500">Page {commentPage + 1} of {totalPages}</span>
-                  <Button size="sm" variant="outline" onClick={() => setCommentPage(commentPage + 1)} disabled={commentPage === totalPages - 1}>Next</Button>
-                </div>
-              )}
+              <h3 className="text-base font-semibold mb-2">Schema Change</h3>
+              <Bar data={schemaBarData} options={schemaBarOptions} style={{ maxHeight: 220 }} />
             </div>
           </div>
           
