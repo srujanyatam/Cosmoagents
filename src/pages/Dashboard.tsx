@@ -226,39 +226,41 @@ const Dashboard = () => {
   };
 
   const handleMoveToDevReview = async () => {
-    // Add all files in conversion to Dev Review (unreviewed_files)
-    for (const file of files) {
-      if (file.content && file.convertedContent) {
-        await addUnreviewedFile({
-          user_id: user.id,
-          file_name: file.name,
-          converted_code: file.convertedContent,
-          ai_generated_code: (file as any).aiGeneratedCode || file.convertedContent, // Store original AI output
-          original_code: file.content,
-          data_type_mapping: file.dataTypeMapping,
-          issues: file.issues,
-          performance_metrics: file.performanceMetrics || {},
-        });
+    try {
+      for (const file of files) {
+        if (file.content && file.convertedContent) {
+          await addUnreviewedFile({
+            user_id: user.id,
+            file_name: file.name,
+            converted_code: file.convertedContent,
+            ai_generated_code: (file as any).aiGeneratedCode || file.convertedContent, // Store original AI output
+            original_code: file.content,
+            data_type_mapping: file.dataTypeMapping,
+            issues: file.issues,
+            performance_metrics: file.performanceMetrics || {},
+          });
+        }
       }
+      setFiles([]);
+      setSelectedFile(null);
+      setConversionResults([]);
+      await refreshUnreviewedFiles();
+      setActiveTab('devReview');
+    } catch (error) {
+      console.error('Error moving files to Dev Review:', error);
+      toast({
+        title: 'Move to Dev Review Failed',
+        description: 'An error occurred while moving files to Dev Review.',
+        variant: 'destructive',
+      });
     }
-    // Clear conversion files
-    setFiles([]);
-    setSelectedFile(null);
-    setConversionResults([]);
-    // Ensure unreviewed files are refreshed before switching tab
-    await refreshUnreviewedFiles();
-    setActiveTab('devReview');
   };
 
   const handleCompleteMigration = async () => {
-    // No confirmation popup or pending state
     try {
-      // Refresh the list to get the latest reviewed files
       await refreshUnreviewedFiles();
-      // If in Dev Review, use unreviewedFiles for the report
       let reportResults = [];
       if (activeTab === 'devReview') {
-        // Only include reviewed files in the report
         reportResults = unreviewedFiles
           .filter(f => f.status === 'reviewed')
           .map(f => ({
@@ -270,7 +272,7 @@ const Dashboard = () => {
               type: (f.file_name.toLowerCase().includes('trig') ? 'trigger' : f.file_name.toLowerCase().includes('proc') ? 'procedure' : f.file_name.toLowerCase().includes('tab') ? 'table' : 'other'),
               status: 'success',
             },
-            aiGeneratedCode: (f as any).aiGeneratedCode || f.converted_code || '', // Preserve if exists, fallback for legacy
+            aiGeneratedCode: (f as any).aiGeneratedCode || f.converted_code || '',
             convertedCode: f.converted_code,
             issues: f.issues || [],
             dataTypeMapping: f.data_type_mapping || [],
@@ -279,7 +281,6 @@ const Dashboard = () => {
             explanations: [],
           }));
       } else {
-        // fallback to files state (conversion tab)
         reportResults = files.map(file => ({
           id: file.id,
           originalFile: {
@@ -289,7 +290,7 @@ const Dashboard = () => {
             type: file.type,
             status: 'success',
           },
-          aiGeneratedCode: (file as any).aiGeneratedCode || file.convertedContent || '', // Preserve if exists, fallback for legacy
+          aiGeneratedCode: (file as any).aiGeneratedCode || file.convertedContent || '',
           convertedCode: file.convertedContent || '',
           issues: file.issues || [],
           dataTypeMapping: file.dataTypeMapping || [],
@@ -298,38 +299,20 @@ const Dashboard = () => {
           explanations: [],
         }));
       }
-      // Generate summary
+      // Generate summary (no DB save)
       const reportSummary = (await import('@/utils/conversionUtils')).generateConversionReport(reportResults);
-      const report = {
-        timestamp: new Date().toISOString(),
-        filesProcessed: reportResults.length,
-        successCount: reportResults.filter(r => r.status === 'success').length,
-        warningCount: reportResults.filter(r => r.status === 'warning').length,
-        errorCount: reportResults.filter(r => r.status === 'error').length,
-        results: reportResults,
-        summary: reportSummary,
-      };
-      // Save to Supabase migration_reports
-      /*
-      const { data, error } = await (await import('@/integrations/supabase/client')).supabase
-        .from('migration_reports')
-        .insert({
-          report: report,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      */
-
-      // After saving the report, move all files to history and remove from unreviewed_files
-      // (No longer add files to migrations/migration_files here. This is now done after deployment to Oracle.)
-      navigate('/report/placeholder');
+      // Show a toast for completion
+      toast({
+        title: 'Migration Complete',
+        description: 'Your migration is complete. You can now view the results or start a new migration.',
+      });
+      navigate('/');
     } catch (error) {
       console.error('Error generating report:', error);
       toast({
-        title: "Report Generation Failed",
-        description: "Failed to generate the conversion report",
-        variant: "destructive",
+        title: 'Complete Migration Failed',
+        description: 'An error occurred while completing the migration.',
+        variant: 'destructive',
       });
     }
   };
