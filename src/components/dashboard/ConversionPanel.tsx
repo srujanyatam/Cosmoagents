@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Download } from 'lucide-react';
 import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface FileItem {
   id: string;
@@ -78,14 +79,29 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   // Compute filtered file list for navigation (should match FileTreeView's filter logic)
   const [searchTerm, setSearchTerm] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('All');
+  const [selectedFileIds, setSelectedFileIds] = React.useState<string[]>([]);
+  const [showResetDialog, setShowResetDialog] = React.useState(false);
+
+  const handleBatchConvert = () => {
+    selectedFileIds.forEach(fileId => {
+      onConvertFile(fileId);
+    });
+  };
+
+  const handleResetMigration = () => {
+    // This function will be implemented in a future edit to handle resetting migration
+    console.log('Reset migration');
+    setShowResetDialog(false);
+    onUploadRedirect();
+  };
+
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
       statusFilter === 'All' ? true :
       statusFilter === 'Pending' ? file.conversionStatus === 'pending' :
       statusFilter === 'Success' ? file.conversionStatus === 'success' :
-      statusFilter === 'Failed' ? file.conversionStatus === 'failed' :
-      statusFilter === 'Pending Review' ? file.conversionStatus === 'pending_review' : true;
+      statusFilter === 'Failed' ? file.conversionStatus === 'failed' : true;
     return matchesSearch && matchesStatus;
   });
   // Group filtered files by type to match sidebar order
@@ -116,14 +132,37 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
           selectedFile={selectedFile}
           isConverting={isConverting}
           convertingFileIds={convertingFileIds}
-          onClear={onClear}
           hideActions={false}
           defaultExpandedSections={['tables','procedures','triggers']}
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           onSearchTermChange={setSearchTerm}
           onStatusFilterChange={setStatusFilter}
+          onSelectedFilesChange={setSelectedFileIds}
+          onResetMigration={handleResetMigration}
         />
+        <Button
+          onClick={handleBatchConvert}
+          disabled={isConverting || selectedFileIds.length === 0}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Convert Selected ({selectedFileIds.length})
+        </Button>
+        <Button variant="destructive" onClick={() => setShowResetDialog(true)} className="text-xs px-3 py-1 h-7">
+          Reset Migration
+        </Button>
+        <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reset Migration?</DialogTitle>
+            </DialogHeader>
+            <div className="py-2">Are you sure you want to reset the current migration? This will clear all uploaded files and progress.</div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowResetDialog(false)}>Cancel</Button>
+              <Button variant="destructive" onClick={() => { setShowResetDialog(false); onUploadRedirect(); }}>OK</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="col-span-8">

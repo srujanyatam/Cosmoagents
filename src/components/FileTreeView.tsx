@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -48,6 +48,8 @@ interface FileTreeViewProps {
   statusFilter?: string;
   onSearchTermChange?: (term: string) => void;
   onStatusFilterChange?: (status: string) => void;
+  onSelectedFilesChange?: (selected: string[]) => void;
+  onResetMigration?: () => void;
 }
 
 const FileTreeView: React.FC<FileTreeViewProps> = ({
@@ -67,10 +69,31 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
   statusFilter = 'All',
   onSearchTermChange,
   onStatusFilterChange,
+  onSelectedFilesChange,
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(defaultExpandedSections)
   );
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+  const allFilesCheckboxRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (onSelectedFilesChange) onSelectedFilesChange(selectedFiles);
+  }, [selectedFiles]);
+
+  const selectAllFiles = () => {
+    if (selectedFiles.length === filteredFiles.length) {
+      setSelectedFiles([]);
+    } else {
+      setSelectedFiles(filteredFiles.map(f => f.id));
+    }
+  };
+
+  const toggleFile = (fileId: string) => {
+    setSelectedFiles(prev =>
+      prev.includes(fileId) ? prev.filter(id => id !== fileId) : [...prev, fileId]
+    );
+  };
 
   // Filter files by search and status
   const filteredFiles = files.filter(file => {
@@ -80,7 +103,7 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
       statusFilter === 'Pending' ? file.conversionStatus === 'pending' :
       statusFilter === 'Success' ? file.conversionStatus === 'success' :
       statusFilter === 'Failed' ? file.conversionStatus === 'failed' :
-      statusFilter === 'Reviewed' ? file.conversionStatus === 'reviewed' : true;
+      statusFilter === 'Reviewed' ? false : true;
     return matchesSearch && matchesStatus;
   });
 
@@ -170,6 +193,13 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
                 onClick={() => onFileSelect(file)}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <input
+                    type="checkbox"
+                    checked={selectedFiles.includes(file.id)}
+                    onChange={() => toggleFile(file.id)}
+                    className="mr-2"
+                    aria-label={`Select file ${file.name}`}
+                  />
                   <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
                   <span className={cn(
                     "text-sm truncate",
@@ -229,8 +259,18 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
     <Card className="h-full">
       {!hideActions && (
         <CardHeader className="pb-3 flex flex-col gap-2">
-          <div className="flex flex-row items-center justify-between w-full mb-2">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              ref={allFilesCheckboxRef}
+              checked={filteredFiles.length > 0 && filteredFiles.every(f => selectedFiles.includes(f.id))}
+              onChange={selectAllFiles}
+              className="mr-2"
+              aria-label="Select all files"
+            />
             <CardTitle className="text-lg">Project Structure</CardTitle>
+          </div>
+          <div className="flex flex-row items-center justify-between w-full mb-2">
             <div className="flex gap-2">
               {onClear && files.length > 0 && (
                 <Button variant="destructive" onClick={onClear} className="text-xs px-3 py-1 h-7">
