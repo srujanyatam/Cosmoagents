@@ -114,7 +114,7 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const totalToConvert = isBatchMode ? selectedFileIds.length : files.length;
   const convertedCount = filesForProgress.filter(f => f.conversionStatus === 'success').length;
   const inProgressCount = convertingFileIds.filter(id => filesForProgress.some(f => f.id === id)).length;
-  const percent = totalToConvert > 0 ? Math.round(((convertedCount + inProgressCount) / totalToConvert) * 100) : 0;
+  const percent = totalToConvert > 0 ? Math.round((convertedCount / totalToConvert) * 100) : 0;
   const filesRemaining = totalToConvert - convertedCount - inProgressCount;
   const avgTimePerFile = 6; // seconds, more realistic
   const estimatedTime = filesRemaining > 0 ? filesRemaining * avgTimePerFile : 0;
@@ -176,6 +176,9 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
           <div className="flex justify-between items-center w-full">
             <span className="text-xs text-gray-700 font-medium">{percent}%</span>
             <span className="text-xs text-gray-500">{totalToConvert > 0 ? `Est: ${formatTime(estimatedTime)}` : 'No files selected'}</span>
+          </div>
+          <div className="flex justify-end w-full mt-1">
+            <span className="text-[10px] text-gray-400">{convertedCount}/{totalToConvert} converted</span>
           </div>
         </div>
         <FileTreeView
