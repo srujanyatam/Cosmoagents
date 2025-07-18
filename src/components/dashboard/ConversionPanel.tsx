@@ -81,11 +81,23 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const [statusFilter, setStatusFilter] = React.useState('All');
   const [selectedFileIds, setSelectedFileIds] = React.useState<string[]>([]);
   const [showResetDialog, setShowResetDialog] = React.useState(false);
+  const [isBatchConverting, setIsBatchConverting] = React.useState(false);
+  const [batchProgress, setBatchProgress] = React.useState<number>(0);
 
-  const handleBatchConvert = () => {
-    selectedFileIds.forEach(fileId => {
-      onConvertFile(fileId);
-    });
+  const handleBatchConvert = async () => {
+    setIsBatchConverting(true);
+    setBatchProgress(0);
+    const batchSize = 5;
+    for (let i = 0; i < selectedFileIds.length; i += batchSize) {
+      const batch = selectedFileIds.slice(i, i + batchSize);
+      // Convert all files in the batch in parallel
+      await Promise.all(batch.map(fileId => Promise.resolve(onConvertFile(fileId))));
+      setBatchProgress(i + batch.length);
+      if (i + batchSize < selectedFileIds.length) {
+        await new Promise(res => setTimeout(res, 2000)); // 2 second gap between batches
+      }
+    }
+    setIsBatchConverting(false);
   };
 
   const handleResetMigration = () => {
@@ -122,6 +134,19 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   return (
     <div className="grid grid-cols-12 gap-6">
       <div className="col-span-4">
+        {/* Move buttons above file sections */}
+        <div className="flex flex-col gap-2 mb-4">
+          <Button
+            onClick={handleBatchConvert}
+            disabled={isConverting || isBatchConverting || selectedFileIds.length === 0}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isBatchConverting ? `Converting... (${batchProgress}/${selectedFileIds.length})` : `Convert Selected (${selectedFileIds.length})`}
+          </Button>
+          <Button variant="destructive" onClick={() => setShowResetDialog(true)} className="text-xs px-3 py-1 h-7">
+            Reset Migration
+          </Button>
+        </div>
         <FileTreeView
           files={files}
           onFileSelect={onFileSelect}
@@ -130,8 +155,8 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
           onConvertAll={onConvertAll}
           onFixFile={onFixFile}
           selectedFile={selectedFile}
-          isConverting={isConverting}
-          convertingFileIds={convertingFileIds}
+          isConverting={isConverting || isBatchConverting}
+          convertingFileIds={convertingFileIds.concat(isBatchConverting ? selectedFileIds : [])}
           hideActions={false}
           defaultExpandedSections={['tables','procedures','triggers']}
           searchTerm={searchTerm}
@@ -141,16 +166,6 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
           onSelectedFilesChange={setSelectedFileIds}
           onResetMigration={handleResetMigration}
         />
-        <Button
-          onClick={handleBatchConvert}
-          disabled={isConverting || selectedFileIds.length === 0}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Convert Selected ({selectedFileIds.length})
-        </Button>
-        <Button variant="destructive" onClick={() => setShowResetDialog(true)} className="text-xs px-3 py-1 h-7">
-          Reset Migration
-        </Button>
         <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
           <DialogContent>
             <DialogHeader>
