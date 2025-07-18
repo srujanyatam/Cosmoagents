@@ -351,6 +351,37 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
     toast({ title: 'Report Downloaded', description: 'Excel report downloaded.' });
   };
   
+  // Compute summary stats
+  const totalManualEdits = report.results.filter(r => Boolean((r as any).manualEdits)).length;
+  const avgComplexityChange = report.results.length > 0 ? (
+    report.results.reduce((sum, r) => sum + (((r.performance && 'complexityAfter' in r.performance ? (r.performance as any).complexityAfter : 0) - (r.performance && 'complexityBefore' in r.performance ? (r.performance as any).complexityBefore : 0))), 0) / report.results.length
+  ).toFixed(2) : '0';
+  // Pagination for complexity and comment ratio charts
+  const [complexityPage, setComplexityPage] = useState(0);
+  const complexityPagedResults = report.results.slice(complexityPage * filesPerPage, (complexityPage + 1) * filesPerPage);
+  const complexityNames = complexityPagedResults.map(r => r.originalFile.name);
+  const complexityBefore = complexityPagedResults.map(r => r.performance && 'complexityBefore' in r.performance ? (r.performance as any).complexityBefore : 0);
+  const complexityAfter = complexityPagedResults.map(r => r.performance && 'complexityAfter' in r.performance ? (r.performance as any).complexityAfter : 0);
+  const complexityBarData = {
+    labels: complexityNames,
+    datasets: [
+      { label: 'Before Migration', data: complexityBefore, backgroundColor: '#fbbf24' },
+      { label: 'After Migration', data: complexityAfter, backgroundColor: '#6366f1' },
+    ],
+  };
+  const [commentPage, setCommentPage] = useState(0);
+  const commentPagedResults = report.results.slice(commentPage * filesPerPage, (commentPage + 1) * filesPerPage);
+  const commentNames = commentPagedResults.map(r => r.originalFile.name);
+  const commentBefore = commentPagedResults.map(r => r.performance && 'commentRatioBefore' in r.performance ? (r.performance as any).commentRatioBefore : 0);
+  const commentAfter = commentPagedResults.map(r => r.performance && 'commentRatioAfter' in r.performance ? (r.performance as any).commentRatioAfter : 0);
+  const commentBarData = {
+    labels: commentNames,
+    datasets: [
+      { label: 'Before Migration', data: commentBefore, backgroundColor: '#f472b6' },
+      { label: 'After Migration', data: commentAfter, backgroundColor: '#34d399' },
+    ],
+  };
+  
   return (
     <div className="w-full max-w-4xl mx-auto">
       <Card>
@@ -365,6 +396,8 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                 <Badge className="flex items-center gap-1 bg-green-100 text-green-700"><Check className="h-4 w-4" /> {report.successCount} Success</Badge>
                 <Badge className="flex items-center gap-1 bg-yellow-100 text-yellow-700"><AlertTriangle className="h-4 w-4" /> {report.warningCount} Warning</Badge>
                 <Badge className="flex items-center gap-1 bg-red-100 text-red-700"><X className="h-4 w-4" /> {report.errorCount} Error</Badge>
+                <Badge className="flex items-center gap-1 bg-blue-100 text-blue-700"><span className="font-bold">{totalManualEdits}</span> Manual Edits</Badge>
+                <Badge className="flex items-center gap-1 bg-purple-100 text-purple-700"><span className="font-bold">{avgComplexityChange}</span> Avg. Complexity Δ</Badge>
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
@@ -395,6 +428,30 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                   <Button size="sm" variant="outline" onClick={() => setBarPage(barPage - 1)} disabled={barPage === 0}>Prev</Button>
                   <span className="text-xs text-gray-500">Page {barPage + 1} of {totalPages}</span>
                   <Button size="sm" variant="outline" onClick={() => setBarPage(barPage + 1)} disabled={barPage === totalPages - 1}>Next</Button>
+                </div>
+              )}
+            </div>
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+              <h3 className="text-base font-semibold mb-2">Cyclomatic Complexity</h3>
+              <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (Complexity Score)</span>
+              <Bar data={complexityBarData} options={barOptions} style={{ maxHeight: 220 }} />
+              {totalPages > 1 && (
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" variant="outline" onClick={() => setComplexityPage(complexityPage - 1)} disabled={complexityPage === 0}>Prev</Button>
+                  <span className="text-xs text-gray-500">Page {complexityPage + 1} of {totalPages}</span>
+                  <Button size="sm" variant="outline" onClick={() => setComplexityPage(complexityPage + 1)} disabled={complexityPage === totalPages - 1}>Next</Button>
+                </div>
+              )}
+            </div>
+            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
+              <h3 className="text-base font-semibold mb-2">Comment Ratio</h3>
+              <span className="text-xs text-gray-500 mb-2">Before = Sybase, After = Oracle (% of lines that are comments)</span>
+              <Bar data={commentBarData} options={barOptions} style={{ maxHeight: 220 }} />
+              {totalPages > 1 && (
+                <div className="flex gap-2 mt-2">
+                  <Button size="sm" variant="outline" onClick={() => setCommentPage(commentPage - 1)} disabled={commentPage === 0}>Prev</Button>
+                  <span className="text-xs text-gray-500">Page {commentPage + 1} of {totalPages}</span>
+                  <Button size="sm" variant="outline" onClick={() => setCommentPage(commentPage + 1)} disabled={commentPage === totalPages - 1}>Next</Button>
                 </div>
               )}
             </div>
