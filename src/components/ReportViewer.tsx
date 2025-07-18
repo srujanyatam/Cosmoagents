@@ -434,8 +434,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                 <Badge className="flex items-center gap-1 bg-green-100 text-green-700"><Check className="h-4 w-4" /> {report.successCount} Success</Badge>
                 <Badge className="flex items-center gap-1 bg-yellow-100 text-yellow-700"><AlertTriangle className="h-4 w-4" /> {report.warningCount} Warning</Badge>
                 <Badge className="flex items-center gap-1 bg-red-100 text-red-700"><X className="h-4 w-4" /> {report.errorCount} Error</Badge>
-                <Badge className="flex items-center gap-1 bg-blue-100 text-blue-700"><span className="font-bold">{autoMapped}</span> Auto-mapped</Badge>
-                <Badge className="flex items-center gap-1 bg-purple-100 text-purple-700"><span className="font-bold">{schemaChange.tablesAdded + schemaChange.tablesRemoved + schemaChange.tablesChanged + schemaChange.columnsAdded + schemaChange.columnsRemoved + schemaChange.columnsChanged}</span> Schema Changes</Badge>
               </div>
             </div>
             <div className="flex flex-col gap-2 items-end">
@@ -468,14 +466,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({
                   <Button size="sm" variant="outline" onClick={() => setBarPage(barPage + 1)} disabled={barPage === totalPages - 1}>Next</Button>
                 </div>
               )}
-            </div>
-            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-              <h3 className="text-base font-semibold mb-2">Data Type Mapping Quality</h3>
-              <Pie data={dataTypePieData} options={dataTypePieOptions} style={{ maxWidth: 220 }} />
-            </div>
-            <div className="bg-white rounded-lg shadow p-4 flex flex-col items-center">
-              <h3 className="text-base font-semibold mb-2">Schema Change</h3>
-              <Bar data={schemaBarData} options={schemaBarOptions} style={{ maxHeight: 220 }} />
             </div>
           </div>
           
