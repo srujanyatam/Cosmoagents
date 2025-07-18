@@ -135,15 +135,21 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
     <div className="grid grid-cols-12 gap-6">
       <div className="col-span-4">
         {/* Move buttons above file sections */}
-        <div className="flex flex-col gap-2 mb-4">
+        <div className="flex flex-row gap-2 mb-2 items-center justify-start">
           <Button
+            size="sm"
             onClick={handleBatchConvert}
             disabled={isConverting || isBatchConverting || selectedFileIds.length === 0}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1"
           >
             {isBatchConverting ? `Converting... (${batchProgress}/${selectedFileIds.length})` : `Convert Selected (${selectedFileIds.length})`}
           </Button>
-          <Button variant="destructive" onClick={() => setShowResetDialog(true)} className="text-xs px-3 py-1 h-7">
+          <Button 
+            size="sm"
+            variant="destructive" 
+            onClick={() => setShowResetDialog(true)} 
+            className="px-3 py-1"
+          >
             Reset Migration
           </Button>
         </div>
