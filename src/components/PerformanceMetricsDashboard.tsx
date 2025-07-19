@@ -340,7 +340,13 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               <p className="text-sm text-muted-foreground">Original Complexity</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{totalConvertedComplexity}</p>
+              <p className={`text-2xl font-bold ${
+                totalConvertedComplexity < totalOriginalComplexity
+                  ? 'text-green-600'
+                  : totalConvertedComplexity > totalOriginalComplexity
+                    ? 'text-red-600'
+                    : 'text-gray-600'
+              }`}>{totalConvertedComplexity}</p>
               <p className="text-sm text-muted-foreground">Converted Complexity</p>
             </div>
             <div className="text-center">
@@ -350,10 +356,15 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
           </div>
           <div className="mt-4">
             <div className="flex justify-between text-sm mb-2">
-              <span>Complexity Improvement</span>
+              <span>{diffComplexity < 0 ? 'Complexity Reduction' : diffComplexity > 0 ? 'Complexity Increase' : 'No Change'}</span>
               <span className={complexityColor}>{complexityPercentLabel}</span>
             </div>
-            <Progress value={Math.min(Math.abs(percentComplexityChange), 100)} className="h-2" />
+            <div className={`w-full rounded-full h-2 ${diffComplexity < 0 ? 'bg-green-200' : diffComplexity > 0 ? 'bg-red-200' : 'bg-gray-200'}`}> 
+              <div 
+                className={`${diffComplexity < 0 ? 'bg-green-500' : diffComplexity > 0 ? 'bg-red-500' : 'bg-gray-400'} h-2 rounded-full transition-all duration-300`} 
+                style={{ width: `${Math.min(Math.abs(percentComplexityChange), 100)}%` }}
+              ></div>
+            </div>
           </div>
         </CardContent>
       </Card>
