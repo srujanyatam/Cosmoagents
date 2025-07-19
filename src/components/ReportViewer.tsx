@@ -323,7 +323,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                 ))}
               </tbody>
             </table>
-          </ScrollArea>
+            </ScrollArea>
         </CardContent>
       </Card>
 
