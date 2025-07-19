@@ -259,7 +259,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
       {/* Sidebar */}
       <div className="flex flex-col h-full w-[400px] min-w-[350px] max-w-[440px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
         {/* Unified Dev Review Sidebar */}
-        <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800">
+        <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800 flex-1 flex flex-col">
           {/* Header/Search/Filter */}
           <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
             <div className="flex items-center gap-2 mb-2">
@@ -376,6 +376,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
             )}
           </CardContent>
         </Card>
+       
       </div>
       {/* Main Panel */}
       <div className="flex-1 min-w-0">

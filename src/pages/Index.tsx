@@ -443,7 +443,7 @@ const Index = () => {
         {renderCurrentStep()}
       </main>
       
-      <footer className="bg-muted py-6 mt-12">
+      <footer className="bg-muted py-1">
         <div className="container mx-auto px-4 text-center text-muted-foreground text-sm">
           <p>Sybase to Oracle Migration Tool - Powered by AI</p>
         </div>
