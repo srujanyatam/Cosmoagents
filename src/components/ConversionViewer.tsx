@@ -181,7 +181,6 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               <div className="flex items-start">
                 <div className="flex-1">
                   <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
-                  {/* Human Edits Metric */}
                   {isEditing ? (
                     hideEdit ? (
                       <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
@@ -245,14 +244,33 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               </div>
             </div>
           ) : (
-            <div>
-              <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
-              <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                {file.content}
-              </pre>
+            <div className="relative flex items-start justify-center">
+              {hasPrev && onPrevFile && (
+                <button
+                  className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
+                  onClick={onPrevFile}
+                  aria-label="Previous file"
+                >
+                  <ArrowLeft className="h-6 w-6" />
+                </button>
+              )}
+              <div className="flex-1 w-full">
+                <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
+                <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
+                  {file.content}
+                </pre>
+              </div>
+              {hasNext && onNextFile && (
+                <button
+                  className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
+                  onClick={onNextFile}
+                  aria-label="Next file"
+                >
+                  <ArrowRight className="h-6 w-6" />
+                </button>
+              )}
             </div>
           )}
-          
           {file.errorMessage && (
             <div>
               <h3 className="text-sm font-medium mb-2 text-red-700">Error:</h3>
