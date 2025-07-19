@@ -12,6 +12,7 @@ import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface DevReviewPanelProps {
   canCompleteMigration: boolean;
@@ -28,6 +29,8 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [showReviewed, setShowReviewed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
+  const [showClearReviewedDialog, setShowClearReviewedDialog] = useState(false);
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,22 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
     );
   };
 
+  // Clear all unreviewed files
+  const handleClearAllUnreviewed = async () => {
+    for (const file of pendingFiles) {
+      await deleteUnreviewedFile(file.id);
+    }
+    setShowClearUnreviewedDialog(false);
+  };
+
+  // Clear all reviewed files
+  const handleClearAllReviewed = async () => {
+    for (const file of reviewedFiles) {
+      await deleteUnreviewedFile(file.id);
+    }
+    setShowClearReviewedDialog(false);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -238,49 +257,63 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   return (
     <div className="flex gap-8 relative min-h-[500px] pb-20">
       {/* Sidebar */}
-      <div className="flex flex-col h-full w-[340px] min-w-[280px] max-w-[380px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-        {/* Sticky Header */}
-        <div className="mb-4">
-          <div className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-blue-100 dark:border-slate-800">
-            <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-6 w-6 text-orange-500" />
-                <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
-              </div>
-              <div className="flex gap-2 w-full">
-                <input
-                  type="text"
-                  placeholder="Search files..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="flex-1 px-3 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
-                />
-                <select
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  className="px-2 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
-                >
-                  <option value="All">All</option>
-                  <option value="Pending">Pending</option>
-                  <option value="Reviewed">Reviewed</option>
-                </select>
-              </div>
+      <div className="flex flex-col h-full w-[400px] min-w-[350px] max-w-[440px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        {/* Unified Dev Review Sidebar */}
+        <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800 flex-1 flex flex-col">
+          {/* Header/Search/Filter */}
+          <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="h-6 w-6 text-orange-500" />
+              <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
+            </div>
+            <div className="flex gap-2 w-full">
+              <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="flex-1 px-3 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
+              />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="px-2 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
+              >
+                <option value="All">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Reviewed">Reviewed</option>
+              </select>
             </div>
           </div>
-        </div>
-        {/* Unreviewed Files Section (no inner scroll) */}
-        <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800">
+          {/* Unreviewed Files Section (no inner scroll) */}
           <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
             <div className="flex items-center justify-between">
               <div className="font-bold text-orange-600 text-lg flex items-center gap-2">
                 <Folder className="h-4 w-4 text-orange-500" />
                 Unreviewed Files <Badge className="ml-1" variant="secondary">{pendingFiles.length}</Badge>
               </div>
-              <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
-                {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                {pendingFiles.length > 0 && (
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
+                )}
+                <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
+                  {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
           </CardHeader>
+          <Dialog open={showClearUnreviewedDialog} onOpenChange={setShowClearUnreviewedDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clear All Unreviewed Files?</DialogTitle>
+              </DialogHeader>
+              <div className="py-2">Are you sure you want to clear all unreviewed files? This action cannot be undone.</div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearUnreviewedDialog(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleClearAllUnreviewed}>Clear All</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <CardContent className="pt-0 pb-2">
             {showUnreviewed && (
               <FileTreeView
@@ -297,25 +330,40 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               />
             )}
           </CardContent>
-        </Card>
-        {/* Reviewed Files Section (no inner scroll) */}
-        <Card className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-slate-800">
+          {/* Reviewed Files Section (no inner scroll) */}
           <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
             <div className="flex items-center justify-between">
               <div className="font-semibold text-green-700 flex items-center gap-2">
                 <Folder className="h-4 w-4 text-green-600" />
                 Reviewed Files <Badge className="ml-1" variant="secondary">{reviewedFiles.length}</Badge>
               </div>
-              <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
-                {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                {reviewedFiles.length > 0 && (
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
+                )}
+                <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
+                  {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
           </CardHeader>
+          <Dialog open={showClearReviewedDialog} onOpenChange={setShowClearReviewedDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clear All Reviewed Files?</DialogTitle>
+              </DialogHeader>
+              <div className="py-2">Are you sure you want to clear all reviewed files? This action cannot be undone.</div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearReviewedDialog(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleClearAllReviewed}>Clear All</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <CardContent className="pt-0 pb-2">
             {showReviewed && (
-        <FileTreeView
+              <FileTreeView
                 files={mappedReviewedFiles}
-          onFileSelect={file => setSelectedFileId(file.id)}
+                onFileSelect={file => setSelectedFileId(file.id)}
                 selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
                 hideActions={true}
                 defaultExpandedSections={[]}
@@ -328,6 +376,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
             )}
           </CardContent>
         </Card>
+       
       </div>
       {/* Main Panel */}
       <div className="flex-1 min-w-0">
@@ -370,25 +419,25 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 </div>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ConversionViewer
-                  file={mapToFileItem(selectedFile)}
+            <ConversionViewer
+                file={mapToFileItem(selectedFile)}
                   onManualEdit={newContent => handleSaveEdit(selectedFile, newContent)}
-                  onDismissIssue={() => {}}
+              onDismissIssue={() => {}}
                   hideEdit={selectedFile.status === 'reviewed'}
-                  onPrevFile={hasPrev ? () => setSelectedFileId(allFilteredFiles[currentIndex - 1].id) : undefined}
-                  onNextFile={hasNext ? () => setSelectedFileId(allFilteredFiles[currentIndex + 1].id) : undefined}
-                  hasPrev={hasPrev}
-                  hasNext={hasNext}
-                />
+              onPrevFile={hasPrev ? () => setSelectedFileId(allFilteredFiles[currentIndex - 1].id) : undefined}
+              onNextFile={hasNext ? () => setSelectedFileId(allFilteredFiles[currentIndex + 1].id) : undefined}
+              hasPrev={hasPrev}
+              hasNext={hasNext}
+            />
               </CardContent>
               <CardFooter className="flex justify-end gap-4">
                 {/* Action Buttons previously outside the card, now inside */}
                 {/* Place your Mark as Reviewed, Delete File, etc. buttons here. Example: */}
-                {selectedFile.status !== 'reviewed' && (
+              {selectedFile.status !== 'reviewed' && (
                   <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleMarkAsReviewed(selectedFile)}>
                     Mark as Reviewed
-                  </Button>
-                )}
+              </Button>
+              )}
                 <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => handleDelete(selectedFile.id)}>
                   Delete File
                 </Button>

@@ -199,14 +199,9 @@ const analyzeCodeComplexity = (code: string) => {
   // Custom maintainability index: more sensitive, not stuck at 100
   let maintainabilityIndex = 100;
   maintainabilityIndex -= (complexity - 1) * 2;
-  maintainabilityIndex -= (codeLines - 50) * 0.5;
-  maintainabilityIndex -= (commentLines < codeLines * 0.1 ? 10 : 0);
+  maintainabilityIndex -= Math.max(0, codeLines - 10) * 1; // start penalizing after 10 lines
+  maintainabilityIndex -= (commentLines < codeLines * 0.15 ? 15 : 0); // require 15% comments
   maintainabilityIndex = Math.max(0, Math.min(100, Math.round(maintainabilityIndex)));
-  console.log('[PERF] complexity:', complexity);
-  console.log('[PERF] codeLines:', codeLines);
-  console.log('[PERF] commentLines:', commentLines);
-  console.log('[PERF] maintainabilityIndex:', maintainabilityIndex);
-
   return {
     totalLines,
     codeLines,
@@ -250,8 +245,9 @@ const generatePerformanceMetrics = (
   originalCode: string,
   convertedCode: string
 ) => {
+  // Use cyclomatic complexity for improvement calculation, allow negative values
   const improvementPercentage = Math.round(
-    ((originalComplexity.maintainabilityIndex - convertedComplexity.maintainabilityIndex) / originalComplexity.maintainabilityIndex) * 100
+    ((originalComplexity.cyclomaticComplexity - convertedComplexity.cyclomaticComplexity) / originalComplexity.cyclomaticComplexity) * 100
   );
   
   // Calculate lines reduced
@@ -269,12 +265,6 @@ const generatePerformanceMetrics = (
   const linesIncrease = Math.max(0, convertedLines - originalLines);
   const loopsIncrease = Math.max(0, convertedLoops - originalLoops);
 
-  // Debug logs
-  console.log('[PERF] maintainabilityIndex:', convertedComplexity.maintainabilityIndex);
-  console.log('[PERF] complexityIncrease:', complexityIncrease);
-  console.log('[PERF] linesIncrease:', linesIncrease);
-  console.log('[PERF] loopsIncrease:', loopsIncrease);
-
   // Performance score: start from maintainability index, penalize increases (much harsher)
   let performanceScore = convertedComplexity.maintainabilityIndex;
   performanceScore -= complexityIncrease * 10; // much harsher penalty
@@ -284,7 +274,6 @@ const generatePerformanceMetrics = (
     performanceScore = 40; // force low score if any increase
   }
   performanceScore = Math.max(0, Math.min(100, Math.round(performanceScore)));
-  console.log('[PERF] final performanceScore:', performanceScore);
 
   const recommendations = [];
   
@@ -312,7 +301,7 @@ const generatePerformanceMetrics = (
   return {
     originalComplexity: originalComplexity.cyclomaticComplexity,
     convertedComplexity: convertedComplexity.cyclomaticComplexity,
-    improvementPercentage: Math.abs(improvementPercentage),
+    improvementPercentage, // allow negative values
     conversionTimeMs: conversionTime,
     performanceScore,
     maintainabilityIndex: convertedComplexity.maintainabilityIndex,
