@@ -387,43 +387,58 @@ export const generateConversionReport = (results: ConversionResult[]): string =>
   );
   
   return `
-# Code Conversion Report
+# 🚀 Code Conversion Report
 
-Generated: ${new Date().toLocaleString()}
+**Generated:** ${new Date().toLocaleString()}
 
-## Summary
-- Total Files: ${results.length}
-- Successful: ${successCount}
-- Warnings: ${warningCount}
-- Errors: ${errorCount}
+---
 
-## Performance Metrics
-- Total Lines Reduced: ${totalLinesReduced}
-- Total Loops Reduced: ${totalLoopsReduced}
-- Average Conversion Time: ${Math.round(averageConversionTime)}ms
-- Total Conversion Time: ${Math.round(totalConversionTime)}ms
+## 📊 Summary
+- **Total Files:** ${results.length}
+- **Successful:** ${successCount}
+- **Warnings:** ${warningCount}
+- **Errors:** ${errorCount}
 
-### Code Optimization Summary
-- Original Lines: ${totalOriginalLines}
-- Converted Lines: ${totalConvertedLines}
-- Lines Reduction: ${totalOriginalLines > 0 ? Math.round(((totalOriginalLines - totalConvertedLines) / totalOriginalLines) * 100) : 0}%
-- Original Loops: ${totalOriginalLoops}
-- Converted Loops: ${totalConvertedLoops}
-- Loops Reduction: ${totalOriginalLoops > 0 ? Math.round(((totalOriginalLoops - totalConvertedLoops) / totalOriginalLoops) * 100) : 0}%
+---
 
-## File Details
+## 🏆 Performance Metrics
+| Metric                | Value |
+|-----------------------|-------|
+| 🟩 **Total Lines Reduced** | ${totalLinesReduced} |
+| 🔵 **Total Loops Reduced** | ${totalLoopsReduced} |
+| ⏱️ **Average Conversion Time** | ${Math.round(averageConversionTime)}ms |
+| ⏱️ **Total Conversion Time**   | ${Math.round(totalConversionTime)}ms |
+| 📉 **Original Lines**         | ${totalOriginalLines} |
+| 📈 **Converted Lines**        | ${totalConvertedLines} |
+| 🔄 **Original Loops**         | ${totalOriginalLoops} |
+| 🔄 **Converted Loops**        | ${totalConvertedLoops} |
+
+---
+
+## 📂 File Details & Performance
 ${results.map(result => `
-### ${result.originalFile.name}
-- Status: ${result.status}
-- Data Types Mapped: ${result.dataTypeMapping?.length || 0}
-- Issues Found: ${result.issues?.length || 0}
-- Lines Reduced: ${result.performance?.linesReduced || 0}
-- Loops Reduced: ${result.performance?.loopsReduced || 0}
-- Conversion Time: ${result.performance?.conversionTimeMs || 0}ms
-- Performance Score: ${result.performance?.performanceScore || 0}/100
+###  [1m${result.originalFile.name} [0m
+
+| Metric | Value |
+|--------|-------|
+| **Status** | ${result.status === 'success' ? '✅ Success' : result.status === 'warning' ? '⚠️ Warning' : '❌ Error'} |
+| **Data Types Mapped** | ${result.dataTypeMapping?.length || 0} |
+| **Issues Found** | ${result.issues?.length || 0} |
+| 🟩 **Lines Reduced** | ${result.performance?.linesReduced ?? '-'} |
+| 🔵 **Loops Reduced** | ${result.performance?.loopsReduced ?? '-'} |
+| ⏱️ **Conversion Time** | ${result.performance?.conversionTimeMs ?? '-'} ms |
+| 🏅 **Performance Score** | ${result.performance?.performanceScore ?? '-'} / 100 |
+| 🧮 **Maintainability Index** | ${result.performance?.maintainabilityIndex ?? '-'} / 100 |
+| 📉 **Original Complexity** | ${result.performance?.originalComplexity ?? '-'} |
+| 📈 **Converted Complexity** | ${result.performance?.convertedComplexity ?? '-'} |
+| 🔥 **Improvement** | ${result.performance?.improvementPercentage ?? '-'}% |
+
+${result.performance?.performanceScore && result.performance?.performanceScore >= 80 ? '🌟 Excellent performance!' : result.performance?.performanceScore >= 60 ? '👍 Good performance.' : result.performance?.performanceScore >= 40 ? '⚠️ Fair performance.' : '❗ Needs improvement.'}
+
+---
 `).join('')}
 
-## Recommendations
+## 💡 Recommendations
 - Review all converted code for accuracy
 - Test in Oracle environment
 - Validate data integrity

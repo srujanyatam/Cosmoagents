@@ -10,6 +10,7 @@ import { deployToOracle } from '@/utils/databaseUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -208,6 +209,20 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
     }
   };
   
+  // Prepare data for charts
+  const chartData = report.results.filter((result: any) => result.performance).map((result: any) => ({
+    name: result.originalFile.name,
+    score: result.performance.performanceScore,
+    maintainability: result.performance.maintainabilityIndex,
+    time: result.performance.conversionTimeMs,
+    improvement: result.performance.improvementPercentage,
+  }));
+  const statusCounts = [
+    { name: 'Success', value: report.successCount, color: '#22c55e' }, // Green
+    { name: 'Warning', value: report.warningCount, color: '#f97316' }, // Orange
+    { name: 'Error', value: report.errorCount, color: '#ef4444' },     // Red
+  ];
+  
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
@@ -308,7 +323,110 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                 ))}
               </tbody>
             </table>
-            </ScrollArea>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        {/* Bar Chart: Performance Score per File */}
+        <Card className="shadow border bg-white/90 dark:bg-slate-900/80">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">Performance Score by File</CardTitle>
+          </CardHeader>
+          <CardContent style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} barCategoryGap={20}>
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="score" fill="#6366f1" radius={[8, 8, 0, 0]} isAnimationActive animationDuration={1200} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        {/* Pie Chart: Status Distribution */}
+        <Card className="shadow border bg-white/90 dark:bg-slate-900/80">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusCounts}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  fill="#8884d8"
+                  isAnimationActive
+                  animationDuration={1200}
+                >
+                  {statusCounts.map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Legend
+                  formatter={(value, entry, index) => {
+                    const total = statusCounts.reduce((sum, s) => sum + s.value, 0);
+                    const percent = total ? ((statusCounts[index].value / total) * 100).toFixed(0) : 0;
+                    return `${value}: ${percent}%`;
+                  }}
+                />
+                <RechartsTooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* File Performance Metrics Table */}
+      <Card className="mt-4 shadow border bg-white/90 dark:bg-slate-900/80">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-blue-500" />
+            File Performance Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full text-sm border rounded">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800">
+                  <th className="px-3 py-2 text-left font-semibold">File Name</th>
+                  <th className="px-3 py-2 text-left font-semibold">🏅 Score</th>
+                  <th className="px-3 py-2 text-left font-semibold">🧮 Maintainability</th>
+                  <th className="px-3 py-2 text-left font-semibold">📉 Orig. Complexity</th>
+                  <th className="px-3 py-2 text-left font-semibold">📈 Conv. Complexity</th>
+                  <th className="px-3 py-2 text-left font-semibold">🔥 Improvement</th>
+                  <th className="px-3 py-2 text-left font-semibold">🟩 Lines Reduced</th>
+                  <th className="px-3 py-2 text-left font-semibold">🔵 Loops Reduced</th>
+                  <th className="px-3 py-2 text-left font-semibold">⏱️ Time (ms)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.results.filter((result: any) => result.performance).map((result: any) => (
+                  <tr key={result.id + '-perf-row'}>
+                    <td className="px-3 py-2 font-medium flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-400" />
+                      {result.originalFile.name}
+                    </td>
+                    <td className="px-3 py-2">{result.performance.performanceScore}/100</td>
+                    <td className="px-3 py-2">{result.performance.maintainabilityIndex}/100</td>
+                    <td className="px-3 py-2">{result.performance.originalComplexity}</td>
+                    <td className="px-3 py-2">{result.performance.convertedComplexity}</td>
+                    <td className={`px-3 py-2 ${result.performance.improvementPercentage > 0 ? 'text-green-700' : result.performance.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{result.performance.improvementPercentage > 0 ? '+' : ''}{result.performance.improvementPercentage}%</td>
+                    <td className="px-3 py-2">{result.performance.linesReduced}</td>
+                    <td className="px-3 py-2">{result.performance.loopsReduced}</td>
+                    <td className="px-3 py-2">{result.performance.conversionTimeMs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
