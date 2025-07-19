@@ -10,6 +10,7 @@ import { deployToOracle } from '@/utils/databaseUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -208,6 +209,20 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
     }
   };
   
+  // Prepare data for charts
+  const chartData = report.results.filter((result: any) => result.performance).map((result: any) => ({
+    name: result.originalFile.name,
+    score: result.performance.performanceScore,
+    maintainability: result.performance.maintainabilityIndex,
+    time: result.performance.conversionTimeMs,
+    improvement: result.performance.improvementPercentage,
+  }));
+  const statusCounts = [
+    { name: 'Success', value: report.successCount, color: '#22c55e' },
+    { name: 'Warning', value: report.warningCount, color: '#facc15' },
+    { name: 'Error', value: report.errorCount, color: '#ef4444' },
+  ];
+  
   return (
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Header */}
@@ -311,6 +326,57 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
           </ScrollArea>
         </CardContent>
       </Card>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        {/* Bar Chart: Performance Score per File */}
+        <Card className="shadow border bg-white/90 dark:bg-slate-900/80">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">Performance Score by File</CardTitle>
+          </CardHeader>
+          <CardContent style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} barCategoryGap={20}>
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="score" fill="#6366f1" radius={[8, 8, 0, 0]} isAnimationActive animationDuration={1200} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        {/* Pie Chart: Status Distribution */}
+        <Card className="shadow border bg-white/90 dark:bg-slate-900/80">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusCounts}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={90}
+                  fill="#8884d8"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  isAnimationActive
+                  animationDuration={1200}
+                >
+                  {statusCounts.map((entry, idx) => (
+                    <Cell key={`cell-${idx}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Legend />
+                <RechartsTooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* File Performance Metrics Table */}
       <Card className="mt-4 shadow border bg-white/90 dark:bg-slate-900/80">
