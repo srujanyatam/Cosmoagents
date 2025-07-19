@@ -12,6 +12,7 @@ import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface DevReviewPanelProps {
   canCompleteMigration: boolean;
@@ -28,6 +29,8 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [showReviewed, setShowReviewed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
+  const [showClearReviewedDialog, setShowClearReviewedDialog] = useState(false);
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -187,6 +190,22 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
     );
   };
 
+  // Clear all unreviewed files
+  const handleClearAllUnreviewed = async () => {
+    for (const file of pendingFiles) {
+      await deleteUnreviewedFile(file.id);
+    }
+    setShowClearUnreviewedDialog(false);
+  };
+
+  // Clear all reviewed files
+  const handleClearAllReviewed = async () => {
+    for (const file of reviewedFiles) {
+      await deleteUnreviewedFile(file.id);
+    }
+    setShowClearReviewedDialog(false);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -273,11 +292,28 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 <Folder className="h-4 w-4 text-orange-500" />
                 Unreviewed Files <Badge className="ml-1" variant="secondary">{pendingFiles.length}</Badge>
               </div>
-              <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
-                {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                {pendingFiles.length > 0 && (
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                )}
+                <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
+                  {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
           </CardHeader>
+          <Dialog open={showClearUnreviewedDialog} onOpenChange={setShowClearUnreviewedDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clear All Unreviewed Files?</DialogTitle>
+              </DialogHeader>
+              <div className="py-2">Are you sure you want to clear all unreviewed files? This action cannot be undone.</div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearUnreviewedDialog(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleClearAllUnreviewed}>Clear All</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <CardContent className="pt-0 pb-2">
             {showUnreviewed && (
               <FileTreeView
@@ -301,11 +337,28 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 <Folder className="h-4 w-4 text-green-600" />
                 Reviewed Files <Badge className="ml-1" variant="secondary">{reviewedFiles.length}</Badge>
               </div>
-              <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
-                {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                {reviewedFiles.length > 0 && (
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                )}
+                <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
+                  {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </button>
+              </div>
             </div>
           </CardHeader>
+          <Dialog open={showClearReviewedDialog} onOpenChange={setShowClearReviewedDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Clear All Reviewed Files?</DialogTitle>
+              </DialogHeader>
+              <div className="py-2">Are you sure you want to clear all reviewed files? This action cannot be undone.</div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowClearReviewedDialog(false)}>Cancel</Button>
+                <Button variant="destructive" onClick={handleClearAllReviewed}>Clear All</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <CardContent className="pt-0 pb-2">
             {showReviewed && (
               <FileTreeView
