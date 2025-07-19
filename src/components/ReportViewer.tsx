@@ -218,9 +218,9 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
     improvement: result.performance.improvementPercentage,
   }));
   const statusCounts = [
-    { name: 'Success', value: report.successCount, color: '#22c55e' },
-    { name: 'Warning', value: report.warningCount, color: '#facc15' },
-    { name: 'Error', value: report.errorCount, color: '#ef4444' },
+    { name: 'Success', value: report.successCount, color: '#22c55e' }, // Green
+    { name: 'Warning', value: report.warningCount, color: '#f97316' }, // Orange
+    { name: 'Error', value: report.errorCount, color: '#ef4444' },     // Red
   ];
   
   return (
@@ -362,7 +362,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                   cy="50%"
                   outerRadius={90}
                   fill="#8884d8"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   isAnimationActive
                   animationDuration={1200}
                 >
@@ -370,7 +369,13 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                     <Cell key={`cell-${idx}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Legend />
+                <Legend
+                  formatter={(value, entry, index) => {
+                    const total = statusCounts.reduce((sum, s) => sum + s.value, 0);
+                    const percent = total ? ((statusCounts[index].value / total) * 100).toFixed(0) : 0;
+                    return `${value}: ${percent}%`;
+                  }}
+                />
                 <RechartsTooltip />
               </PieChart>
             </ResponsiveContainer>
