@@ -26,7 +26,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [editedContent, setEditedContent] = useState<string>('');
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [showUnreviewed, setShowUnreviewed] = useState(true);
-  const [showReviewed, setShowReviewed] = useState(false);
+  const [showReviewed, setShowReviewed] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
@@ -261,31 +261,31 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
         {/* Unified Dev Review Sidebar */}
         <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800 flex-1 flex flex-col">
           {/* Header/Search/Filter */}
-          <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-6 w-6 text-orange-500" />
-              <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
-            </div>
-            <div className="flex gap-2 w-full">
-              <input
-                type="text"
-                placeholder="Search files..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="flex-1 px-3 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
-              />
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                className="px-2 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
-              >
-                <option value="All">All</option>
-                <option value="Pending">Pending</option>
-                <option value="Reviewed">Reviewed</option>
-              </select>
-            </div>
+            <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-6 w-6 text-orange-500" />
+                <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
+              </div>
+              <div className="flex gap-2 w-full">
+                <input
+                  type="text"
+                  placeholder="Search files..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="px-2 py-2 rounded border border-gray-200 focus:ring-2 focus:ring-orange-400 focus:outline-none text-sm bg-white dark:bg-slate-800"
+                >
+                  <option value="All">All</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Reviewed">Reviewed</option>
+                </select>
           </div>
-          {/* Unreviewed Files Section (no inner scroll) */}
+        </div>
+        {/* Unreviewed Files Section (no inner scroll) */}
           <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
             <div className="flex items-center justify-between">
               <div className="font-bold text-orange-600 text-lg flex items-center gap-2">
@@ -296,9 +296,9 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 {pendingFiles.length > 0 && (
                   <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
                 )}
-                <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
-                  {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                </button>
+              <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
+                {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </button>
               </div>
             </div>
           </CardHeader>
@@ -330,7 +330,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               />
             )}
           </CardContent>
-          {/* Reviewed Files Section (no inner scroll) */}
+        {/* Reviewed Files Section (no inner scroll) */}
           <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
             <div className="flex items-center justify-between">
               <div className="font-semibold text-green-700 flex items-center gap-2">
@@ -341,9 +341,9 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 {reviewedFiles.length > 0 && (
                   <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
                 )}
-                <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
-                  {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                </button>
+              <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
+                {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </button>
               </div>
             </div>
           </CardHeader>
@@ -361,9 +361,9 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
           </Dialog>
           <CardContent className="pt-0 pb-2">
             {showReviewed && (
-              <FileTreeView
+        <FileTreeView
                 files={mappedReviewedFiles}
-                onFileSelect={file => setSelectedFileId(file.id)}
+          onFileSelect={file => setSelectedFileId(file.id)}
                 selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
                 hideActions={true}
                 defaultExpandedSections={[]}
