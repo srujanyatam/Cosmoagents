@@ -257,7 +257,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   return (
     <div className="flex gap-8 relative min-h-[500px] pb-20">
       {/* Sidebar */}
-      <div className="flex flex-col h-full w-[340px] min-w-[280px] max-w-[380px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+      <div className="flex flex-col h-full w-[400px] min-w-[350px] max-w-[440px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
         {/* Unified Dev Review Sidebar */}
         <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800">
           {/* Header/Search/Filter */}
@@ -294,7 +294,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               </div>
               <div className="flex items-center gap-2">
                 {pendingFiles.length > 0 && (
-                  <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
                 )}
                 <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
                   {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
@@ -339,7 +339,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               </div>
               <div className="flex items-center gap-2">
                 {reviewedFiles.length > 0 && (
-                  <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                  <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
                 )}
                 <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
                   {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
