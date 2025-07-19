@@ -308,7 +308,54 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                 ))}
               </tbody>
             </table>
-            </ScrollArea>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* File Performance Metrics Table */}
+      <Card className="mt-4 shadow border bg-white/90 dark:bg-slate-900/80">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-blue-500" />
+            File Performance Metrics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="min-w-[900px] w-full text-sm border rounded">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800">
+                  <th className="px-3 py-2 text-left font-semibold">File Name</th>
+                  <th className="px-3 py-2 text-left font-semibold">🏅 Score</th>
+                  <th className="px-3 py-2 text-left font-semibold">🧮 Maintainability</th>
+                  <th className="px-3 py-2 text-left font-semibold">📉 Orig. Complexity</th>
+                  <th className="px-3 py-2 text-left font-semibold">📈 Conv. Complexity</th>
+                  <th className="px-3 py-2 text-left font-semibold">🔥 Improvement</th>
+                  <th className="px-3 py-2 text-left font-semibold">🟩 Lines Reduced</th>
+                  <th className="px-3 py-2 text-left font-semibold">🔵 Loops Reduced</th>
+                  <th className="px-3 py-2 text-left font-semibold">⏱️ Time (ms)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.results.filter((result: any) => result.performance).map((result: any) => (
+                  <tr key={result.id + '-perf-row'}>
+                    <td className="px-3 py-2 font-medium flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-blue-400" />
+                      {result.originalFile.name}
+                    </td>
+                    <td className="px-3 py-2">{result.performance.performanceScore}/100</td>
+                    <td className="px-3 py-2">{result.performance.maintainabilityIndex}/100</td>
+                    <td className="px-3 py-2">{result.performance.originalComplexity}</td>
+                    <td className="px-3 py-2">{result.performance.convertedComplexity}</td>
+                    <td className={`px-3 py-2 ${result.performance.improvementPercentage > 0 ? 'text-green-700' : result.performance.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{result.performance.improvementPercentage > 0 ? '+' : ''}{result.performance.improvementPercentage}%</td>
+                    <td className="px-3 py-2">{result.performance.linesReduced}</td>
+                    <td className="px-3 py-2">{result.performance.loopsReduced}</td>
+                    <td className="px-3 py-2">{result.performance.conversionTimeMs}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
 
