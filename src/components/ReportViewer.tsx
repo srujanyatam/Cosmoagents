@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Check, AlertTriangle, X, Download, Upload, Database, FileText, Info, Lightbulb } from 'lucide-react';
+import { Check, AlertTriangle, X, Download, Upload, Database, FileText, Info, Lightbulb, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ConversionReport } from '@/types';
 import { deployToOracle } from '@/utils/databaseUtils';
@@ -68,6 +68,32 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
       setDeploymentLogs(data || []);
     } catch (error) {
       console.error('Error fetching deployment logs:', error);
+    }
+  };
+
+  const handleClearDeploymentLogs = async () => {
+    if (!user) return;
+    if (!confirm('Are you sure you want to delete all deployment logs? This action cannot be undone.')) {
+        return;
+    }
+    try {
+        const { error } = await supabase
+            .from('deployment_logs')
+            .delete()
+            .eq('user_id', user.id);
+        if (error) throw error;
+        setDeploymentLogs([]);
+        toast({
+            title: 'Deployment Logs Cleared',
+            description: 'All deployment logs have been successfully deleted.',
+        });
+    } catch (error) {
+        console.error('Error clearing deployment logs:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to clear deployment logs.',
+            variant: 'destructive',
+        });
     }
   };
 
@@ -438,12 +464,19 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
               <Database className="h-5 w-5 text-blue-500" />
               Oracle Deployment
             </CardTitle>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-              <Button 
-                onClick={handleDeploy} 
-                disabled={isDeploying}
+            <div className="flex items-center gap-2">
+                {deploymentLogs.length > 0 && (
+                    <Button variant="destructive" size="sm" onClick={handleClearDeploymentLogs}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear Logs
+                    </Button>
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                  <Button 
+                    onClick={handleDeploy} 
+                    disabled={isDeploying}
                     className="px-6 py-3 text-lg font-semibold rounded-lg shadow-md transition-all duration-200
                       bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0
                       hover:from-blue-600 hover:to-indigo-700 hover:shadow-xl
@@ -471,6 +504,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            </div>
             </div>
         </CardHeader>
         <CardContent>
