@@ -39,6 +39,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [isMinimized, setIsMinimized] = useState(false);
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('unreviewed');
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -310,13 +311,21 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
           {/* Header/Search/Filter */}
             <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
               <div className="flex items-center justify-between gap-2 mb-2">
-                                <div className="flex items-center gap-2">
-                <FileText className="h-6 w-6 text-orange-500" />
-                <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
-                                    <ChevronLeft className="h-5 w-5" />
-                                </Button>
+                <div className="flex items-center gap-2">
+                    <FileText className="h-6 w-6 text-orange-500" />
+                    <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    {activeTab === 'unreviewed' && pendingFiles.length > 0 && (
+                        <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                    )}
+                    {activeTab === 'reviewed' && reviewedFiles.length > 0 && (
+                        <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
+                        <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                </div>
               </div>
               <div className="flex gap-2 w-full items-center">
                 <input
@@ -376,7 +385,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                     </div>
                 )}
         </div>
-          <Tabs defaultValue="unreviewed" className="w-full mt-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
               <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="unreviewed">
                       Unreviewed <Badge className="ml-2">{pendingFiles.length}</Badge>
@@ -386,11 +395,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                   </TabsTrigger>
               </TabsList>
               <TabsContent value="unreviewed">
-                  <div className="flex justify-end mt-2">
-                      {pendingFiles.length > 0 && (
-                          <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
-                      )}
-                  </div>
                   <FileTreeView
                       files={mappedPendingFiles}
                       onFileSelect={file => setSelectedFileId(file.id)}
@@ -409,11 +413,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                   />
               </TabsContent>
               <TabsContent value="reviewed">
-                  <div className="flex justify-end mt-2">
-                      {reviewedFiles.length > 0 && (
-                          <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
-                      )}
-                  </div>
                   <FileTreeView
                       files={mappedReviewedFiles}
                       onFileSelect={file => setSelectedFileId(file.id)}
@@ -523,7 +522,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                     Mark as Reviewed
               </Button>
               )}
-                <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => handleDelete(selectedFile.id)}>
+                <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteUnreviewedFile(selectedFile.id)}>
                   Delete File
                 </Button>
               </CardFooter>
