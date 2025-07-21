@@ -1,6 +1,7 @@
 import { ConversionResult, CodeFile, ConversionIssue, DataTypeMapping } from '@/types';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { v4 as uuidv4 } from 'uuid';
+import { getCachedConversion, setCachedConversion } from '@/utils/conversionUtils';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -12,6 +13,17 @@ export const convertSybaseToOracle = async (
   customPrompt?: string,
   skipExplanation: boolean = true
 ): Promise<ConversionResult> => {
+  console.log('[CONVERT FN CALLED]', file.name);
+  // Normalize content for cache key
+  const normalizedContent = file.content.replace(/\r\n/g, '\n').trim();
+  const cached = getCachedConversion(normalizedContent, aiModel);
+  if (cached) {
+    console.log('[CACHE HIT]', file.name);
+    return cached;
+  } else {
+    console.log('[CACHE MISS]', file.name);
+  }
+
   console.log(`[CONVERT] Starting conversion for file: ${file.name} with model: ${aiModel}`);
   const startTime = Date.now();
 
@@ -73,7 +85,7 @@ export const convertSybaseToOracle = async (
   }
 
   console.log(`[CONVERT] Success for file: ${file.name} in ${conversionTime}ms`);
-  return {
+  const result: ConversionResult = {
     id: uuidv4(),
     originalFile: file,
     convertedCode,
@@ -85,6 +97,11 @@ export const convertSybaseToOracle = async (
             issues.length > 0 ? 'warning' : 'success',
     explanations,
   };
+
+  // Save to cache with normalized content
+  setCachedConversion(normalizedContent, aiModel, result);
+
+  return result;
 };
 
 // Convert multiple files in parallel with support for customPrompt and skipExplanation
@@ -449,3 +466,29 @@ ${result.performance?.performanceScore && result.performance?.performanceScore >
 - Consider the ${totalLinesReduced} lines and ${totalLoopsReduced} loops that were optimized
 `;
 };
+
+// Simple hash function for code+model
+function hashCode(str: string): string {
+  let hash = 0, i, chr;
+  for (i = 0; i < str.length; i++) {
+    chr = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0;
+  }
+  return hash.toString();
+}
+
+export function getConversionCacheKey(code: string, model: string) {
+  return `conversion-cache-${model}-${hashCode(code)}`;
+}
+
+export function getCachedConversion(code: string, model: string) {
+  const key = getConversionCacheKey(code, model);
+  const cached = localStorage.getItem(key);
+  return cached ? JSON.parse(cached) : null;
+}
+
+export function setCachedConversion(code: string, model: string, result: any) {
+  const key = getConversionCacheKey(code, model);
+  localStorage.setItem(key, JSON.stringify(result));
+}
