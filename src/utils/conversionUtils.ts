@@ -22,7 +22,7 @@ export const convertSybaseToOracle = async (
   const backendCached = await getBackendCachedConversion(hash, aiModel);
   if (backendCached) {
     console.log('[DB CACHE HIT]', file.name);
-    return {
+    const result = {
       id: backendCached.id,
       originalFile: file,
       convertedCode: backendCached.converted_code,
@@ -33,6 +33,10 @@ export const convertSybaseToOracle = async (
       status: 'success',
       explanations: [],
     };
+    if (result.performance) {
+      result.performance.conversionTimeMs = 1;
+    }
+    return result;
   } else {
     console.log('[DB CACHE MISS]', file.name);
   }
