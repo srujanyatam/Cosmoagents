@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Clock, Check, Edit3, Trash2, FileText, Folder, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import { Clock, Check, Edit3, Trash2, FileText, Folder, ChevronDown, ChevronUp, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import { UnreviewedFile } from '@/types/unreviewedFiles';
 import MarkedForReviewPanel from './MarkedForReviewPanel';
@@ -31,6 +31,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [statusFilter, setStatusFilter] = useState('All');
   const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
   const [showClearReviewedDialog, setShowClearReviewedDialog] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -257,14 +258,36 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   return (
     <div className="flex gap-8 relative min-h-[500px] pb-20">
       {/* Sidebar */}
-      <div className="flex flex-col h-full w-[400px] min-w-[350px] max-w-[440px]" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-        {/* Unified Dev Review Sidebar */}
+        <div className={cn(
+          "flex flex-col h-full transition-all duration-300 ease-in-out",
+          isMinimized ? "w-20" : "w-[400px] min-w-[350px] max-w-[440px]"
+        )} style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        
+        {isMinimized ? (
+          <Card className="flex-1 flex flex-col items-center py-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800">
+            <Button variant="ghost" size="icon" onClick={() => setIsMinimized(false)} className="mb-4">
+              <ChevronRight className="h-6 w-6 text-orange-500" />
+            </Button>
+            <div
+              style={{ writingMode: 'vertical-rl' }}
+              className="transform rotate-180 text-lg font-bold text-orange-700 dark:text-orange-200 cursor-pointer"
+              onClick={() => setIsMinimized(false)}
+            >
+              Dev Review Files
+            </div>
+          </Card>
+        ) : (
         <Card className="mb-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-orange-100 dark:border-slate-800 flex-1 flex flex-col">
           {/* Header/Search/Filter */}
             <div className="pb-2 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl px-6 pt-4">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2">
                 <FileText className="h-6 w-6 text-orange-500" />
                 <span className="text-lg font-bold text-orange-700 dark:text-orange-200">Dev Review Files</span>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
+                                    <ChevronLeft className="h-5 w-5" />
+                                </Button>
               </div>
               <div className="flex gap-2 w-full">
                 <input
@@ -376,7 +399,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
             )}
           </CardContent>
         </Card>
-       
+       )}
       </div>
       {/* Main Panel */}
       <div className="flex-1 min-w-0">
@@ -418,13 +441,15 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="pt-4 pb-2">
-            <ConversionViewer
-                file={mapToFileItem(selectedFile)}
+              <CardContent className="pt-2">
+                <ConversionViewer
+                  key={selectedFile.id} /* Add key to force re-render */
+                  file={mapToFileItem(selectedFile)}
                   onManualEdit={newContent => handleSaveEdit(selectedFile, newContent)}
-              onDismissIssue={() => {}}
+                  onDismissIssue={() => {}}
+                  onSaveEdit={(newContent) => handleSaveEdit(selectedFile, newContent)}
                   hideEdit={selectedFile.status === 'reviewed'}
-              onPrevFile={hasPrev ? () => setSelectedFileId(allFilteredFiles[currentIndex - 1].id) : undefined}
+                  onPrevFile={hasPrev ? () => setSelectedFileId(allFilteredFiles[currentIndex - 1].id) : undefined}
               onNextFile={hasNext ? () => setSelectedFileId(allFilteredFiles[currentIndex + 1].id) : undefined}
               hasPrev={hasPrev}
               hasNext={hasNext}
