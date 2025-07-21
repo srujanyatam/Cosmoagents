@@ -378,8 +378,6 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               {/* Human Edits Diff Viewer */}
               {humanEditPercent > 0 && (
                 <div className="p-0">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">AI Generated vs Changed Code</h4>
-                  <div className="mb-2 text-xs text-gray-500">Left: AI Generated &nbsp;|&nbsp; Right: Final (Changed) Code</div>
                   <CodeDiffViewer 
                     originalCode={aiCode}
                     convertedCode={finalCode}
