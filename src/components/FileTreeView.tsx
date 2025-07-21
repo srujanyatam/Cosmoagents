@@ -282,23 +282,26 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
                     </Tooltip>
                 </TooltipProvider>
                 {isSelectMode && selectedFileIds && selectedFileIds.length > 0 && (
-                     <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={onDeleteSelected}
-                                    className="h-7 w-7"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Delete ({selectedFileIds.length}) selected files</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <>
+                        <span className="text-sm text-muted-foreground">{selectedFileIds.length} selected</span>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={onDeleteSelected}
+                                        className="h-7 w-7"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Delete ({selectedFileIds.length}) selected files</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </>
                 )}
             </div>
             <div className="flex gap-2">
