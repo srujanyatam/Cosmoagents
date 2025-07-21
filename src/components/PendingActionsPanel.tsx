@@ -13,6 +13,7 @@ import ConversionViewer from '@/components/ConversionViewer';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Tooltip,
   TooltipContent,
@@ -31,8 +32,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>('');
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
-  const [showUnreviewed, setShowUnreviewed] = useState(true);
-  const [showReviewed, setShowReviewed] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
@@ -377,23 +376,63 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                     </div>
                 )}
         </div>
+          <Tabs defaultValue="unreviewed" className="w-full mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="unreviewed">
+                      Unreviewed <Badge className="ml-2">{pendingFiles.length}</Badge>
+                  </TabsTrigger>
+                  <TabsTrigger value="reviewed">
+                      Reviewed <Badge className="ml-2">{reviewedFiles.length}</Badge>
+                  </TabsTrigger>
+              </TabsList>
+              <TabsContent value="unreviewed">
+                  <div className="flex justify-end mt-2">
+                      {pendingFiles.length > 0 && (
+                          <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                      )}
+                  </div>
+                  <FileTreeView
+                      files={mappedPendingFiles}
+                      onFileSelect={file => setSelectedFileId(file.id)}
+                      selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
+                      hideActions={true}
+                      defaultExpandedSections={[]}
+                      searchTerm={searchTerm}
+                      statusFilter={statusFilter}
+                      onSearchTermChange={setSearchTerm}
+                      onStatusFilterChange={setStatusFilter}
+                      selectedFileIds={selectedFileIds}
+                      onFileSelectToggle={handleFileSelectToggle}
+                      isSelectMode={isSelectMode}
+                      toggleSelectMode={toggleSelectMode}
+                      onDeleteSelected={handleDeleteSelected}
+                  />
+              </TabsContent>
+              <TabsContent value="reviewed">
+                  <div className="flex justify-end mt-2">
+                      {reviewedFiles.length > 0 && (
+                          <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                      )}
+                  </div>
+                  <FileTreeView
+                      files={mappedReviewedFiles}
+                      onFileSelect={file => setSelectedFileId(file.id)}
+                      selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
+                      hideActions={true}
+                      defaultExpandedSections={[]}
+                      searchTerm={searchTerm}
+                      statusFilter={statusFilter}
+                      onSearchTermChange={setSearchTerm}
+                      onStatusFilterChange={setStatusFilter}
+                      selectedFileIds={selectedFileIds}
+                      onFileSelectToggle={handleFileSelectToggle}
+                      isSelectMode={isSelectMode}
+                      toggleSelectMode={toggleSelectMode}
+                      onDeleteSelected={handleDeleteSelected}
+                  />
+              </TabsContent>
+          </Tabs>
         {/* Unreviewed Files Section (no inner scroll) */}
-          <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
-            <div className="flex items-center justify-between">
-              <div className="font-bold text-orange-600 text-lg flex items-center gap-2">
-                <Folder className="h-4 w-4 text-orange-500" />
-                Unreviewed Files <Badge className="ml-1" variant="secondary">{pendingFiles.length}</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                {pendingFiles.length > 0 && (
-                  <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
-                )}
-              <button onClick={() => setShowUnreviewed(v => !v)} className="focus:outline-none">
-                {showUnreviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
-              </div>
-            </div>
-          </CardHeader>
           <Dialog open={showClearUnreviewedDialog} onOpenChange={setShowClearUnreviewedDialog}>
             <DialogContent>
               <DialogHeader>
@@ -406,43 +445,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <CardContent className="pt-0 pb-2">
-            {showUnreviewed && (
-              <FileTreeView
-                files={mappedPendingFiles}
-                onFileSelect={file => setSelectedFileId(file.id)}
-                selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
-                hideActions={true}
-                defaultExpandedSections={[]}
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                onSearchTermChange={setSearchTerm}
-                onStatusFilterChange={setStatusFilter}
-                selectedFileIds={selectedFileIds}
-                onFileSelectToggle={handleFileSelectToggle}
-                isSelectMode={isSelectMode}
-                toggleSelectMode={toggleSelectMode}
-                onDeleteSelected={handleDeleteSelected}
-              />
-            )}
-          </CardContent>
         {/* Reviewed Files Section (no inner scroll) */}
-          <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
-            <div className="flex items-center justify-between">
-              <div className="font-semibold text-green-700 flex items-center gap-2">
-                <Folder className="h-4 w-4 text-green-600" />
-                Reviewed Files <Badge className="ml-1" variant="secondary">{reviewedFiles.length}</Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                {reviewedFiles.length > 0 && (
-                  <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs ml-2">Clear All</Button>
-                )}
-              <button onClick={() => setShowReviewed(v => !v)} className="focus:outline-none">
-                {showReviewed ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-              </button>
-              </div>
-            </div>
-          </CardHeader>
           <Dialog open={showClearReviewedDialog} onOpenChange={setShowClearReviewedDialog}>
             <DialogContent>
               <DialogHeader>
@@ -455,26 +458,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <CardContent className="pt-0 pb-2">
-            {showReviewed && (
-        <FileTreeView
-                files={mappedReviewedFiles}
-          onFileSelect={file => setSelectedFileId(file.id)}
-                selectedFile={selectedFile ? mapToFileItem(selectedFile) : null}
-                hideActions={true}
-                defaultExpandedSections={[]}
-                searchTerm={searchTerm}
-                statusFilter={statusFilter}
-                onSearchTermChange={setSearchTerm}
-                onStatusFilterChange={setStatusFilter}
-                selectedFileIds={selectedFileIds}
-                onFileSelectToggle={handleFileSelectToggle}
-                isSelectMode={isSelectMode}
-                toggleSelectMode={toggleSelectMode}
-                onDeleteSelected={handleDeleteSelected}
-              />
-            )}
-          </CardContent>
         </Card>
        )}
       </div>
