@@ -538,20 +538,21 @@ const History = () => {
                                   <Button 
                                     size="sm" 
                                     variant="ghost"
-                                    onClick={(e) => handleDownloadFile(e, file)}
-                                    title="Download File"
+                                    onClick={(e) => handleUndoToDevReview(e, file)}
+                                    title="Undo to Dev Review"
+                                    disabled={undoingFileId === file.id}
+                                    style={{ marginRight: 4, marginLeft: 4 }}
                                   >
-                                    <Download className="h-4 w-4" />
+                                    {/* Black undo icon */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l-5-5m0 0l5-5m-5 5h12a7 7 0 110 14h-1" /></svg>
                                   </Button>
                                   <Button 
                                     size="sm" 
                                     variant="ghost"
-                                    onClick={(e) => handleUndoToDevReview(e, file)}
-                                    title="Undo to Dev Review"
-                                    disabled={undoingFileId === file.id}
+                                    onClick={(e) => handleDownloadFile(e, file)}
+                                    title="Download File"
                                   >
-                                    {/* Use a suitable undo icon, e.g., from lucide-react */}
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l-5-5m0 0l5-5m-5 5h12a7 7 0 110 14h-1" /></svg>
+                                    <Download className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </td>
