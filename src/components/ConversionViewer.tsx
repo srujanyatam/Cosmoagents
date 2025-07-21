@@ -356,6 +356,37 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 </div>
               </Card>
 
+              {/* Human Edits Metric */}
+              <Card className="p-6">
+                <div className="text-center">
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">Human Edits</h4>
+                  <div className="text-4xl font-bold text-purple-600 mb-2">
+                    {humanEditPercent}%
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${humanEditPercent}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Percentage of code changed by a human after AI conversion
+                  </p>
+                </div>
+              </Card>
+
+              {/* Human Edits Diff Viewer */}
+              {humanEditPercent > 0 && (
+                <div className="p-0">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">AI Generated vs Changed Code</h4>
+                  <div className="mb-2 text-xs text-gray-500">Left: AI Generated &nbsp;|&nbsp; Right: Final (Changed) Code</div>
+                  <CodeDiffViewer 
+                    originalCode={aiCode}
+                    convertedCode={finalCode}
+                  />
+                </div>
+              )}
+
               {/* Complexity Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-4 text-center">
