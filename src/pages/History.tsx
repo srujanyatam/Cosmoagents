@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import CodeDiffViewer from '@/components/CodeDiffViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 
 interface Migration {
   id: string;
@@ -46,6 +47,8 @@ const History = () => {
   const [selectedFile, setSelectedFile] = useState<MigrationFile | null>(null);
   const [showCodeDialog, setShowCodeDialog] = useState(false);
   const isFetchingFiles = useRef(false);
+  const { addUnreviewedFile } = useUnreviewedFiles();
+  const [undoingFileId, setUndoingFileId] = useState<string | null>(null);
 
   // Get the return tab from location state
   const returnTab = location.state?.returnTab || 'upload';
@@ -321,6 +324,35 @@ const History = () => {
     }
   };
 
+  // Add undo handler
+  const handleUndoToDevReview = async (e: React.MouseEvent, file: MigrationFile) => {
+    e.stopPropagation();
+    setUndoingFileId(file.id);
+    try {
+      await addUnreviewedFile({
+        file_name: file.file_name,
+        converted_code: file.converted_content || '',
+        ai_generated_code: file.converted_content || '',
+        original_code: file.original_content,
+        data_type_mapping: [], // If you have mapping info, add here
+        issues: [], // If you have issues info, add here
+        performance_metrics: {}, // If you have metrics, add here
+      });
+      toast({
+        title: 'Undo Successful',
+        description: `${file.file_name} moved to Dev Review (Unreviewed Files).`,
+      });
+    } catch (err) {
+      toast({
+        title: 'Undo Failed',
+        description: 'Could not move file to Dev Review.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUndoingFileId(null);
+    }
+  };
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -510,6 +542,16 @@ const History = () => {
                                     title="Download File"
                                   >
                                     <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={(e) => handleUndoToDevReview(e, file)}
+                                    title="Undo to Dev Review"
+                                    disabled={undoingFileId === file.id}
+                                  >
+                                    {/* Use a suitable undo icon, e.g., from lucide-react */}
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l-5-5m0 0l5-5m-5 5h12a7 7 0 110 14h-1" /></svg>
                                   </Button>
                                 </div>
                               </td>
