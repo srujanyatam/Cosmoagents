@@ -141,6 +141,10 @@ const Dashboard = () => {
     }
   }, [activeTab, unreviewedFiles]);
 
+  const handleDeleteFiles = (fileIds: string[]) => {
+    setFiles(prevFiles => prevFiles.filter(file => !fileIds.includes(file.id)));
+  };
+
   const handleCodeUploadWrapper = async (uploadedFiles: any[]) => {
     const convertedFiles = await handleCodeUpload(uploadedFiles);
     setFiles(convertedFiles);
@@ -398,6 +402,7 @@ const Dashboard = () => {
               onClear={handleResetAndUpload}
               onMoveToDevReview={handleMoveToDevReview}
               canCompleteMigration={canCompleteMigration}
+              onDeleteFiles={handleDeleteFiles}
             />
           </TabsContent>
 

@@ -16,9 +16,18 @@ import {
   ChevronRight,
   RefreshCw,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Rows,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface FileItem {
   id: string;
@@ -49,6 +58,11 @@ interface FileTreeViewProps {
   onSearchTermChange?: (term: string) => void;
   onStatusFilterChange?: (status: string) => void;
   onResetMigration?: () => void;
+  selectedFileIds?: string[];
+  onFileSelectToggle?: (fileId: string) => void;
+  isSelectMode?: boolean;
+  toggleSelectMode?: () => void;
+  onDeleteSelected?: () => void;
 }
 
 const FileTreeView: React.FC<FileTreeViewProps> = ({
@@ -69,6 +83,11 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
   onSearchTermChange,
   onStatusFilterChange,
   onResetMigration,
+  selectedFileIds = [],
+  onFileSelectToggle,
+  isSelectMode = false,
+  toggleSelectMode,
+  onDeleteSelected,
 }) => {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(() => {
     if (defaultExpandedSections && defaultExpandedSections.length > 0) {
@@ -174,6 +193,13 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
                 onClick={() => onFileSelect(file)}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
+                  {isSelectMode && (
+                    <Checkbox
+                        checked={selectedFileIds.includes(file.id)}
+                        onCheckedChange={() => onFileSelectToggle?.(file.id)}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
                   <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
                   <span className={cn(
                     "text-sm truncate",
@@ -234,7 +260,47 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
       {!hideActions && (
         <div className="pb-3 flex flex-col gap-2">
           <div className="flex flex-row items-center justify-between w-full mb-2">
-            <span className="text-lg font-semibold">Project Structure</span>
+            <div className="flex items-center gap-2">
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={toggleSelectMode}
+                                className={cn(
+                                    "h-7 w-7",
+                                    isSelectMode && "bg-blue-100"
+                                )}
+                            >
+                                <Rows className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{isSelectMode ? "Cancel Selection" : "Select Multiple Files"}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+                {isSelectMode && selectedFileIds && selectedFileIds.length > 0 && (
+                     <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={onDeleteSelected}
+                                    className="h-7 w-7"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Delete ({selectedFileIds.length}) selected files</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                )}
+            </div>
             <div className="flex gap-2">
               {onConvertAll && totalPending > 0 && (
                 <Button

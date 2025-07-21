@@ -1,12 +1,19 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Download, ChevronLeft, ChevronRight, Trash2, Rows } from 'lucide-react';
 import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface FileItem {
   id: string;
@@ -39,6 +46,7 @@ interface ConversionPanelProps {
   onClear: () => void;
   onMoveToDevReview: () => void;
   canCompleteMigration: boolean;
+  onDeleteFiles: (fileIds: string[]) => void;
 }
 
 const ConversionPanel: React.FC<ConversionPanelProps> = ({
@@ -58,7 +66,11 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   onClear,
   onMoveToDevReview,
   canCompleteMigration,
+  onDeleteFiles,
 }) => {
+  const [selectedFileIds, setSelectedFileIds] = React.useState<string[]>([]);
+  const [isSelectMode, setIsSelectMode] = React.useState(false);
+
   if (files.length === 0) {
     return (
       <Card className="max-w-2xl mx-auto">
@@ -86,8 +98,7 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
       statusFilter === 'All' ? true :
       statusFilter === 'Pending' ? file.conversionStatus === 'pending' :
       statusFilter === 'Success' ? file.conversionStatus === 'success' :
-      statusFilter === 'Failed' ? file.conversionStatus === 'failed' :
-      statusFilter === 'Pending Review' ? file.conversionStatus === 'pending_review' : true;
+      statusFilter === 'Failed' ? file.conversionStatus === 'failed' : true;
     return matchesSearch && matchesStatus;
   });
   // Group filtered files by type to match sidebar order
@@ -120,6 +131,26 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const cancelResetMigration = () => {
     setShowResetDialog(false);
   };
+
+    const handleFileSelectToggle = (fileId: string) => {
+        setSelectedFileIds(prev =>
+            prev.includes(fileId)
+                ? prev.filter(id => id !== fileId)
+                : [...prev, fileId]
+        );
+    };
+
+    const handleDeleteSelected = () => {
+        onDeleteFiles(selectedFileIds);
+        setSelectedFileIds([]);
+    };
+
+    const toggleSelectMode = () => {
+        setIsSelectMode(prev => !prev);
+        if (isSelectMode) {
+            setSelectedFileIds([]);
+        }
+    };
 
   // Progress bar calculation
   const totalFiles = files.length;
@@ -203,6 +234,11 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
               onSearchTermChange={setSearchTerm}
               onStatusFilterChange={setStatusFilter}
               onResetMigration={handleResetMigration}
+              selectedFileIds={selectedFileIds}
+              onFileSelectToggle={handleFileSelectToggle}
+              isSelectMode={isSelectMode}
+              toggleSelectMode={toggleSelectMode}
+              onDeleteSelected={handleDeleteSelected}
             />
           </CardContent>
         </Card>
