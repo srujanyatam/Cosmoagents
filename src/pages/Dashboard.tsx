@@ -306,10 +306,6 @@ const Dashboard = () => {
       }
       // Generate summary
       const reportSummary = (await import('@/utils/conversionUtils')).generateConversionReport(reportResults);
-      const totalSqlLines = reportResults.reduce((acc, result) => {
-        return acc + (result.originalFile.content.split('\n').length || 0);
-      }, 0);
-      
       const report = {
         timestamp: new Date().toISOString(),
         filesProcessed: reportResults.length,
@@ -318,7 +314,6 @@ const Dashboard = () => {
         errorCount: reportResults.filter(r => r.status === 'error').length,
         results: reportResults,
         summary: reportSummary,
-        totalSqlLines,
       };
       // Save to Supabase migration_reports
       const { data, error } = await (await import('@/integrations/supabase/client')).supabase

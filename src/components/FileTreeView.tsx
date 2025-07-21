@@ -257,8 +257,8 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
 
   return (
     <div className="w-full">
-      <div className="pb-3 flex flex-col gap-2">
-        <div className="flex flex-row items-center justify-between w-full mb-2">
+        <div className="pb-3 flex flex-col gap-2">
+          <div className="flex flex-row items-center justify-between w-full mb-2">
         <div className="flex items-center gap-2">
             {!hideActions && (
             <TooltipProvider>
