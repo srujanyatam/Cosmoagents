@@ -340,7 +340,7 @@ const History = () => {
       });
       toast({
         title: 'Undo Successful',
-        description: `${file.file_name} moved to Dev Review (Unreviewed Files).`,
+        description: `${file.file_name} moved to Unreviewed Files.`,
       });
     } catch (err) {
       toast({
