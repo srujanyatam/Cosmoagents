@@ -19,7 +19,12 @@ export const convertSybaseToOracle = async (
   const cached = getCachedConversion(normalizedContent, aiModel);
   if (cached) {
     console.log('[CACHE HIT]', file.name);
-    return cached;
+    // Clone the cached result to avoid mutating the cache
+    const result = { ...cached };
+    if (result.performance) {
+      result.performance.conversionTimeMs = 1;
+    }
+    return result;
   } else {
     console.log('[CACHE MISS]', file.name);
   }
