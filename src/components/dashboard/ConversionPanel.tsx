@@ -70,6 +70,10 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
 }) => {
   const [selectedFileIds, setSelectedFileIds] = React.useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = React.useState(false);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('All');
+  const [showResetDialog, setShowResetDialog] = React.useState(false);
+  const [isMinimized, setIsMinimized] = React.useState(false);
 
   if (files.length === 0) {
     return (
@@ -90,8 +94,6 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   }
 
   // Compute filtered file list for navigation (should match FileTreeView's filter logic)
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [statusFilter, setStatusFilter] = React.useState('All');
   const filteredFiles = files.filter(file => {
     const matchesSearch = file.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -115,9 +117,6 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const currentIndex = allFilteredFiles.findIndex(f => f.id === selectedFile?.id);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex >= 0 && currentIndex < allFilteredFiles.length - 1;
-
-  const [showResetDialog, setShowResetDialog] = React.useState(false);
-  const [isMinimized, setIsMinimized] = React.useState(false);
 
   const handleResetMigration = () => {
     setShowResetDialog(true);
@@ -303,7 +302,12 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
               </CardHeader>
               <CardContent className="pt-4 pb-2">
                 <ConversionViewer
-                  file={selectedFile}
+                  file={{
+                    ...selectedFile,
+                    aiGeneratedCode: (selectedFile as any).aiGeneratedCode || selectedFile.convertedContent || '',
+                    conversionStatus: selectedFile.conversionStatus,
+                    errorMessage: selectedFile.errorMessage,
+                  }}
                   onManualEdit={onManualEdit}
                   onDismissIssue={onDismissIssue}
                   hideEdit={true}

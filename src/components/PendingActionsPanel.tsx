@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Clock, Check, Edit3, Trash2, FileText, Folder, ChevronDown, ChevronUp, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Check, Edit3, Trash2, FileText, Folder, ChevronDown, ChevronUp, Download, ChevronLeft, ChevronRight, Rows } from 'lucide-react';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import { UnreviewedFile } from '@/types/unreviewedFiles';
 import MarkedForReviewPanel from './MarkedForReviewPanel';
@@ -13,6 +13,12 @@ import ConversionViewer from '@/components/ConversionViewer';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface DevReviewPanelProps {
   canCompleteMigration: boolean;
@@ -32,6 +38,8 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   const [showClearUnreviewedDialog, setShowClearUnreviewedDialog] = useState(false);
   const [showClearReviewedDialog, setShowClearReviewedDialog] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -191,6 +199,28 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
     );
   };
 
+  const handleFileSelectToggle = (fileId: string) => {
+    setSelectedFileIds(prev =>
+        prev.includes(fileId)
+            ? prev.filter(id => id !== fileId)
+            : [...prev, fileId]
+    );
+  };
+
+  const toggleSelectMode = () => {
+      setIsSelectMode(prev => !prev);
+      if (isSelectMode) {
+          setSelectedFileIds([]);
+      }
+  };
+
+  const handleDeleteSelected = async () => {
+      for (const fileId of selectedFileIds) {
+          await deleteUnreviewedFile(fileId);
+      }
+      setSelectedFileIds([]);
+  };
+
   // Clear all unreviewed files
   const handleClearAllUnreviewed = async () => {
     for (const file of pendingFiles) {
@@ -289,7 +319,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                                     <ChevronLeft className="h-5 w-5" />
                                 </Button>
               </div>
-              <div className="flex gap-2 w-full">
+              <div className="flex gap-2 w-full items-center">
                 <input
                   type="text"
                   placeholder="Search files..."
@@ -306,7 +336,46 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                   <option value="Pending">Pending</option>
                   <option value="Reviewed">Reviewed</option>
                 </select>
-          </div>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={toggleSelectMode}
+                                className={cn(isSelectMode && "bg-orange-100")}
+                            >
+                                <Rows className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{isSelectMode ? "Cancel Selection" : "Select Multiple Files"}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+              </div>
+                {isSelectMode && selectedFileIds.length > 0 && (
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-sm text-muted-foreground">{selectedFileIds.length} files selected</span>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={handleDeleteSelected}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>Delete Selected</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                )}
         </div>
         {/* Unreviewed Files Section (no inner scroll) */}
           <CardHeader className="pb-2 bg-white dark:bg-slate-900 rounded-t-xl sticky top-0 z-20">
@@ -349,7 +418,11 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 statusFilter={statusFilter}
                 onSearchTermChange={setSearchTerm}
                 onStatusFilterChange={setStatusFilter}
-                // Remove any inner scroll or maxHeight props
+                selectedFileIds={selectedFileIds}
+                onFileSelectToggle={handleFileSelectToggle}
+                isSelectMode={isSelectMode}
+                toggleSelectMode={toggleSelectMode}
+                onDeleteSelected={handleDeleteSelected}
               />
             )}
           </CardContent>
@@ -394,7 +467,11 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 statusFilter={statusFilter}
                 onSearchTermChange={setSearchTerm}
                 onStatusFilterChange={setStatusFilter}
-                // Remove any inner scroll or maxHeight props
+                selectedFileIds={selectedFileIds}
+                onFileSelectToggle={handleFileSelectToggle}
+                isSelectMode={isSelectMode}
+                toggleSelectMode={toggleSelectMode}
+                onDeleteSelected={handleDeleteSelected}
               />
             )}
           </CardContent>

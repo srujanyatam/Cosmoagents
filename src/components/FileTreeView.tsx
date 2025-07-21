@@ -257,53 +257,55 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
 
   return (
     <div className="w-full">
-      {!hideActions && (
-        <div className="pb-3 flex flex-col gap-2">
-          <div className="flex flex-row items-center justify-between w-full mb-2">
-            <div className="flex items-center gap-2">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={toggleSelectMode}
-                                className={cn(
-                                    "h-7 w-7",
-                                    isSelectMode && "bg-blue-100"
-                                )}
-                            >
-                                <Rows className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>{isSelectMode ? "Cancel Selection" : "Select Multiple Files"}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                {isSelectMode && selectedFileIds && selectedFileIds.length > 0 && (
-                    <>
-                        <span className="text-sm text-muted-foreground">{selectedFileIds.length} selected</span>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={onDeleteSelected}
-                                        className="h-7 w-7"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Delete ({selectedFileIds.length}) selected files</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </>
-                )}
+      <div className="pb-3 flex flex-col gap-2">
+        <div className="flex flex-row items-center justify-between w-full mb-2">
+        <div className="flex items-center gap-2">
+            {!hideActions && (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={toggleSelectMode}
+                            className={cn(
+                                "h-7 w-7",
+                                isSelectMode && "bg-blue-100"
+                            )}
+                        >
+                            <Rows className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{isSelectMode ? "Cancel Selection" : "Select Multiple Files"}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            )}
+            {isSelectMode && selectedFileIds && selectedFileIds.length > 0 && !hideActions &&(
+                <>
+                    <span className="text-sm text-muted-foreground">{selectedFileIds.length} selected</span>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={onDeleteSelected}
+                                    className="h-7 w-7"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Delete ({selectedFileIds.length}) selected files</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </>
+            )}
             </div>
+          {!hideActions && (
             <div className="flex gap-2">
               {onConvertAll && totalPending > 0 && (
                 <Button
@@ -315,9 +317,9 @@ const FileTreeView: React.FC<FileTreeViewProps> = ({
                 </Button>
               )}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
       <CardContent className="p-0">
         <div className="space-y-1 px-4 pb-4 overflow-y-auto" style={{ maxHeight: 320 }}>
           {renderSection('tables', 'Tables', tables)}
