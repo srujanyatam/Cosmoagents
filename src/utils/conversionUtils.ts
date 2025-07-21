@@ -2,6 +2,7 @@ import { ConversionResult, CodeFile, ConversionIssue, DataTypeMapping } from '@/
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { v4 as uuidv4 } from 'uuid';
 import { getCachedConversion, setCachedConversion } from '@/utils/conversionUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -13,20 +14,40 @@ export const convertSybaseToOracle = async (
   customPrompt?: string,
   skipExplanation: boolean = true
 ): Promise<ConversionResult> => {
-  console.log('[CONVERT FN CALLED]', file.name);
   // Normalize content for cache key
   const normalizedContent = file.content.replace(/\r\n/g, '\n').trim();
+  const hash = getConversionCacheKey(normalizedContent, aiModel);
+
+  // 1. Check backend (DB) cache
+  const backendCached = await getBackendCachedConversion(hash, aiModel);
+  if (backendCached) {
+    console.log('[DB CACHE HIT]', file.name);
+    return {
+      id: backendCached.id,
+      originalFile: file,
+      convertedCode: backendCached.converted_code,
+      aiGeneratedCode: '',
+      issues: [], // Optionally store issues in metrics
+      dataTypeMapping: [], // Optionally store mapping in metrics
+      performance: backendCached.metrics,
+      status: 'success',
+      explanations: [],
+    };
+  } else {
+    console.log('[DB CACHE MISS]', file.name);
+  }
+
+  // 2. Check local cache
   const cached = getCachedConversion(normalizedContent, aiModel);
   if (cached) {
-    console.log('[CACHE HIT]', file.name);
-    // Clone the cached result to avoid mutating the cache
+    console.log('[LOCAL CACHE HIT]', file.name);
     const result = { ...cached };
     if (result.performance) {
       result.performance.conversionTimeMs = 1;
     }
     return result;
   } else {
-    console.log('[CACHE MISS]', file.name);
+    console.log('[LOCAL CACHE MISS]', file.name);
   }
 
   console.log(`[CONVERT] Starting conversion for file: ${file.name} with model: ${aiModel}`);
@@ -105,7 +126,14 @@ export const convertSybaseToOracle = async (
 
   // Save to cache with normalized content
   setCachedConversion(normalizedContent, aiModel, result);
-
+  // Save to backend cache
+  await setBackendCachedConversion(
+    hash,
+    normalizedContent,
+    aiModel,
+    result.convertedCode,
+    result.performance
+  );
   return result;
 };
 
@@ -496,4 +524,24 @@ export function getCachedConversion(code: string, model: string) {
 export function setCachedConversion(code: string, model: string, result: any) {
   const key = getConversionCacheKey(code, model);
   localStorage.setItem(key, JSON.stringify(result));
+}
+
+export async function setBackendCachedConversion(hash: string, original_code: string, ai_model: string, converted_code: string, metrics: any) {
+  await supabase
+    .from('conversion_cache')
+    .insert([{ content_hash: hash, original_code, converted_code, ai_model, metrics }]);
+}
+
+export async function getBackendCachedConversion(hash: string, ai_model: string) {
+  const { data, error } = await supabase
+    .from('conversion_cache')
+    .select('*')
+    .eq('content_hash', hash)
+    .eq('ai_model', ai_model)
+    .single();
+  if (error) {
+    console.error('Error fetching from backend cache:', error);
+    return null;
+  }
+  return data;
 }
