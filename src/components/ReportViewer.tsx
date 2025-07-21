@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Check, AlertTriangle, X, Download, Upload, Database, FileText, Info, Lightbulb } from 'lucide-react';
+import { Check, AlertTriangle, X, Download, Upload, Database, FileText, Info, Lightbulb, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ConversionReport } from '@/types';
 import { deployToOracle } from '@/utils/databaseUtils';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -31,6 +32,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
   const { toast } = useToast();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentLogs, setDeploymentLogs] = useState<DeploymentLog[]>([]);
+  const [showClearLogsDialog, setShowClearLogsDialog] = useState(false);
   
   useEffect(() => {
     fetchDeploymentLogs();
@@ -69,6 +71,30 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
     } catch (error) {
       console.error('Error fetching deployment logs:', error);
     }
+  };
+
+  const handleClearDeploymentLogs = async () => {
+    if (!user) return;
+    try {
+        const { error } = await supabase
+            .from('deployment_logs')
+            .delete()
+            .eq('user_id', user.id);
+        if (error) throw error;
+        setDeploymentLogs([]);
+        toast({
+            title: 'Deployment Logs Cleared',
+            description: 'All deployment logs have been successfully deleted.',
+        });
+    } catch (error) {
+        console.error('Error clearing deployment logs:', error);
+        toast({
+            title: 'Error',
+            description: 'Failed to clear deployment logs.',
+            variant: 'destructive',
+        });
+    }
+    setShowClearLogsDialog(false);
   };
 
   const saveDeploymentLog = async (status: string, linesOfSql: number, fileCount: number, errorMessage?: string) => {
@@ -438,12 +464,19 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
               <Database className="h-5 w-5 text-blue-500" />
               Oracle Deployment
             </CardTitle>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-              <Button 
-                onClick={handleDeploy} 
-                disabled={isDeploying}
+            <div className="flex items-center gap-2">
+                {deploymentLogs.length > 0 && (
+                    <Button variant="destructive" size="sm" onClick={() => setShowClearLogsDialog(true)}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear Logs
+                    </Button>
+                )}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                  <Button 
+                    onClick={handleDeploy} 
+                    disabled={isDeploying}
                     className="px-6 py-3 text-lg font-semibold rounded-lg shadow-md transition-all duration-200
                       bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0
                       hover:from-blue-600 hover:to-indigo-700 hover:shadow-xl
@@ -472,6 +505,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
               </Tooltip>
             </TooltipProvider>
             </div>
+            </div>
         </CardHeader>
         <CardContent>
           <h3 className="text-lg font-medium mb-3 flex items-center gap-2"><Database className="h-5 w-5 text-blue-500" /> Deployment Logs</h3>
@@ -496,7 +530,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                           </div>
                     <div className="grid grid-cols-2 gap-4 text-xs mb-1">
                       <div>Files: <strong>{log.file_count}</strong></div>
-                      <div>SQL Lines: <strong>{log.lines_of_sql}</strong></div>
                         </div>
                         {log.error_message && (
                       <div className="mt-1 p-2 bg-red-50 dark:bg-red-900/20 rounded text-xs text-red-700 dark:text-red-300">
@@ -529,6 +562,18 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
           </ul>
         </CardContent>
       </Card>
+        <Dialog open={showClearLogsDialog} onOpenChange={setShowClearLogsDialog}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Clear All Deployment Logs?</DialogTitle>
+                </DialogHeader>
+                <div className="py-2">Are you sure you want to delete all deployment logs? This action cannot be undone.</div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowClearLogsDialog(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleClearDeploymentLogs}>Clear Logs</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 };
