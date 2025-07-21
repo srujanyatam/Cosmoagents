@@ -27,8 +27,8 @@ export const convertSybaseToOracle = async (
       originalFile: file,
       convertedCode: backendCached.converted_code,
       aiGeneratedCode: '',
-      issues: [], // Optionally store issues in metrics
-      dataTypeMapping: [], // Optionally store mapping in metrics
+      issues: backendCached.issues || [],
+      dataTypeMapping: backendCached.data_type_mapping || [],
       performance: backendCached.metrics,
       status: 'success',
       explanations: [],
@@ -132,7 +132,9 @@ export const convertSybaseToOracle = async (
     normalizedContent,
     aiModel,
     result.convertedCode,
-    result.performance
+    result.performance,
+    result.issues,
+    result.dataTypeMapping
   );
   return result;
 };
@@ -526,10 +528,10 @@ export function setCachedConversion(code: string, model: string, result: any) {
   localStorage.setItem(key, JSON.stringify(result));
 }
 
-export async function setBackendCachedConversion(hash: string, original_code: string, ai_model: string, converted_code: string, metrics: any) {
+export async function setBackendCachedConversion(hash: string, original_code: string, ai_model: string, converted_code: string, metrics: any, issues: any, data_type_mapping: any) {
   await supabase
     .from('conversion_cache')
-    .insert([{ content_hash: hash, original_code, converted_code, ai_model, metrics }]);
+    .insert([{ content_hash: hash, original_code, converted_code, ai_model, metrics, issues, data_type_mapping }]);
 }
 
 export async function getBackendCachedConversion(hash: string, ai_model: string) {
