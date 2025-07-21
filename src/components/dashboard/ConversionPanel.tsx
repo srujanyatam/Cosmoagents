@@ -2,11 +2,12 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Download } from 'lucide-react';
+import { FileText, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 interface FileItem {
   id: string;
@@ -106,6 +107,7 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const hasNext = currentIndex >= 0 && currentIndex < allFilteredFiles.length - 1;
 
   const [showResetDialog, setShowResetDialog] = React.useState(false);
+  const [isMinimized, setIsMinimized] = React.useState(false);
 
   const handleResetMigration = () => {
     setShowResetDialog(true);
@@ -129,7 +131,25 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   return (
     <div className="grid grid-cols-12 gap-8">
       {/* Sidebar */}
-      <div className="col-span-4">
+        <div className={cn(
+          "transition-all duration-300 ease-in-out",
+          isMinimized ? "col-span-1" : "col-span-4"
+        )}>
+        
+        {isMinimized ? (
+          <Card className="h-full flex flex-col items-center py-4 shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-blue-100 dark:border-slate-800">
+            <Button variant="ghost" size="icon" onClick={() => setIsMinimized(false)} className="mb-4">
+              <ChevronRight className="h-6 w-6 text-blue-500" />
+            </Button>
+            <div
+              style={{ writingMode: 'vertical-rl' }}
+              className="transform rotate-180 text-lg font-bold text-blue-700 dark:text-blue-200 cursor-pointer"
+              onClick={() => setIsMinimized(false)}
+            >
+              Files to Convert
+            </div>
+          </Card>
+        ) : (
         <Card className="h-full shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-blue-100 dark:border-slate-800">
           <CardHeader className="pb-3 flex flex-col gap-2 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-slate-900 dark:to-slate-800 rounded-t-xl">
             <div className="flex flex-row items-center justify-between w-full mb-2">
@@ -137,11 +157,9 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
                 <FileText className="h-6 w-6 text-blue-500" />
                 Files to Convert
               </CardTitle>
-              <div className="flex gap-2">
-                <Button variant="destructive" onClick={handleResetMigration} className="text-xs px-3 py-1 h-7">
-                  Reset
-                </Button>
-              </div>
+                            <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
+                                <ChevronLeft className="h-5 w-5" />
+                            </Button>
             </div>
             <div className="flex gap-2 w-full">
               <input
@@ -184,6 +202,7 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
             />
           </CardContent>
         </Card>
+        )}
         {/* Confirmation Dialog for Reset Migration */}
         <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
           <DialogContent>
@@ -200,7 +219,10 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
       </div>
 
       {/* Main Panel */}
-      <div className="col-span-8">
+        <div className={cn(
+          "transition-all duration-300 ease-in-out",
+          isMinimized ? "col-span-11" : "col-span-8"
+        )}>
         {/* Progress Bar */}
         {showProgress && (
           <div className="mb-6">
