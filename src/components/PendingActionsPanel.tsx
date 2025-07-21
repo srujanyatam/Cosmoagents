@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { toast } from '@/components/ui/use-toast';
 
 interface DevReviewPanelProps {
   canCompleteMigration: boolean;
@@ -224,17 +225,25 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
   // Clear all unreviewed files
   const handleClearAllUnreviewed = async () => {
     for (const file of pendingFiles) {
-      await deleteUnreviewedFile(file.id);
+      await deleteUnreviewedFile(file.id, false);
     }
     setShowClearUnreviewedDialog(false);
+    toast({
+      title: "Unreviewed Files Cleared",
+      description: "All unreviewed files have been removed.",
+    });
   };
 
   // Clear all reviewed files
   const handleClearAllReviewed = async () => {
     for (const file of reviewedFiles) {
-      await deleteUnreviewedFile(file.id);
+      await deleteUnreviewedFile(file.id, false);
     }
     setShowClearReviewedDialog(false);
+    toast({
+      title: "Reviewed Files Cleared",
+      description: "All reviewed files have been removed.",
+    });
   };
 
   if (isLoading) {
@@ -317,10 +326,10 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
                 </div>
                 <div className="flex items-center gap-2">
                     {activeTab === 'unreviewed' && pendingFiles.length > 0 && (
-                        <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                        <Button size="sm" variant="destructive" onClick={() => setShowClearUnreviewedDialog(true)} className="px-2 py-1 text-xs h-7">Clear All</Button>
                     )}
                     {activeTab === 'reviewed' && reviewedFiles.length > 0 && (
-                        <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs">Clear All</Button>
+                        <Button size="sm" variant="destructive" onClick={() => setShowClearReviewedDialog(true)} className="px-2 py-1 text-xs h-7">Clear All</Button>
                     )}
                     <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
                         <ChevronLeft className="h-5 w-5" />

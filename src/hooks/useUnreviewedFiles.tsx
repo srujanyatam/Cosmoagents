@@ -143,7 +143,7 @@ export const useUnreviewedFiles = () => {
   };
 
   // Delete an unreviewed file
-  const deleteUnreviewedFile = async (id: string) => {
+  const deleteUnreviewedFile = async (id: string, showToast: boolean = true) => {
     try {
       const { error } = await supabase
         .from('unreviewed_files')
@@ -152,21 +152,25 @@ export const useUnreviewedFiles = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "File Deleted",
-        description: "The unreviewed file has been removed.",
-      });
+      if (showToast) {
+        toast({
+          title: "File Deleted",
+          description: "The file has been removed.",
+        });
+      }
 
       // Refresh the list
       await fetchUnreviewedFiles();
       return true;
     } catch (error) {
       console.error('Error deleting unreviewed file:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete file",
-        variant: "destructive",
-      });
+      if (showToast) {
+        toast({
+          title: "Error",
+          description: "Failed to delete file",
+          variant: "destructive",
+        });
+      }
       return false;
     }
   };
