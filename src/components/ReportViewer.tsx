@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -31,6 +32,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
   const { toast } = useToast();
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentLogs, setDeploymentLogs] = useState<DeploymentLog[]>([]);
+  const [showClearLogsDialog, setShowClearLogsDialog] = useState(false);
   
   useEffect(() => {
     fetchDeploymentLogs();
@@ -73,9 +75,6 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
 
   const handleClearDeploymentLogs = async () => {
     if (!user) return;
-    if (!confirm('Are you sure you want to delete all deployment logs? This action cannot be undone.')) {
-        return;
-    }
     try {
         const { error } = await supabase
             .from('deployment_logs')
@@ -95,6 +94,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
             variant: 'destructive',
         });
     }
+    setShowClearLogsDialog(false);
   };
 
   const saveDeploymentLog = async (status: string, linesOfSql: number, fileCount: number, errorMessage?: string) => {
@@ -466,7 +466,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
             </CardTitle>
             <div className="flex items-center gap-2">
                 {deploymentLogs.length > 0 && (
-                    <Button variant="destructive" size="sm" onClick={handleClearDeploymentLogs}>
+                    <Button variant="destructive" size="sm" onClick={() => setShowClearLogsDialog(true)}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Clear Logs
                     </Button>
@@ -562,6 +562,18 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
           </ul>
         </CardContent>
       </Card>
+        <Dialog open={showClearLogsDialog} onOpenChange={setShowClearLogsDialog}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Clear All Deployment Logs?</DialogTitle>
+                </DialogHeader>
+                <div className="py-2">Are you sure you want to delete all deployment logs? This action cannot be undone.</div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowClearLogsDialog(false)}>Cancel</Button>
+                    <Button variant="destructive" onClick={handleClearDeploymentLogs}>Clear Logs</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 };
