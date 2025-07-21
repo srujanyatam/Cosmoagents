@@ -115,7 +115,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
   const handleDeploy = async () => {
     setIsDeploying(true);
     try {
-      const linesOfSql = report.summary.split('\n').length;
+      const linesOfSql = report.totalSqlLines;
       const fileCount = report.filesProcessed;
       let allSuccess = true;
       let filesToInsert = [];
@@ -195,7 +195,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       await saveDeploymentLog(
         'Failed',
-        report.summary.split('\n').length,
+        report.totalSqlLines,
         report.filesProcessed,
         errorMessage
       );
