@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -157,9 +156,14 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
                 <FileText className="h-6 w-6 text-blue-500" />
                 Files to Convert
               </CardTitle>
-                            <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
-                                <ChevronLeft className="h-5 w-5" />
-                            </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="destructive" onClick={handleResetMigration} className="text-xs px-3 py-1 h-7">
+                    Reset
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setIsMinimized(true)}>
+                    <ChevronLeft className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
             <div className="flex gap-2 w-full">
               <input
