@@ -270,9 +270,10 @@ const generatePerformanceMetrics = (
   performanceScore -= complexityIncrease * 10; // much harsher penalty
   performanceScore -= linesIncrease * 2;      // much harsher penalty
   performanceScore -= loopsIncrease * 10;     // much harsher penalty
-  if (complexityIncrease > 0 || linesIncrease > 0 || loopsIncrease > 0) {
-    performanceScore = 40; // force low score if any increase
-  }
+  // Remove forced low score:
+  // if (complexityIncrease > 0 || linesIncrease > 0 || loopsIncrease > 0) {
+  //   performanceScore = 40; // force low score if any increase
+  // }
   performanceScore = Math.max(0, Math.min(100, Math.round(performanceScore)));
 
   const recommendations = [];
@@ -355,6 +356,8 @@ const generateQuantitativeIssues = (
   
   return issues;
 };
+
+export { analyzeCodeComplexity, generatePerformanceMetrics };
 
 export const generateConversionReport = (results: ConversionResult[]): string => {
   const successCount = results.filter(r => r.status === 'success').length;

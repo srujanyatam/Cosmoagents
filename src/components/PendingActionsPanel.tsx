@@ -107,7 +107,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
               name: f.file_name,
               content: f.original_code,
               convertedContent: f.converted_code,
-              aiGeneratedCode: f.ai_generated_code || f.aiGeneratedCode || '',
+              aiGeneratedCode: f.ai_generated_code || '', // Always use the ai_generated_code column as the AI baseline
               conversionStatus: 'pending',
       errorMessage: undefined,
               type,
@@ -169,19 +169,20 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     setEditedContent('');
   };
 
-  // Fix handleSaveEdit to update aiGeneratedCode and converted_code
-  const handleSaveEdit = async (file: UnreviewedFile, newCode: string) => {
-    // Save previous converted_code as ai_generated_code
+  // Update handleSaveEdit to accept newMetrics and update local state
+  const handleSaveEdit = async (file: UnreviewedFile, newCode: string, newMetrics?: any) => {
+    // Always use ai_generated_code as the AI baseline
     const prevAICode = file.ai_generated_code || file.converted_code;
     const success = await updateUnreviewedFile({
       id: file.id,
       converted_code: newCode,
-      ai_generated_code: prevAICode,
+      ai_generated_code: prevAICode, // Do not overwrite ai_generated_code on manual edit
+      ...(newMetrics ? { performance_metrics: newMetrics } : {}),
     });
     if (success) {
       setEditingFile(null);
       setEditedContent('');
-      // Optionally refreshUnreviewedFiles() here if needed
+      await refreshUnreviewedFiles(); // Always refresh from DB after edit
     }
   };
 
@@ -519,7 +520,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 <ConversionViewer
                   key={selectedFile.id} /* Add key to force re-render */
                   file={mapToFileItem(selectedFile)}
-                  onManualEdit={newContent => handleSaveEdit(selectedFile, newContent)}
+                  onManualEdit={(newContent, newMetrics) => handleSaveEdit(selectedFile, newContent, newMetrics)}
                   onDismissIssue={() => {}}
                   onSaveEdit={(newContent) => handleSaveEdit(selectedFile, newContent)}
                   hideEdit={selectedFile.status === 'reviewed'}

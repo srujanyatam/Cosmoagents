@@ -86,6 +86,8 @@ export const useUnreviewedFiles = () => {
       if (updateData.converted_code !== undefined) updateFields.converted_code = updateData.converted_code;
       if (updateData.original_code !== undefined) updateFields.original_code = updateData.original_code;
       if (updateData.status !== undefined) updateFields.status = updateData.status;
+      if (updateData.ai_generated_code !== undefined) updateFields.ai_generated_code = updateData.ai_generated_code;
+      if (updateData.performance_metrics !== undefined) updateFields.performance_metrics = updateData.performance_metrics;
 
       const { error } = await supabase
         .from('unreviewed_files')

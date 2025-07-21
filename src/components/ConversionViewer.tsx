@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
+import { analyzeCodeComplexity, generatePerformanceMetrics } from '@/utils/conversionUtils';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -118,30 +119,36 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const humanEditPercent = getEditPercentage(aiCode, finalCode);
 
   const handleSaveEdit = async () => {
-    onManualEdit(editedContent);
+    const originalCode = file.content; // or file.original_code if available
+    const newCode = editedContent;
+
+    // 1. Recalculate metrics
+    const originalComplexity = analyzeCodeComplexity(originalCode);
+    const convertedComplexity = analyzeCodeComplexity(newCode);
+    const conversionTime = 0; // Optionally, you can track edit time
+    const newMetrics = generatePerformanceMetrics(
+      originalComplexity,
+      convertedComplexity,
+      conversionTime,
+      originalCode,
+      newCode
+    );
+
+    // 2. Update in Supabase
+    await supabase
+      .from('unreviewed_files')
+      .update({
+        converted_code: newCode,
+        performance_metrics: newMetrics,
+      })
+      .eq('id', file.id);
+
+    // 3. Update in local state/UI
+    onManualEdit(newCode, newMetrics); // pass newMetrics to update state/UI
     setIsEditing(false);
     if (onSaveEdit) {
-      await onSaveEdit(editedContent);
+      await onSaveEdit(newCode);
       return;
-    }
-    // Persist to Supabase
-    if (file.id) {
-      const { error } = await supabase
-        .from('migration_files')
-        .update({ converted_content: editedContent })
-        .eq('id', file.id);
-      if (error) {
-        toast({
-          title: 'Save Failed',
-          description: error.message,
-          variant: 'destructive'
-        });
-      } else {
-        toast({
-          title: 'Saved',
-          description: 'Changes saved to database.'
-        });
-      }
     }
   };
 
@@ -329,20 +336,6 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
         </TabsContent>
         
         <TabsContent value="performance" className="space-y-4">
-          {/* Human Edits Metric in Performance Tab */}
-          <Card className="mb-4">
-            <CardContent className="py-4 flex flex-col items-center">
-              <span className="text-xs font-semibold text-purple-700 bg-purple-100 rounded px-2 py-1 mb-1">Human Edits</span>
-              <span className="text-2xl font-bold text-purple-700">{humanEditPercent}%</span>
-              <span className="text-xs text-muted-foreground mt-1">Percentage of AI-generated code changed by a human</span>
-              <div className="mt-4 w-full">
-                <h4 className="text-sm font-medium mb-2">AI-Generated Code vs. Final Code Diff (character-based)</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto max-h-48 whitespace-pre-wrap">
-                  {aiCode !== finalCode ? `AI Output:\n${aiCode}\n\nFinal Code:\n${finalCode}` : 'No changes detected.'}
-                </pre>
-              </div>
-            </CardContent>
-          </Card>
           {file.performanceMetrics ? (
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Quantitative Performance Analysis</h3>
