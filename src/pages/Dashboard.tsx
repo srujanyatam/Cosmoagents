@@ -53,7 +53,15 @@ const Dashboard = () => {
   const [pendingCompleteMigration, setPendingCompleteMigration] = useState(false);
 
   const { handleCodeUpload } = useMigrationManager();
-  const { unreviewedFiles, addUnreviewedFile, refreshUnreviewedFiles } = useUnreviewedFiles();
+  const {
+    unreviewedFiles,
+    addUnreviewedFile,
+    refreshUnreviewedFiles,
+    isLoading,
+    markAsReviewed,
+    deleteUnreviewedFile,
+    updateUnreviewedFile
+  } = useUnreviewedFiles();
   const {
     isConverting,
     convertingFileIds,
@@ -323,11 +331,11 @@ const Dashboard = () => {
       navigate(`/report/${data.id}`);
     } catch (error) {
       console.error('Error generating report:', error);
-    toast({
+      toast({
         title: "Report Generation Failed",
         description: "Failed to generate the conversion report",
         variant: "destructive",
-    });
+      });
     }
   };
 
@@ -427,10 +435,16 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="devReview">
-            <DevReviewPanel 
-              canCompleteMigration={canCompleteMigration} 
+            <DevReviewPanel
+              canCompleteMigration={canCompleteMigration}
               onCompleteMigration={() => { handleCompleteMigration(); }}
               onFileReviewed={handleFileReviewed}
+              unreviewedFiles={unreviewedFiles}
+              isLoading={isLoading}
+              markAsReviewed={markAsReviewed}
+              deleteUnreviewedFile={deleteUnreviewedFile}
+              updateUnreviewedFile={updateUnreviewedFile}
+              refreshUnreviewedFiles={refreshUnreviewedFiles}
             />
           </TabsContent>
         </Tabs>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Clock, Check, Edit3, Trash2, FileText, Folder, ChevronDown, ChevronUp, Download, ChevronLeft, ChevronRight, Rows } from 'lucide-react';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
-import { UnreviewedFile } from '@/types/unreviewedFiles';
+import { UnreviewedFile, UnreviewedFileUpdate } from '@/types/unreviewedFiles';
 import MarkedForReviewPanel from './MarkedForReviewPanel';
 import FileTreeView from '@/components/FileTreeView';
 import ConversionViewer from '@/components/ConversionViewer';
@@ -25,11 +25,26 @@ import { toast } from '@/components/ui/use-toast';
 interface DevReviewPanelProps {
   canCompleteMigration: boolean;
   onCompleteMigration: () => void;
-  onFileReviewed: () => void; // new prop
+  onFileReviewed: () => void;
+  unreviewedFiles: UnreviewedFile[];
+  isLoading: boolean;
+  markAsReviewed: (id: string, fileName: string, convertedCode: string, originalCode: string) => Promise<boolean>;
+  deleteUnreviewedFile: (id: string, showToast?: boolean) => Promise<boolean>;
+  updateUnreviewedFile: (updateData: UnreviewedFileUpdate) => Promise<boolean>;
+  refreshUnreviewedFiles: () => Promise<void>;
 }
 
-const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, onCompleteMigration, onFileReviewed }) => {
-  const { unreviewedFiles, isLoading, markAsReviewed, deleteUnreviewedFile, updateUnreviewedFile, refreshUnreviewedFiles } = useUnreviewedFiles();
+const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
+  canCompleteMigration,
+  onCompleteMigration,
+  onFileReviewed,
+  unreviewedFiles,
+  isLoading,
+  markAsReviewed,
+  deleteUnreviewedFile,
+  updateUnreviewedFile,
+  refreshUnreviewedFiles,
+}) => {
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>('');
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
