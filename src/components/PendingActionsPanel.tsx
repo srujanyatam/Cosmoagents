@@ -189,15 +189,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({ canCompleteMigration, o
 
   const handleDelete = async (fileId: string) => {
     await deleteUnreviewedFile(fileId);
-    if (editingFile === fileId) {
-      handleCancelEdit();
-    }
-    // After delete, select next file
-    setSelectedFileId(
-      pendingFiles.filter(f => f.id !== fileId)[0]?.id ||
-      reviewedFiles.filter(f => f.id !== fileId)[0]?.id ||
-      null
-    );
   };
 
   const handleFileSelectToggle = (fileId: string) => {
