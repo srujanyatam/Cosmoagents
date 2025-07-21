@@ -149,9 +149,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     <>
       {/* Removed top bar with filename, badges, and download button. Now only tabs and code sections remain. */}
       <Tabs defaultValue="code" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className={`grid w-full grid-cols-${file.type === 'trigger' ? '3' : '4'}`}>
           <TabsTrigger value="code">Code</TabsTrigger>
-          <TabsTrigger value="mapping">Data Types</TabsTrigger>
+          {file.type !== 'trigger' && <TabsTrigger value="mapping">Data Types</TabsTrigger>}
           <TabsTrigger value="issues">Issues {file.issues && file.issues.length > 0 && (<Badge variant="outline" className="ml-1">{file.issues.length}</Badge>)}</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
         </TabsList>
@@ -281,43 +281,45 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
           )}
         </TabsContent>
         
-        <TabsContent value="mapping" className="space-y-4">
-          {file.dataTypeMapping && file.dataTypeMapping.length > 0 ? (
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium">Data Type Mappings</h3>
-              <div className="grid gap-3">
-                {file.dataTypeMapping.map((mapping, index) => (
-                  <Card key={index} className="p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <h4 className="font-medium text-red-600 mb-2">Sybase Type</h4>
-                        <code className="bg-red-50 px-3 py-2 rounded text-sm font-mono block">
-                          {mapping.sybaseType}
-                        </code>
+        {file.type !== 'trigger' && (
+          <TabsContent value="mapping" className="space-y-4">
+            {file.dataTypeMapping && file.dataTypeMapping.length > 0 ? (
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium">Data Type Mappings</h3>
+                <div className="grid gap-3">
+                  {file.dataTypeMapping.map((mapping, index) => (
+                    <Card key={index} className="p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <h4 className="font-medium text-red-600 mb-2">Sybase Type</h4>
+                          <code className="bg-red-50 px-3 py-2 rounded text-sm font-mono block">
+                            {mapping.sybaseType}
+                          </code>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-green-600 mb-2">Oracle Type</h4>
+                          <code className="bg-green-50 px-3 py-2 rounded text-sm font-mono block">
+                            {mapping.oracleType}
+                          </code>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">Description</h4>
+                          <p className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
+                            {mapping.description || 'Standard type conversion'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-green-600 mb-2">Oracle Type</h4>
-                        <code className="bg-green-50 px-3 py-2 rounded text-sm font-mono block">
-                          {mapping.oracleType}
-                        </code>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-700 mb-2">Description</h4>
-                        <p className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
-                          {mapping.description || 'Standard type conversion'}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No data type mappings available</p>
-            </div>
-          )}
-        </TabsContent>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No data type mappings available</p>
+              </div>
+            )}
+          </TabsContent>
+        )}
         
         <TabsContent value="issues" className="space-y-4">
           <ConversionIssuesPanel
