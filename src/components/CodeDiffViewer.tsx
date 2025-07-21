@@ -24,7 +24,7 @@ const CodeDiffViewer: React.FC<CodeDiffViewerProps> = ({
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h3 className="text-sm font-medium mb-2 text-muted-foreground">Original (Sybase)</h3>
+            <h3 className="text-sm font-medium mb-2 text-muted-foreground">AI Generated Code</h3>
             <CodeEditor 
               initialCode={originalCode} 
               readOnly={true} 
@@ -33,11 +33,10 @@ const CodeDiffViewer: React.FC<CodeDiffViewerProps> = ({
             />
           </div>
           <div>
-            <h3 className="text-sm font-medium mb-2 text-muted-foreground">Converted (Oracle)</h3>
+            <h3 className="text-sm font-medium mb-2 text-muted-foreground">Final (Changed) Code</h3>
             <CodeEditor 
               initialCode={convertedCode} 
-              readOnly={readOnly} 
-              onSave={onUpdateConvertedCode}
+              readOnly={true} 
               height="500px"
               language="plsql"
             />
