@@ -49,6 +49,9 @@ const History = () => {
   const isFetchingFiles = useRef(false);
   const { addUnreviewedFile } = useUnreviewedFiles();
   const [undoingFileId, setUndoingFileId] = useState<string | null>(null);
+  // Multi-select state
+  const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   // Get the return tab from location state
   const returnTab = location.state?.returnTab || 'upload';
@@ -353,6 +356,33 @@ const History = () => {
     }
   };
 
+  // Multi-select handlers
+  const handleFileSelectToggle = (fileId: string) => {
+    setSelectedFileIds(prev =>
+      prev.includes(fileId)
+        ? prev.filter(id => id !== fileId)
+        : [...prev, fileId]
+    );
+  };
+  const toggleSelectMode = () => {
+    setIsSelectMode(prev => {
+      if (prev) setSelectedFileIds([]); // Only clear when turning OFF
+      return !prev;
+    });
+  };
+  const handleDeleteSelected = async () => {
+    if (!selectedMigrationId || selectedFileIds.length === 0) return;
+    if (!confirm(`Delete ${selectedFileIds.length} selected files? This cannot be undone.`)) return;
+    try {
+      await supabase.from('migration_files').delete().in('id', selectedFileIds);
+      setMigrationFiles(prev => prev.filter(f => !selectedFileIds.includes(f.id)));
+      setSelectedFileIds([]);
+      toast({ title: 'Deleted', description: 'Selected files deleted.' });
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to delete selected files', variant: 'destructive' });
+    }
+  };
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -408,16 +438,41 @@ const History = () => {
               <FileText className="h-5 w-5" />
               Conversion History ({migrations.length})
             </CardTitle>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleClearAllHistory}
-              disabled={migrations.length === 0}
-            >
-              Clear History
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleSelectMode}
+                className={isSelectMode ? 'bg-blue-100' : ''}
+                title={isSelectMode ? 'Cancel Selection' : 'Select Multiple Files'}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleClearAllHistory}
+                disabled={migrations.length === 0}
+              >
+                Clear History
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
+            {isSelectMode && selectedFileIds.length > 0 && (
+              <div className="sticky top-0 z-20 bg-white border-b flex items-center gap-4 px-4 py-2 mb-2 shadow-sm rounded-t-lg">
+                <span className="font-medium text-blue-700">{selectedFileIds.length} selected</span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteSelected}
+                  disabled={selectedFileIds.length === 0}
+                  title="Delete Selected"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Delete Selected
+                </Button>
+              </div>
+            )}
             {migrations.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -511,6 +566,15 @@ const History = () => {
                           migrationFiles.map((file) => (
                             <tr key={file.id} className="bg-gray-50 hover:bg-blue-100">
                               <td className="px-8 py-2 text-sm flex items-center gap-2" colSpan={2}>
+                                {isSelectMode && (
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedFileIds.includes(file.id)}
+                                    onChange={() => handleFileSelectToggle(file.id)}
+                                    onClick={e => e.stopPropagation()}
+                                    className="mr-2"
+                                  />
+                                )}
                                 <FileText className="h-4 w-4 text-gray-500" />
                                 <span className="truncate max-w-xs">{file.file_name}</span>
                               </td>
