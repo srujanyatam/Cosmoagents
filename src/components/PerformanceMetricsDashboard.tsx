@@ -409,17 +409,17 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Header Row */}
-          <div className="flex items-center font-semibold border-b py-2 bg-slate-50 rounded-t-lg">
-            <div className="w-1/4 px-2">File Name</div>
-            <div className="w-1/6 text-center">Lines</div>
-            <div className="w-1/6 text-center">Loops</div>
-            <div className="w-1/6 text-center">Time</div>
-            <div className="w-1/6 text-center">Human Edits</div>
-            <div className="w-1/12 text-center">Status</div>
-          </div>
-          <div className="space-y-2">
-            {results.map((result) => {
+          <div className="border rounded-lg overflow-hidden">
+            {/* Header Row */}
+            <div className="flex items-center font-semibold bg-slate-100 border-b py-2">
+              <div className="w-1/4 px-2">File Name</div>
+              <div className="w-1/6 text-center">Lines</div>
+              <div className="w-1/6 text-center">Loops</div>
+              <div className="w-1/6 text-center">Time</div>
+              <div className="w-1/6 text-center">Human Edits</div>
+              <div className="w-1/12 text-center">Status</div>
+            </div>
+            {results.map((result, idx) => {
               const aiCode = result.aiGeneratedCode || result.convertedCode || '';
               const finalCode = result.convertedCode || '';
               const editPercent = getEditPercentage(aiCode, finalCode);
@@ -429,7 +429,10 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               const linesColor = lineDiff < 0 ? 'text-green-600' : lineDiff > 0 ? 'text-red-600' : 'text-gray-600';
               const linesLabel = lineDiff < 0 ? 'Lines Reduced' : lineDiff > 0 ? 'Lines Increased' : 'No Change';
               return (
-                <div key={result.id} className="flex items-center border-b py-2">
+                <div
+                  key={result.id}
+                  className={`flex items-center py-1 border-b last:border-b-0 ${idx % 2 === 1 ? 'bg-slate-50' : ''}`}
+                >
                   <div className="w-1/4 px-2 flex items-center gap-2 truncate">
                     {getStatusIcon(result.status)}
                     <span className="font-medium truncate">{result.originalFile.name}</span>
