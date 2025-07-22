@@ -52,7 +52,7 @@ const Dashboard = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingCompleteMigration, setPendingCompleteMigration] = useState(false);
 
-  const { handleCodeUpload } = useMigrationManager();
+  const { currentMigrationId, handleCodeUpload, startNewMigration } = useMigrationManager();
   const { unreviewedFiles, addUnreviewedFile, refreshUnreviewedFiles } = useUnreviewedFiles();
   const {
     isConverting,
@@ -225,7 +225,7 @@ const Dashboard = () => {
   const handleMoveToDevReview = async () => {
     // Add all files in conversion to Dev Review (unreviewed_files)
     for (const file of files) {
-      if (file.content && file.convertedContent) {
+      if (file.content && file.convertedContent && user?.id) {
         await addUnreviewedFile({
           file_name: file.name,
           converted_code: file.convertedContent,
@@ -234,6 +234,7 @@ const Dashboard = () => {
           data_type_mapping: file.dataTypeMapping,
           issues: file.issues,
           performance_metrics: file.performanceMetrics || {},
+          user_id: user.id,
         });
       }
     }
@@ -304,11 +305,19 @@ const Dashboard = () => {
         summary: reportSummary,
       };
       // Save to Supabase migration_reports
+      if (!currentMigrationId) {
+        toast({
+          title: "Migration Error",
+          description: "No migration is active. Please start a migration before saving a report.",
+          variant: "destructive",
+        });
+        return;
+      }
       const { data, error } = await (await import('@/integrations/supabase/client')).supabase
         .from('migration_reports')
         .insert({
-          user_id: profile?.id,
-          report: report,
+          migration_id: currentMigrationId,
+          report_content: JSON.stringify(report),
         })
         .select()
         .single();
@@ -319,11 +328,11 @@ const Dashboard = () => {
       navigate(`/report/${data.id}`);
     } catch (error) {
       console.error('Error generating report:', error);
-    toast({
+      toast({
         title: "Report Generation Failed",
         description: "Failed to generate the conversion report",
         variant: "destructive",
-    });
+      });
     }
   };
 

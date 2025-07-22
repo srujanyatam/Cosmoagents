@@ -33,11 +33,13 @@ const ReportPage: React.FC = () => {
       try {
         const { data, error } = await supabase
           .from('migration_reports')
-          .select('report')
+          .select('*')
           .eq('id', reportId)
           .single();
         if (error) throw error;
-        setReport(data.report as ConversionReport);
+        // Parse the report_content JSON string to ConversionReport
+        const parsedReport = data && data.report_content ? JSON.parse(data.report_content) : null;
+        setReport(parsedReport);
       } catch (err: any) {
         setError('Failed to fetch report.');
       } finally {
