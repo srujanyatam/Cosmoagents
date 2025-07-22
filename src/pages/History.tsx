@@ -375,9 +375,16 @@ const History = () => {
     if (!confirm(`Delete ${selectedFileIds.length} selected files? This cannot be undone.`)) return;
     try {
       await supabase.from('migration_files').delete().in('id', selectedFileIds);
-      setMigrationFiles(prev => prev.filter(f => !selectedFileIds.includes(f.id)));
+      const updatedFiles = migrationFiles.filter(f => !selectedFileIds.includes(f.id));
+      setMigrationFiles(updatedFiles);
       setSelectedFileIds([]);
       toast({ title: 'Deleted', description: 'Selected files deleted.' });
+      // If no files left in this migration, delete the migration itself
+      if (updatedFiles.length === 0) {
+        await supabase.from('migrations').delete().eq('id', selectedMigrationId);
+        setMigrations(prev => prev.filter(m => m.id !== selectedMigrationId));
+        setSelectedMigrationId(null);
+      }
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to delete selected files', variant: 'destructive' });
     }
