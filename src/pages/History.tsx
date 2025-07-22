@@ -33,6 +33,7 @@ interface MigrationFile {
   conversion_status: 'pending' | 'success' | 'failed';
   error_message: string | null;
   created_at: string;
+  migration_id: string; // Added for multi-select
 }
 
 const History = () => {
@@ -51,6 +52,7 @@ const History = () => {
   const [undoingFileId, setUndoingFileId] = useState<string | null>(null);
   // Multi-select state
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
+  const [selectedMigrationIds, setSelectedMigrationIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
 
   // Get the return tab from location state
@@ -144,7 +146,7 @@ const History = () => {
     try {
       const { data, error } = await supabase
         .from('migration_files')
-        .select('*')
+        .select('*, migration_id')
         .eq('migration_id', migrationId)
         .order('file_name', { ascending: true });
         
@@ -158,12 +160,13 @@ const History = () => {
         return;
       }
       
-      // Map the data to ensure proper typing for conversion_status
+      // Map the data to ensure proper typing for conversion_status and migration_id
       const typedFiles: MigrationFile[] = (data || []).map(file => ({
         ...file,
         conversion_status: ['pending', 'success', 'failed'].includes(file.conversion_status) 
           ? file.conversion_status as 'pending' | 'success' | 'failed'
-          : 'pending'
+          : 'pending',
+        migration_id: file.migration_id || migrationId
       }));
       
       setMigrationFiles(typedFiles);
@@ -364,29 +367,50 @@ const History = () => {
         : [...prev, fileId]
     );
   };
+  const handleMigrationSelectToggle = (migrationId: string) => {
+    setSelectedMigrationIds(prev =>
+      prev.includes(migrationId)
+        ? prev.filter(id => id !== migrationId)
+        : [...prev, migrationId]
+    );
+  };
   const toggleSelectMode = () => {
     setIsSelectMode(prev => {
-      if (prev) setSelectedFileIds([]); // Only clear when turning OFF
+      if (prev) {
+        setSelectedFileIds([]);
+        setSelectedMigrationIds([]);
+      }
       return !prev;
     });
   };
   const handleDeleteSelected = async () => {
-    if (!selectedMigrationId || selectedFileIds.length === 0) return;
-    if (!confirm(`Delete ${selectedFileIds.length} selected files? This cannot be undone.`)) return;
+    if (selectedMigrationIds.length === 0 && selectedFileIds.length === 0) return;
+    if (!confirm(`Delete ${selectedMigrationIds.length} migration(s) and ${selectedFileIds.length} file(s)? This cannot be undone.`)) return;
     try {
-      await supabase.from('migration_files').delete().in('id', selectedFileIds);
-      const updatedFiles = migrationFiles.filter(f => !selectedFileIds.includes(f.id));
-      setMigrationFiles(updatedFiles);
-      setSelectedFileIds([]);
-      toast({ title: 'Deleted', description: 'Selected files deleted.' });
-      // If no files left in this migration, delete the migration itself
-      if (updatedFiles.length === 0) {
-        await supabase.from('migrations').delete().eq('id', selectedMigrationId);
-        setMigrations(prev => prev.filter(m => m.id !== selectedMigrationId));
-        setSelectedMigrationId(null);
+      // Delete selected migrations and all their files
+      if (selectedMigrationIds.length > 0) {
+        await supabase.from('migration_files').delete().in('migration_id', selectedMigrationIds);
+        await supabase.from('migrations').delete().in('id', selectedMigrationIds);
       }
+      // Delete selected files (not in selected migrations)
+      const fileIdsToDelete = selectedFileIds.filter(fid => {
+        const file = migrationFiles.find(f => f.id === fid);
+        return file && !selectedMigrationIds.includes(file.migration_id);
+      });
+      if (fileIdsToDelete.length > 0) {
+        await supabase.from('migration_files').delete().in('id', fileIdsToDelete);
+      }
+      // Update UI
+      setMigrations(prev => prev.filter(m => !selectedMigrationIds.includes(m.id)));
+      setMigrationFiles(prev => prev.filter(f =>
+        !selectedFileIds.includes(f.id) && !selectedMigrationIds.includes(f.migration_id)
+      ));
+      setSelectedMigrationIds([]);
+      setSelectedFileIds([]);
+      setSelectedMigrationId(prev => selectedMigrationIds.includes(prev!) ? null : prev);
+      toast({ title: 'Deleted', description: 'Selected migrations and files deleted.' });
     } catch (err) {
-      toast({ title: 'Error', description: 'Failed to delete selected files', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to delete selected items', variant: 'destructive' });
     }
   };
 
@@ -466,14 +490,15 @@ const History = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {isSelectMode && selectedFileIds.length > 0 && (
+            {isSelectMode && (selectedMigrationIds.length > 0 || selectedFileIds.length > 0) && (
               <div className="sticky top-0 z-20 bg-white border-b flex items-center gap-4 px-4 py-2 mb-2 shadow-sm rounded-t-lg">
-                <span className="font-medium text-blue-700">{selectedFileIds.length} selected</span>
+                <span className="font-medium text-blue-700">
+                  {selectedMigrationIds.length} migration(s), {selectedFileIds.length} file(s) selected
+                </span>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteSelected}
-                  disabled={selectedFileIds.length === 0}
                   title="Delete Selected"
                 >
                   <Trash2 className="h-4 w-4 mr-1" /> Delete Selected
@@ -498,6 +523,7 @@ const History = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-2 py-3"></th> {/* Checkbox column */}
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Files</th>
@@ -516,6 +542,16 @@ const History = () => {
                           }`}
                           onClick={() => handleRowClick(migration.id)}
                         >
+                          <td className="px-2 py-3">
+                            {isSelectMode && (
+                              <input
+                                type="checkbox"
+                                checked={selectedMigrationIds.includes(migration.id)}
+                                onChange={e => { e.stopPropagation(); handleMigrationSelectToggle(migration.id); }}
+                                onClick={e => e.stopPropagation()}
+                              />
+                            )}
+                          </td>
                           <td className="px-4 py-3 font-medium text-blue-900 flex items-center gap-2">
                             <FileText className="h-4 w-4 text-blue-600" />
                             {migration.project_name}
@@ -570,18 +606,19 @@ const History = () => {
                         
                         {/* Show files if this migration is selected */}
                         {selectedMigrationId === migration.id && migrationFiles.length > 0 && (
-                          migrationFiles.map((file) => (
+                          migrationFiles.filter(f => f.migration_id === migration.id).map((file) => (
                             <tr key={file.id} className="bg-gray-50 hover:bg-blue-100">
-                              <td className="px-8 py-2 text-sm flex items-center gap-2" colSpan={2}>
+                              <td className="px-2 py-2">
                                 {isSelectMode && (
                                   <input
                                     type="checkbox"
                                     checked={selectedFileIds.includes(file.id)}
                                     onChange={() => handleFileSelectToggle(file.id)}
                                     onClick={e => e.stopPropagation()}
-                                    className="mr-2"
                                   />
                                 )}
+                              </td>
+                              <td className="px-8 py-2 text-sm flex items-center gap-2" colSpan={1}>
                                 <FileText className="h-4 w-4 text-gray-500" />
                                 <span className="truncate max-w-xs">{file.file_name}</span>
                               </td>
