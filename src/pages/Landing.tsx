@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Database, FileText, Zap, Shield, Clock, Users, ArrowRight, History, HelpCircle } from 'lucide-react';
@@ -7,34 +7,68 @@ import { useAuth } from '@/hooks/useAuth';
 import Help from '@/components/Help';
 import UserDropdown from '@/components/UserDropdown';
 
-// Animated SVG background component
+// Animated SVG background component (cool blue/gray palette)
 const AnimatedBackground = () => (
   <div className="absolute inset-0 -z-10 overflow-hidden">
     <svg width="100%" height="100%" viewBox="0 0 1440 800" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full animate-pulse-slow">
       <defs>
         <linearGradient id="bg-gradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#e0e7ff" />
-          <stop offset="50%" stopColor="#f3e8ff" />
-          <stop offset="100%" stopColor="#c7d2fe" />
+          <stop offset="0%" stopColor="#0f172a" />
+          <stop offset="50%" stopColor="#334155" />
+          <stop offset="100%" stopColor="#1e293b" />
         </linearGradient>
       </defs>
-      <ellipse cx="400" cy="200" rx="320" ry="180" fill="url(#bg-gradient)" opacity="0.5">
+      <ellipse cx="400" cy="200" rx="320" ry="180" fill="url(#bg-gradient)" opacity="0.45">
         <animate attributeName="cx" values="400;600;400" dur="12s" repeatCount="indefinite" />
       </ellipse>
-      <ellipse cx="1200" cy="600" rx="260" ry="120" fill="#a5b4fc" opacity="0.3">
+      <ellipse cx="1200" cy="600" rx="260" ry="120" fill="#64748b" opacity="0.25">
         <animate attributeName="cy" values="600;500;600" dur="10s" repeatCount="indefinite" />
       </ellipse>
-      <ellipse cx="900" cy="100" rx="180" ry="80" fill="#f0abfc" opacity="0.2">
+      <ellipse cx="900" cy="100" rx="180" ry="80" fill="#0ea5e9" opacity="0.15">
         <animate attributeName="rx" values="180;220;180" dur="14s" repeatCount="indefinite" />
       </ellipse>
     </svg>
   </div>
 );
 
+// Typewriter effect for main tagline
+const useTypewriter = (text: string, speed = 40) => {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    setDisplayed('');
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayed((prev) => prev + text[i]);
+      i++;
+      if (i >= text.length) clearInterval(interval);
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed]);
+  return displayed;
+};
+
+// Rotating sub-taglines
+const rotatingTaglines = [
+  'Enterprise-Grade Security and Compliance',
+  'Seamless, Automated Database Migration',
+  'Accelerate Your Digital Transformation',
+  'Zero Data Loss, Maximum Uptime',
+  'Trusted by Leading Enterprises',
+];
+
 const Landing = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
+  const [taglineIdx, setTaglineIdx] = useState(0);
+  const mainTagline = useTypewriter('Modernize Your Sybase Database with Enterprise-Grade Oracle Migration', 32);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTaglineIdx((idx) => (idx + 1) % rotatingTaglines.length);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -53,28 +87,28 @@ const Landing = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-100">
+    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900">
       <AnimatedBackground />
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-slate-900/80 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Database className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 font-serif">Sybase to Oracle Migration</h1>
+              <Database className="h-8 w-8 text-sky-400" />
+              <h1 className="text-2xl font-extrabold tracking-tight text-white font-serif">Sybase to Oracle Migration</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
                 onClick={() => setShowHelp(true)}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 text-sky-300 hover:text-white"
               >
                 <HelpCircle className="h-4 w-4" />
                 <span>Help</span>
               </Button>
               {user ? (
                 <>
-                  <Button variant="ghost" onClick={handleGoToHistory}>
+                  <Button variant="ghost" onClick={handleGoToHistory} className="text-sky-300 hover:text-white">
                     <History className="h-4 w-4 mr-2" />
                     History
                   </Button>
@@ -82,7 +116,7 @@ const Landing = () => {
                 </>
               ) : (
                 <>
-                  <Button variant="ghost" onClick={() => navigate('/auth')}>
+                  <Button variant="ghost" onClick={() => navigate('/auth')} className="text-sky-300 hover:text-white">
                     Sign In
                   </Button>
                   <Button onClick={() => navigate('/auth')}>
@@ -102,19 +136,19 @@ const Landing = () => {
       <section className="py-24 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-6xl font-extrabold font-serif text-gray-900 mb-6 leading-tight animate-fade-in">
-              Migrate Your Sybase Database to Oracle with{' '}
-              <span className="text-primary bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-purple-500 bg-clip-text text-transparent animate-gradient-x">AI-Powered Precision</span>
+            <h2 className="text-5xl md:text-6xl font-extrabold font-serif text-white mb-6 leading-tight animate-fade-in drop-shadow-lg">
+              {mainTagline}
             </h2>
-            <p className="text-2xl text-gray-700 mb-10 leading-relaxed animate-fade-in delay-200">
-              Transform your legacy Sybase applications to modern Oracle infrastructure 
-              with intelligent code conversion, automated testing, and seamless deployment.
-            </p>
+            <div className="h-10 mb-10 flex items-center justify-center">
+              <span className="text-xl md:text-2xl text-sky-200 font-medium transition-all duration-700 animate-fade-in-slow">
+                {rotatingTaglines[taglineIdx]}
+              </span>
+            </div>
             <div className="flex justify-center">
               <Button 
                 onClick={handleGetStarted}
                 size="lg" 
-                className="text-lg px-10 py-5 font-semibold shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-bounce-slow bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0"
+                className="text-lg px-10 py-5 font-semibold shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl animate-bounce-slow bg-gradient-to-r from-sky-500 to-blue-600 text-white border-0"
               >
                 Start Migration
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -125,97 +159,91 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 bg-white/90">
+      <section className="py-16 px-4 bg-slate-800/90">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-gray-900 mb-4 font-serif">Why Choose Our Migration Platform?</h3>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Leverage cutting-edge AI technology to ensure accurate, efficient, and reliable database migration
+            <h3 className="text-4xl font-bold text-white mb-4 font-serif">Why Enterprises Choose Our Platform</h3>
+            <p className="text-lg text-sky-200 max-w-2xl mx-auto">
+              Harness advanced AI and automation for secure, reliable, and efficient Sybase-to-Oracle migration at scale.
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature Cards with hover animation */}
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <Zap className="h-8 w-8 text-indigo-500 group-hover:scale-110 transition-transform" />
-                  <CardTitle>AI-Powered Conversion</CardTitle>
+                  <Zap className="h-8 w-8 text-sky-400 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">AI-Driven Conversion</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Advanced AI models automatically convert Sybase SQL to Oracle PL/SQL 
-                  with high accuracy and intelligent error detection.
+                <CardDescription className="text-base text-sky-100">
+                  State-of-the-art AI models ensure accurate, automated SQL conversion and intelligent error detection.
                 </CardDescription>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <FileText className="h-8 w-8 text-fuchsia-500 group-hover:scale-110 transition-transform" />
-                  <CardTitle>Comprehensive Analysis</CardTitle>
+                  <FileText className="h-8 w-8 text-blue-400 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">Comprehensive Analysis</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Detailed reports on data type mappings, performance improvements, 
-                  and potential issues with suggested fixes.
+                <CardDescription className="text-base text-sky-100">
+                  In-depth reports on data mapping, performance, and actionable recommendations for seamless migration.
                 </CardDescription>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <Shield className="h-8 w-8 text-purple-500 group-hover:scale-110 transition-transform" />
-                  <CardTitle>Secure & Reliable</CardTitle>
+                  <Shield className="h-8 w-8 text-sky-500 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">Security & Compliance</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Enterprise-grade security with user isolation, encrypted data handling, 
-                  and comprehensive audit trails.
+                <CardDescription className="text-base text-sky-100">
+                  Enterprise-grade security, encrypted data handling, and full compliance with industry standards.
                 </CardDescription>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <Clock className="h-8 w-8 text-indigo-400 group-hover:scale-110 transition-transform" />
-                  <CardTitle>Faster Migration</CardTitle>
+                  <Clock className="h-8 w-8 text-blue-300 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">Accelerated Timelines</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Reduce migration time from months to weeks with automated conversion 
-                  and intelligent code optimization.
+                <CardDescription className="text-base text-sky-100">
+                  Reduce migration time from months to weeks with automation and optimized workflows.
                 </CardDescription>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <Users className="h-8 w-8 text-fuchsia-400 group-hover:scale-110 transition-transform" />
-                  <CardTitle>Team Collaboration</CardTitle>
+                  <Users className="h-8 w-8 text-blue-200 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">Team Collaboration</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Multi-user support with project sharing, version control, 
-                  and collaborative review processes.
+                <CardDescription className="text-base text-sky-100">
+                  Multi-user support, project sharing, and collaborative review for enterprise teams.
                 </CardDescription>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group">
+            <Card className="hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group bg-slate-900 border-slate-700">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <Database className="h-8 w-8 text-indigo-600 group-hover:scale-110 transition-transform" />
-                  <CardTitle>Direct Deployment</CardTitle>
+                  <Database className="h-8 w-8 text-sky-600 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-white">Direct Oracle Deployment</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-base">
-                  Seamless deployment to Oracle databases with automated testing 
-                  and rollback capabilities.
+                <CardDescription className="text-base text-sky-100">
+                  Seamless deployment to Oracle with automated testing and rollback capabilities.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -224,19 +252,19 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-purple-500 text-white animate-fade-in">
+      <section className="py-16 px-4 bg-gradient-to-r from-slate-900 via-blue-900 to-sky-800 text-white animate-fade-in">
         <div className="container mx-auto text-center">
           <h3 className="text-4xl font-bold mb-4 font-serif">
-            Ready to Transform Your Database?
+            Ready to Modernize Your Database?
           </h3>
           <p className="text-2xl mb-8 opacity-90">
-            Join thousands of developers who have successfully migrated to Oracle
+            Empower your business with secure, automated, and reliable migration to Oracle.
           </p>
           <Button 
             onClick={handleGetStarted}
             size="lg" 
             variant="secondary"
-            className="text-lg px-10 py-5 font-semibold shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl bg-white text-primary border-0"
+            className="text-lg px-10 py-5 font-semibold shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl bg-white text-slate-900 border-0"
           >
             Start Your Migration Today
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -245,7 +273,7 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="w-full text-center py-4 text-gray-500 text-sm border-t bg-white/80 mt-8">
+      <footer className="w-full text-center py-4 text-sky-200 text-sm border-t bg-slate-900/80 mt-8">
         © 2025 Migration Platform. All rights reserved. Developed by CosmoAgents | <a href="https://www.github.com/steezyneo/oracle-ai-migrate" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>GitHub</a>
       </footer>
     </div>
