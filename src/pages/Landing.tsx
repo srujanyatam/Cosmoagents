@@ -76,8 +76,10 @@ const Landing = () => {
   const { user } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
   const [taglineIdx, setTaglineIdx] = useState(0);
-  // Main tagline, spelling checked and rewritten
-  const mainTaglineText = 'Effortless, Secure Sybase-to-Oracle Database Migration';
+  const [fade, setFade] = useState(true);
+
+  // Main tagline, updated and static
+  const mainTaglineText = 'Upgrade Without Limits: Effortless, Reliable Sybase-to-Oracle Migration Solutions';
   const mainTagline = useTypewriter(mainTaglineText, 32);
 
   useEffect(() => {
