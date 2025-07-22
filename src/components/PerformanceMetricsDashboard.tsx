@@ -409,47 +409,54 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          {/* Header Row */}
+          <div className="flex items-center font-semibold border-b py-2 bg-slate-50 rounded-t-lg">
+            <div className="w-1/4 px-2">File Name</div>
+            <div className="w-1/6 text-center">Lines</div>
+            <div className="w-1/6 text-center">Loops</div>
+            <div className="w-1/6 text-center">Time</div>
+            <div className="w-1/6 text-center">Human Edits</div>
+            <div className="w-1/12 text-center">Status</div>
+          </div>
+          <div className="space-y-2">
             {results.map((result) => {
-              // Use result.aiGeneratedCode for the original AI output, fallback to result.convertedCode if not available
               const aiCode = result.aiGeneratedCode || result.convertedCode || '';
               const finalCode = result.convertedCode || '';
               const editPercent = getEditPercentage(aiCode, finalCode);
-              // Calculate per-file line diff
               const originalLines = result.performance?.originalLines || 0;
               const convertedLines = result.performance?.convertedLines || 0;
               const lineDiff = convertedLines - originalLines;
               const linesColor = lineDiff < 0 ? 'text-green-600' : lineDiff > 0 ? 'text-red-600' : 'text-gray-600';
               const linesLabel = lineDiff < 0 ? 'Lines Reduced' : lineDiff > 0 ? 'Lines Increased' : 'No Change';
               return (
-                <div key={result.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
+                <div key={result.id} className="flex items-center border-b py-2">
+                  <div className="w-1/4 px-2 flex items-center gap-2 truncate">
                     {getStatusIcon(result.status)}
-                    <div>
-                      <p className="font-medium">{result.originalFile.name}</p>
-                      <p className="text-sm text-muted-foreground">{result.originalFile.type}</p>
-                    </div>
+                    <span className="font-medium truncate">{result.originalFile.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{result.originalFile.type}</span>
                   </div>
-                  <div className="text-center">
-                    <p className={`text-sm font-medium ${linesColor}`}>{Math.abs(lineDiff)}</p>
-                    <p className="text-xs text-muted-foreground">{linesLabel}</p>
-                    <p className="text-xs text-gray-400">{originalLines} → {convertedLines}</p>
+                  <div className="w-1/6 text-center">
+                    <span className={`font-medium ${linesColor}`}>{Math.abs(lineDiff)}</span>
+                    <div className="text-xs text-muted-foreground">{linesLabel}</div>
+                    <div className="text-xs text-gray-400">{originalLines} → {convertedLines}</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-blue-600">{result.performance?.loopsReduced || 0}</p>
-                    <p className="text-xs text-muted-foreground">Loops</p>
+                  <div className="w-1/6 text-center">
+                    <span className="font-medium text-blue-600">{result.performance?.loopsReduced || 0}</span>
+                    <div className="text-xs text-muted-foreground">Loops</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-orange-600">{result.performance?.conversionTimeMs || 0}ms</p>
-                    <p className="text-xs text-muted-foreground">Time</p>
+                  <div className="w-1/6 text-center">
+                    <span className="font-medium text-orange-600">{result.performance?.conversionTimeMs || 0}ms</span>
+                    <div className="text-xs text-muted-foreground">Time</div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-purple-600">{editPercent}%</p>
-                    <p className="text-xs text-muted-foreground">Human Edits</p>
+                  <div className="w-1/6 text-center">
+                    <span className="font-medium text-purple-600">{editPercent}%</span>
+                    <div className="text-xs text-muted-foreground">Human Edits</div>
                   </div>
-                  <Badge variant="outline" className={getStatusColor(result.status)}>
-                    {result.status}
-                  </Badge>
+                  <div className="w-1/12 text-center">
+                    <Badge variant="outline" className={getStatusColor(result.status)}>
+                      {result.status}
+                    </Badge>
+                  </div>
                 </div>
               );
             })}
