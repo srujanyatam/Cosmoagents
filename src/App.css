@@ -1,3 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Nunito:wght@700;900&display=swap');
+
+body, .font-sans {
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+.font-display {
+  font-family: 'Nunito', 'Inter', Arial, Helvetica, sans-serif;
+}
+
+.shine-text {
+  background: linear-gradient(90deg, #34d399 20%, #a7f3d0 40%, #f0fdfa 60%, #34d399 80%);
+  background-size: 200% auto;
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: shineText 2.5s linear infinite;
+}
+@keyframes shineText {
+  0% { background-position: 200% center; }
+  100% { background-position: 0% center; }
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

@@ -77,7 +77,7 @@ const Landing = () => {
   const [showHelp, setShowHelp] = useState(false);
   const [taglineIdx, setTaglineIdx] = useState(0);
   // Main tagline, spelling checked and rewritten
-  const mainTaglineText = 'Effortless, Secure, and Intelligent Sybase to Oracle Migration';
+  const mainTaglineText = 'Effortless, Secure Sybase-to-Oracle Database Migration';
   const mainTagline = useTypewriter(mainTaglineText, 32);
 
   useEffect(() => {
@@ -104,7 +104,7 @@ const Landing = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-green-100 via-white to-teal-100">
+    <div className="relative min-h-screen flex flex-col bg-gradient-to-br from-green-50 via-white to-teal-100 font-sans">
       <AnimatedBackground />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-green-100 sticky top-0 z-50">
@@ -153,7 +153,7 @@ const Landing = () => {
       <section className="py-24 px-4">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl md:text-6xl font-extrabold font-serif text-emerald-900 mb-6 leading-tight animate-fade-in drop-shadow-lg animate-slide-in">
+            <h2 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-500 to-lime-400 mb-6 leading-tight animate-fade-in drop-shadow-lg animate-slide-in font-display shine-text">
               {mainTagline}
             </h2>
             <div className="h-10 mb-10 flex items-center justify-center">
