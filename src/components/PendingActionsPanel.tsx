@@ -614,6 +614,15 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                     Mark as Reviewed
               </Button>
               )}
+                {selectedFile.status === 'reviewed' && (
+                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white" onClick={async () => {
+                    await updateUnreviewedFile({ id: selectedFile.id, status: 'unreviewed' });
+                    if (onFileReviewed) onFileReviewed();
+                    refreshUnreviewedFiles();
+                  }}>
+                    Move to Unreviewed
+                  </Button>
+                )}
                 <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteUnreviewedFile(selectedFile.id)}>
                   Delete File
                 </Button>
