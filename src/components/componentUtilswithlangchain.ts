@@ -97,7 +97,7 @@ export const analyzeCodeComplexity = (code: string) => {
     const lines = code.split('\n');
     const codeLines = lines.filter(line => line.trim() && !line.trim().startsWith('--')).length;
     const commentLines = lines.filter(line => line.trim().startsWith('--')).length;
-    const commentRatio = commentLines / lines.length;
+    const commentRatio = lines.length > 0 ? Math.round((commentLines / lines.length) * 100) / 100 : 0;
     // Simple complexity scoring based on code patterns
     const complexityFactors = {
         loops: (code.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length,
@@ -237,7 +237,7 @@ export const generateBalancedPerformanceMetrics = (
         ),
         conversionTimeMs: conversionTime,
         performanceScore: Math.max(0, Math.min(100, performanceScore)),
-        maintainabilityIndex: convertedComplexity.commentRatio * 100,
+        maintainabilityIndex: Math.round(convertedComplexity.commentRatio * 100 * 100) / 100,
         codeQuality: {
             totalLines: convertedComplexity.totalLines,
             codeLines: convertedComplexity.codeLines,
@@ -250,7 +250,7 @@ export const generateBalancedPerformanceMetrics = (
             bulkCollectUsed: convertedCode.includes('BULK COLLECT'),
             modernOracleFeaturesCount: countModernFeatures(convertedCode),
             scalabilityScore: calculateScalabilityScore(convertedCode),
-            maintainabilityScore: convertedComplexity.commentRatio * 10
+            maintainabilityScore: Math.round(convertedComplexity.commentRatio * 10 * 100) / 100
         }
     };
 };
