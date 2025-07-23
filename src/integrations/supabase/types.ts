@@ -216,7 +216,43 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
+      },
+      conversion_cache: {
+        Row: {
+          id: string;
+          content_hash: string;
+          original_code: string;
+          converted_code: string;
+          created_at: string | null;
+          ai_model: string | null;
+          metrics: Json | null;
+          issues: Json | null;
+          data_type_mapping: Json | null;
+        };
+        Insert: {
+          id?: string;
+          content_hash: string;
+          original_code: string;
+          converted_code: string;
+          created_at?: string | null;
+          ai_model?: string | null;
+          metrics?: Json | null;
+          issues?: Json | null;
+          data_type_mapping?: Json | null;
+        };
+        Update: {
+          id?: string;
+          content_hash?: string;
+          original_code?: string;
+          converted_code?: string;
+          created_at?: string | null;
+          ai_model?: string | null;
+          metrics?: Json | null;
+          issues?: Json | null;
+          data_type_mapping?: Json | null;
+        };
+        Relationships: [];
+      },
     }
     Views: {
       [_ in never]: never

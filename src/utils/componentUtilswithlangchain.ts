@@ -9,6 +9,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
+import { supabase } from '@/integrations/supabase/client';
 
 const _API_KEY = import.meta.env.VITE_API_KEY;
 console.log('Gemini API KEY:', _API_KEY);
@@ -119,9 +120,71 @@ const analyzeCodeComplexity = (code: string) => {
     };
 };
 
+// --- Local Cache Logic ---
+function getConversionCacheKey(code: string, model: string) {
+  // Simple hash for cache key
+  return `conversion-cache-${model}-${btoa(unescape(encodeURIComponent(code))).slice(0, 20)}`;
+}
+
+function getCachedConversion(code: string, model: string) {
+  const key = getConversionCacheKey(code, model);
+  const cached = localStorage.getItem(key);
+  return cached ? JSON.parse(cached) : null;
+}
+
+function setCachedConversion(code: string, model: string, result: any) {
+  const key = getConversionCacheKey(code, model);
+  localStorage.setItem(key, JSON.stringify(result));
+}
+
+// --- Backend Cache Logic ---
+async function setBackendCachedConversion(hash: string, original_code: string, ai_model: string, converted_code: string, metrics: any, issues: any, data_type_mapping: any) {
+  await supabase
+    .from('conversion_cache')
+    .insert([{ content_hash: hash, original_code, converted_code, ai_model, metrics, issues, data_type_mapping }]);
+}
+
+async function getBackendCachedConversion(hash: string, ai_model: string) {
+  const { data, error } = await supabase
+    .from('conversion_cache')
+    .select('*')
+    .eq('content_hash', hash)
+    .eq('ai_model', ai_model)
+    .single();
+  if (error) {
+    console.error('Error fetching from backend cache:', error);
+    return null;
+  }
+  return data;
+}
+
 // Enhanced conversion with complexity assessment
 const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> => {
     const startTime = Date.now();
+    const normalizedContent = file.content.replace(/\r\n/g, '\n').trim();
+    const aiModel = "gemini-2.5-flash";
+    const hash = getConversionCacheKey(normalizedContent, aiModel);
+
+    // 1. Check backend (DB) cache
+    const backendCached = await getBackendCachedConversion(hash, aiModel);
+    if (backendCached && backendCached.converted_code) {
+      console.log('[DB CACHE HIT]', file.name);
+      let result = JSON.parse(backendCached.converted_code);
+      if (result && result.performance) result.performance.conversionTimeMs = 1;
+      return result;
+    } else {
+      console.log('[DB CACHE MISS]', file.name);
+    }
+
+    // 2. Check local cache
+    const cached = getCachedConversion(normalizedContent, aiModel);
+    if (cached) {
+      console.log('[LOCAL CACHE HIT]', file.name);
+      if (cached.performance) cached.performance.conversionTimeMs = 1;
+      return cached;
+    } else {
+      console.log('[LOCAL CACHE MISS]', file.name);
+    }
     const chain = promptTemplate.pipe(model).pipe(parser);
     let aiOutput;
     try {
@@ -178,7 +241,7 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
         expansionRatio,
         aiOutput.converted_code
     );
-    return {
+    const result: ConversionResult = {
         id: crypto.randomUUID(),
         originalFile: file,
         convertedCode: aiOutput.converted_code,
@@ -196,6 +259,19 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
         performanceOptimizations: aiOutput.performance_optimizations,
         oracleFeatures: aiOutput.oracle_features
     };
+    // Save to local cache
+    setCachedConversion(normalizedContent, aiModel, result);
+    // Save to backend cache
+    await setBackendCachedConversion(
+      hash,
+      normalizedContent,
+      aiModel,
+      JSON.stringify(result), // store as string
+      result.performance,
+      result.issues,
+      result.dataTypeMapping
+    );
+    return result;
 };
 
 // Balanced performance metrics that account for appropriate sizing
