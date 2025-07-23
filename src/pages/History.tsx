@@ -200,21 +200,26 @@ const History = () => {
   // Handle file download
   const handleDownloadFile = (e: React.MouseEvent, file: MigrationFile) => {
     e.stopPropagation();
-    
     const content = file.converted_content || file.original_content;
+    const fileExtension = file.file_name.includes('.') 
+      ? file.file_name.split('.').pop() 
+      : 'sql';
+    const baseName = file.file_name.includes('.')
+      ? file.file_name.substring(0, file.file_name.lastIndexOf('.'))
+      : file.file_name;
+    const downloadName = `${baseName}_oracle.${fileExtension}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = file.file_name;
+    a.download = downloadName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
     toast({
       title: "Downloaded",
-      description: `${file.file_name} has been downloaded`,
+      description: `${downloadName} has been downloaded`,
     });
   };
 
@@ -658,7 +663,7 @@ const History = () => {
                                     size="sm" 
                                     variant="ghost"
                                     onClick={(e) => handleDownloadFile(e, file)}
-                                    title="Download File"
+                                    title="Download converted Oracle code"
                                   >
                                     <Download className="h-4 w-4" />
                                   </Button>

@@ -589,7 +589,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
         {/* Main File Review Card */}
         {selectedFile ? (
           <>
-            <Card className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-green-800">
+            <Card className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-slate-800">
               <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b border-green-100 dark:border-green-800">
                 <span className="text-xl font-bold">{selectedFile.file_name}</span>
                 <div className="flex items-center gap-3">
@@ -598,17 +598,24 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                     size="icon"
                     variant="outline"
                     onClick={() => {
-                      const blob = new Blob([selectedFile.original_code], { type: 'text/plain' });
+                      const code = selectedFile.converted_code || '';
+                      const fileExtension = selectedFile.file_name.includes('.') 
+                        ? selectedFile.file_name.split('.').pop() 
+                        : 'sql';
+                      const baseName = selectedFile.file_name.includes('.')
+                        ? selectedFile.file_name.substring(0, selectedFile.file_name.lastIndexOf('.'))
+                        : selectedFile.file_name;
+                      const blob = new Blob([code], { type: 'text/plain' });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = selectedFile.file_name;
+                      a.download = `${baseName}_oracle.${fileExtension}`;
                       document.body.appendChild(a);
                       a.click();
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
                     }}
-                    title="Download original code"
+                    title="Download converted Oracle code"
                   >
                     <Download className="h-4 w-4" />
                   </Button>

@@ -171,7 +171,7 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
                               e.stopPropagation();
                               handleDownloadFile(result);
                             }}
-                            title="Download converted file"
+                            title="Download converted Oracle code"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
@@ -199,6 +199,7 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
                       <Button 
                         variant="outline" 
                         onClick={() => handleDownloadFile(selectedResult)}
+                        title="Download converted Oracle code"
                       >
                         <Download className="h-4 w-4 mr-2" />
                         Download
