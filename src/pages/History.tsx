@@ -21,6 +21,7 @@ interface Migration {
   success_count: number;
   failed_count: number;
   pending_count: number;
+  report_id?: string; // Add report_id
 }
 
 interface MigrationFile {
@@ -83,7 +84,8 @@ const History = () => {
           migration_files (
             id,
             conversion_status
-          )
+          ),
+          migration_reports(id)
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
@@ -98,6 +100,10 @@ const History = () => {
       } else {
         const processedMigrations = migrationsData?.map(migration => {
           const files = migration.migration_files || [];
+          let reportId: string | undefined = undefined;
+          if (Array.isArray(migration.migration_reports) && migration.migration_reports.length > 0 && migration.migration_reports[0] && typeof migration.migration_reports[0] === 'object') {
+            reportId = migration.migration_reports[0].id;
+          }
           return {
             id: migration.id,
             project_name: migration.project_name,
@@ -106,6 +112,7 @@ const History = () => {
             success_count: files.filter((f: any) => f.conversion_status === 'success').length,
             failed_count: files.filter((f: any) => f.conversion_status === 'failed').length,
             pending_count: files.filter((f: any) => f.conversion_status === 'pending').length,
+            report_id: reportId,
           };
         }) || [];
         
@@ -343,6 +350,7 @@ const History = () => {
         data_type_mapping: [], // If you have mapping info, add here
         issues: [], // If you have issues info, add here
         performance_metrics: {}, // If you have metrics, add here
+        user_id: user?.id || '',
       });
       toast({
         title: 'Undo Successful',
@@ -415,9 +423,13 @@ const History = () => {
   };
 
   // Add handler to view report
-  const handleViewReport = (e: React.MouseEvent, migrationId: string) => {
+  const handleViewReport = (e: React.MouseEvent, migration: Migration) => {
     e.stopPropagation();
-    navigate(`/report/${migrationId}`);
+    if (migration.report_id) {
+      navigate(`/report/${migration.report_id}`);
+    } else {
+      toast({ title: 'No Report', description: 'No report found for this migration.' });
+    }
   };
 
   if (loading || isLoading) {
@@ -590,7 +602,7 @@ const History = () => {
                               <Button 
                                 size="sm" 
                                 variant="ghost"
-                                onClick={(e) => handleViewReport(e, migration.id)}
+                                onClick={(e) => handleViewReport(e, migration)}
                                 title="View Report"
                               >
                                 <Eye className="h-4 w-4" />
