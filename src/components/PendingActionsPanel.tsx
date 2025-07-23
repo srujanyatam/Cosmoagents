@@ -277,6 +277,18 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     }
   };
 
+  const handleMoveSelectedToUnreviewed = async () => {
+    for (const fileId of selectedFileIds) {
+      const file = reviewedFiles.find(f => f.id === fileId);
+      if (file) {
+        await updateUnreviewedFile({ id: file.id, status: 'unreviewed' });
+      }
+    }
+    setSelectedFileIds([]);
+    if (onFileReviewed) onFileReviewed();
+    refreshUnreviewedFiles();
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -438,6 +450,26 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p>Move to Reviewed</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        {activeTab === 'reviewed' && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={handleMoveSelectedToUnreviewed}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Clock className="h-4 w-4" />
+                                  Move to Unreviewed
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Move to Unreviewed</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
