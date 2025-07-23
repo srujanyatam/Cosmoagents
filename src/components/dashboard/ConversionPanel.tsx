@@ -284,17 +284,24 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
                     size="icon"
                     variant="outline"
                     onClick={() => {
-                      const blob = new Blob([selectedFile.content], { type: 'text/plain' });
+                      const code = selectedFile.convertedContent || '';
+                      const fileExtension = selectedFile.name.includes('.') 
+                        ? selectedFile.name.split('.').pop() 
+                        : 'sql';
+                      const baseName = selectedFile.name.includes('.')
+                        ? selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.'))
+                        : selectedFile.name;
+                      const blob = new Blob([code], { type: 'text/plain' });
                       const url = URL.createObjectURL(blob);
                       const a = document.createElement('a');
                       a.href = url;
-                      a.download = selectedFile.name;
+                      a.download = `${baseName}_oracle.${fileExtension}`;
                       document.body.appendChild(a);
                       a.click();
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
                     }}
-                    title="Download original code"
+                    title="Download converted Oracle code"
                   >
                     <Download className="h-4 w-4" />
                   </Button>
