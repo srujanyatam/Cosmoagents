@@ -9,7 +9,7 @@ import AIModelSelector from '@/components/AIModelSelector';
 import ReportViewer from '@/components/ReportViewer';
 import ConnectionForm from '@/components/ConnectionForm';
 import HomeButton from '@/components/HomeButton';
-import { convertSybaseToOracle, generateBalancedConversionReport } from '@/components/componentUtilswithlangchain';
+import { convertSybaseToOracle, generateBalancedConversionReport } from '@/utils/componentUtilswithlangchain';
 import { Database as DatabaseIcon, Code, FileSearch, FileWarning, Check, RefreshCw, Play, Download, ChevronLeft } from 'lucide-react';
 import JSZip from 'jszip';
 

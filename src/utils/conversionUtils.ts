@@ -14,4 +14,4 @@ export function setCacheEnabled(enabled: boolean) {
   cacheEnabled = enabled;
 }
 
-export * from '@/components/componentUtilswithlangchain';
+export * from '@/utils/componentUtilswithlangchain';

@@ -10,7 +10,7 @@ import { Check, AlertTriangle, X, FileWarning, RefreshCw, Download, Clock } from
 import { useToast } from '@/hooks/use-toast';
 import { CodeFile, ConversionResult, DatabaseConnection } from '@/types';
 import CodeDiffViewer from './CodeDiffViewer';
-import { generateBalancedConversionReport } from '@/components/componentUtilswithlangchain';
+import { generateBalancedConversionReport } from '@/utils/componentUtilswithlangchain';
 
 interface ConversionResultsProps {
   results: ConversionResult[];

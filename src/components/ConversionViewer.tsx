@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
-import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/components/componentUtilswithlangchain';
+import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/utils/componentUtilswithlangchain';
 
 interface DataTypeMapping {
   sybaseType: string;
