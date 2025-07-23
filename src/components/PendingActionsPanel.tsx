@@ -196,11 +196,17 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     }
     // After marking as reviewed, trigger parent refresh
     if (onFileReviewed) onFileReviewed();
-    setSelectedFileId(
-      pendingFiles.filter(f => f.id !== file.id)[0]?.id ||
-      reviewedFiles.concat([{ ...file, status: 'reviewed' }])[0]?.id ||
-      null
-    );
+    // Select next unreviewed file if available, else previous, else clear
+    const currentIdx = mappedPendingFiles.findIndex(f => f.id === file.id);
+    let nextId = null;
+    if (mappedPendingFiles.length > 1) {
+      if (currentIdx < mappedPendingFiles.length - 1) {
+        nextId = mappedPendingFiles[currentIdx + 1].id;
+      } else if (currentIdx > 0) {
+        nextId = mappedPendingFiles[currentIdx - 1].id;
+      }
+    }
+    setSelectedFileId(nextId);
   };
 
   const handleDelete = async (fileId: string) => {
