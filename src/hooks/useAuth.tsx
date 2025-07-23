@@ -84,6 +84,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: { full_name: fullName }
       }
     });
+    if (error) {
+      console.error('[Supabase Auth] Signup error:', error);
+    }
     if (!error) {
       if (onSuccess) onSuccess();
       // Fetch profile in background
@@ -96,6 +99,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string, onSuccess?: () => void) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('[Supabase Auth] Signin error:', error);
+    }
     if (!error) {
       if (onSuccess) onSuccess();
       // Fetch profile in background
