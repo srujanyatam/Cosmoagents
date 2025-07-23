@@ -414,6 +414,12 @@ const History = () => {
     }
   };
 
+  // Add handler to view report
+  const handleViewReport = (e: React.MouseEvent, migrationId: string) => {
+    e.stopPropagation();
+    navigate(`/report/${migrationId}`);
+  };
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -584,13 +590,21 @@ const History = () => {
                               <Button 
                                 size="sm" 
                                 variant="ghost"
+                                onClick={(e) => handleViewReport(e, migration.id)}
+                                title="View Report"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleRowClick(migration.id);
                                 }}
                                 title="View Files"
                               >
-                                <Eye className="h-4 w-4" />
+                                <FileText className="h-4 w-4 text-blue-600" />
                               </Button>
                               <Button 
                                 size="sm" 
