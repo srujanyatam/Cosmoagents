@@ -69,22 +69,22 @@ const ReportPage: React.FC = () => {
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/')} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100">
+            <Button onClick={() => navigate('/')} variant="outline" className="flex items-center gap-2">
               <Home className="h-5 w-5" />
               Home
-            </button>
+            </Button>
             <Database className="h-8 w-8 text-primary mr-2" />
             <h1 className="text-2xl font-bold text-gray-900">Migration Report</h1>
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/history', { state: { previousReportId: reportId, backToResults: lastBackState.current || { activeTab: 'conversion', recentReport: report } } })} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100">
+            <Button onClick={() => navigate('/history', { state: { previousReportId: reportId, backToResults: lastBackState.current || { activeTab: 'conversion', recentReport: report } } })} variant="outline" className="flex items-center gap-2">
               <HistoryIcon className="h-5 w-5" />
               History
-            </button>
-            <button onClick={() => setShowHelp(true)} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100">
+            </Button>
+            <Button onClick={() => setShowHelp(true)} variant="outline" className="flex items-center gap-2">
               <HelpCircle className="h-5 w-5" />
               Help
-            </button>
+            </Button>
             <UserDropdown />
           </div>
         </div>

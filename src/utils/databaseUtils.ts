@@ -52,3 +52,32 @@ export const deployToOracle = async (
     message: success ? 'Code deployed successfully!' : 'Deployment failed. Check the code and database connection.'
   };
 };
+
+// Simulated function to validate Oracle code syntax
+export const validateOracleSyntax = async (code: string): Promise<{ success: boolean; message: string }> => {
+  // In a real app, this would call an Oracle parser or database for validation
+  // Here, we simulate by checking for common Oracle keywords and basic structure
+  const hasCreate = /create\s+(or\s+replace\s+)?(procedure|function|trigger|table)/i.test(code);
+  const hasEnd = /end\s+\w*;?/i.test(code);
+  const hasBegin = /begin/i.test(code);
+  const hasSemicolon = /;/g.test(code);
+  if (!hasCreate || !hasEnd || !hasBegin || !hasSemicolon) {
+    return {
+      success: false,
+      message: 'Oracle syntax validation failed: Missing required keywords or structure (CREATE, BEGIN, END, semicolons).',
+    };
+  }
+  // Simulate async delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  // Simulate random error for demo
+  if (Math.random() < 0.1) {
+    return {
+      success: false,
+      message: 'Oracle syntax validation failed: Simulated random error (for demo).',
+    };
+  }
+  return {
+    success: true,
+    message: 'Oracle syntax validation passed.',
+  };
+};

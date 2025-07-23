@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Check, AlertTriangle, X, Download, Upload, Database, FileText, Info, Lightbulb, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ConversionReport } from '@/types';
-import { deployToOracle } from '@/utils/databaseUtils';
+import { deployToOracle, validateOracleSyntax } from '@/utils/databaseUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -174,6 +174,19 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
           original_content: r.originalFile.content,
           conversion_status: r.status,
         }));
+      }
+      // Oracle syntax validation step
+      for (const file of filesToInsert) {
+        const validation = await validateOracleSyntax(file.converted_content);
+        if (!validation.success) {
+          toast({
+            title: 'Oracle Syntax Error',
+            description: `File: ${file.file_name} - ${validation.message}`,
+            variant: 'destructive',
+          });
+          setIsDeploying(false);
+          return;
+        }
       }
       for (const file of filesToInsert) {
         const deployResult = await deployToOracle(
