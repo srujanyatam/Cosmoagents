@@ -618,7 +618,18 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                   <Button className="bg-yellow-600 hover:bg-yellow-700 text-white" onClick={async () => {
                     await updateUnreviewedFile({ id: selectedFile.id, status: 'unreviewed' });
                     if (onFileReviewed) onFileReviewed();
-                    refreshUnreviewedFiles();
+                    refreshUnreviewedFiles(); // Remove await here
+                    // Select next reviewed file if available, else previous, else clear
+                    const currentIdx = mappedReviewedFiles.findIndex(f => f.id === selectedFile.id);
+                    let nextId = null;
+                    if (mappedReviewedFiles.length > 1) {
+                      if (currentIdx < mappedReviewedFiles.length - 1) {
+                        nextId = mappedReviewedFiles[currentIdx + 1].id;
+                      } else if (currentIdx > 0) {
+                        nextId = mappedReviewedFiles[currentIdx - 1].id;
+                      }
+                    }
+                    setSelectedFileId(nextId);
                   }}>
                     Move to Unreviewed
                   </Button>
