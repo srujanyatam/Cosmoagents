@@ -172,13 +172,13 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   // Update handleSaveEdit to accept newMetrics and update local state
   const handleSaveEdit = async (file: UnreviewedFile, newCode: string, newMetrics?: any) => {
     // Always use ai_generated_code as the AI baseline
-    const prevAICode = file.ai_generated_code || file.converted_code;
-    const success = await updateUnreviewedFile({
+    // Remove ai_generated_code if not in UnreviewedFileUpdate type
+    const updateData: UnreviewedFileUpdate = {
       id: file.id,
       converted_code: newCode,
-      ai_generated_code: prevAICode, // Do not overwrite ai_generated_code on manual edit
       ...(newMetrics ? { performance_metrics: newMetrics } : {}),
-    });
+    };
+    const success = await updateUnreviewedFile(updateData);
     if (success) {
       setEditingFile(null);
       setEditedContent('');
@@ -195,7 +195,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
       setEditedContent('');
     }
     // After marking as reviewed, trigger parent refresh
-    if (onFileReviewed) await onFileReviewed();
+    if (onFileReviewed) onFileReviewed();
     setSelectedFileId(
       pendingFiles.filter(f => f.id !== file.id)[0]?.id ||
       reviewedFiles.concat([{ ...file, status: 'reviewed' }])[0]?.id ||
@@ -227,6 +227,20 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
           await deleteUnreviewedFile(fileId);
       }
       setSelectedFileIds([]);
+  };
+
+  const handleMoveSelectedToReviewed = async () => {
+    for (const fileId of selectedFileIds) {
+      const file = pendingFiles.find(f => f.id === fileId);
+      if (file) {
+        const codeToSave = editingFile === file.id ? editedContent : file.converted_code;
+        const originalCode = file.original_code || '';
+        await markAsReviewed(file.id, file.file_name, codeToSave, originalCode);
+      }
+    }
+    setSelectedFileIds([]);
+    if (onFileReviewed) onFileReviewed();
+    refreshUnreviewedFiles();
   };
 
   // Clear all unreviewed files
@@ -408,6 +422,26 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
+                        {activeTab === 'unreviewed' && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={handleMoveSelectedToReviewed}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Check className="h-4 w-4" />
+                                  Move to Reviewed
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Move to Reviewed</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                     </div>
                 )}
         </div>
