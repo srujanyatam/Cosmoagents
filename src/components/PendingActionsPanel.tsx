@@ -253,6 +253,16 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     });
   };
 
+  // Replace setActiveTab with a handler that also sets the selected file
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (tab === 'unreviewed' && mappedPendingFiles.length > 0) {
+      setSelectedFileId(mappedPendingFiles[0].id);
+    } else if (tab === 'reviewed' && mappedReviewedFiles.length > 0) {
+      setSelectedFileId(mappedReviewedFiles[0].id);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -401,7 +411,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                     </div>
                 )}
         </div>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full mt-4">
               <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="unreviewed">
                       Unreviewed <Badge className="ml-2">{pendingFiles.length}</Badge>
