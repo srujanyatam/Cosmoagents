@@ -421,66 +421,82 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 </TooltipProvider>
 
               </div>
-                {isSelectMode && selectedFileIds.length > 0 && (
-                    <div className="flex items-center gap-2 mt-2">
-                        <span className="text-sm text-muted-foreground">{selectedFileIds.length} files selected</span>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={handleDeleteSelected}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Delete Selected</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        {activeTab === 'unreviewed' && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
+                {isSelectMode && (
+                  <div className="flex items-center gap-2 mt-2">
+                    {selectedFileIds.length > 0 && (
+                      <span className="text-sm text-muted-foreground">{selectedFileIds.length} files selected</span>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const filesInTab = activeTab === 'unreviewed' ? mappedPendingFiles : mappedReviewedFiles;
+                        if (selectedFileIds.length === filesInTab.length) {
+                          setSelectedFileIds([]); // Deselect all
+                        } else {
+                          setSelectedFileIds(filesInTab.map(f => f.id)); // Select all
+                        }
+                      }}
+                    >
+                      {selectedFileIds.length === (activeTab === 'unreviewed' ? mappedPendingFiles.length : mappedReviewedFiles.length) ? 'Deselect All' : 'Select All'}
+                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
                                 <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={handleMoveSelectedToReviewed}
-                                  className="flex items-center gap-2"
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={handleDeleteSelected}
                                 >
-                                  <Check className="h-4 w-4" />
-                                  Move to Reviewed
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Move to Reviewed</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                        {activeTab === 'reviewed' && (
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={handleMoveSelectedToUnreviewed}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Clock className="h-4 w-4" />
-                                  Move to Unreviewed
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Move to Unreviewed</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        )}
-                    </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Delete Selected</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    {activeTab === 'unreviewed' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={handleMoveSelectedToReviewed}
+                              className="flex items-center gap-2"
+                            >
+                              <Check className="h-4 w-4" />
+                              Move to Reviewed
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Move to Reviewed</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    {activeTab === 'reviewed' && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={handleMoveSelectedToUnreviewed}
+                              className="flex items-center gap-2"
+                            >
+                              <Clock className="h-4 w-4" />
+                              Move to Unreviewed
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Move to Unreviewed</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                 )}
         </div>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full mt-4">
