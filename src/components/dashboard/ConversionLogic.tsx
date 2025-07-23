@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { convertSybaseToOracle, generateConversionReport } from '@/utils/conversionUtils';
+import { convertSybaseToOracle, generateBalancedConversionReport } from '@/components/componentUtilswithlangchain';
 import { supabase } from '@/integrations/supabase/client';
 import { ConversionResult, ConversionReport } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
@@ -311,7 +311,7 @@ export const useConversionLogic = (
       dataTypeMapping: file.dataTypeMapping || [],
     }));
 
-    const reportSummary = generateConversionReport(conversionResults);
+    const reportSummary = generateBalancedConversionReport(conversionResults);
 
     const report = {
       timestamp: new Date().toISOString(),

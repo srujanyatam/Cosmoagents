@@ -312,7 +312,7 @@ const Dashboard = () => {
         }));
       }
       // Generate summary
-      const reportSummary = (await import('@/utils/conversionUtils')).generateConversionReport(reportResults);
+      const reportSummary = (await import('@/components/componentUtilswithlangchain')).generateBalancedConversionReport(reportResults);
       const report = {
         timestamp: new Date().toISOString(),
         filesProcessed: reportResults.length,

@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
-import { analyzeCodeComplexity, generatePerformanceMetrics } from '@/utils/conversionUtils';
+import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/components/componentUtilswithlangchain';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -126,7 +126,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     const originalComplexity = analyzeCodeComplexity(originalCode);
     const convertedComplexity = analyzeCodeComplexity(newCode);
     const conversionTime = 0; // Optionally, you can track edit time
-    const newMetrics = generatePerformanceMetrics(
+    const newMetrics = generateBalancedPerformanceMetrics(
       originalComplexity,
       convertedComplexity,
       conversionTime,
