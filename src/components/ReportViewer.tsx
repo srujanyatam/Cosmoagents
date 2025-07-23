@@ -12,10 +12,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
 
 interface ReportViewerProps {
   report: ConversionReport;
   onBack: () => void;
+  hideDownload?: boolean;
 }
 
 interface DeploymentLog {
@@ -27,7 +30,7 @@ interface DeploymentLog {
   error_message: string | null;
 }
 
-const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
+const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack, hideDownload = false }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDeploying, setIsDeploying] = useState(false);
@@ -136,6 +139,42 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
       title: 'Report Downloaded',
       description: 'The migration report has been downloaded to your device.',
     });
+  };
+
+  // PDF download handler
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.text('Migration Report', 10, 10);
+    doc.text(`Date: ${new Date(report.timestamp).toLocaleString()}`, 10, 20);
+    doc.text(`Files Processed: ${report.filesProcessed}`, 10, 30);
+    doc.text(`Success: ${report.successCount}`, 10, 40);
+    doc.text(`Warnings: ${report.warningCount}`, 10, 50);
+    doc.text(`Errors: ${report.errorCount}`, 10, 60);
+    doc.text('---', 10, 70);
+    doc.text('Summary:', 10, 80);
+    doc.text(report.summary, 10, 90);
+    doc.save(`oracle-migration-report-${report.timestamp.split('T')[0]}.pdf`);
+    toast({ title: 'PDF Downloaded', description: 'The migration report PDF has been downloaded.' });
+  };
+
+  // Excel download handler
+  const handleDownloadExcel = () => {
+    const wsData = [
+      ['File Name', 'Type', 'Status', 'Issues', 'Lines Before', 'Lines After'],
+      ...report.results.map((result: any) => [
+        result.originalFile.name,
+        result.originalFile.type,
+        result.status,
+        result.issues?.length || 0,
+        result.originalFile.content ? result.originalFile.content.split('\n').length : 0,
+        result.convertedCode ? result.convertedCode.split('\n').length : 0,
+      ]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    XLSX.writeFile(wb, `oracle-migration-report-${report.timestamp.split('T')[0]}.xlsx`);
+    toast({ title: 'Excel Downloaded', description: 'The migration report Excel file has been downloaded.' });
   };
 
   const handleDeploy = async () => {
@@ -271,10 +310,22 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
           <Button variant="outline" onClick={onBack}>
             Back to Review
           </Button>
-          <Button onClick={handleDownload} variant="secondary">
-            <Download className="h-4 w-4 mr-2" />
-            Download Report
-          </Button>
+          {!hideDownload && (
+            <>
+              <Button onClick={handleDownload} variant="secondary">
+                <Download className="h-4 w-4 mr-2" />
+                Download TXT
+              </Button>
+              <Button onClick={handleDownloadPDF} variant="secondary">
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button onClick={handleDownloadExcel} variant="secondary">
+                <Download className="h-4 w-4 mr-2" />
+                Download Excel
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

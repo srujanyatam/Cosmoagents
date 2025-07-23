@@ -12,6 +12,7 @@ import CodeDiffViewer from '@/components/CodeDiffViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
+import ReportViewer from '@/components/ReportViewer';
 
 interface Migration {
   id: string;
@@ -55,6 +56,8 @@ const History = () => {
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [selectedMigrationIds, setSelectedMigrationIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
+  const [showGeneratedReport, setShowGeneratedReport] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState<any>(null);
 
   // Get the return tab from location state
   const returnTab = location.state?.returnTab || 'upload';
@@ -423,12 +426,53 @@ const History = () => {
   };
 
   // Add handler to view report
-  const handleViewReport = (e: React.MouseEvent, migration: Migration) => {
+  const handleViewReport = async (e: React.MouseEvent, migration: Migration) => {
     e.stopPropagation();
     if (migration.report_id) {
       navigate(`/report/${migration.report_id}`);
     } else {
-      toast({ title: 'No Report', description: 'No report found for this migration.' });
+      // Generate a minimal report from migration and file data
+      const files = migrationFiles.filter(f => f.migration_id === migration.id);
+      if (files.length === 0) {
+        toast({ title: 'No Files', description: 'No files found for this migration.' });
+        return;
+      }
+      // Calculate lines before/after and other details
+      let totalLinesBefore = 0;
+      let totalLinesAfter = 0;
+      const results = files.map(file => {
+        const before = file.original_content ? file.original_content.split('\n').length : 0;
+        const after = file.converted_content ? file.converted_content.split('\n').length : 0;
+        totalLinesBefore += before;
+        totalLinesAfter += after;
+        return {
+          id: file.id,
+          originalFile: {
+            id: file.id,
+            name: file.file_name,
+            content: file.original_content,
+            type: file.file_type,
+            status: file.conversion_status,
+          },
+          convertedCode: file.converted_content || '',
+          status: file.conversion_status,
+          linesBefore: before,
+          linesAfter: after,
+          issues: file.error_message ? [file.error_message] : [],
+        };
+      });
+      const report = {
+        timestamp: migration.created_at,
+        filesProcessed: files.length,
+        successCount: files.filter(f => f.conversion_status === 'success').length,
+        warningCount: files.filter(f => f.conversion_status === 'pending').length,
+        errorCount: files.filter(f => f.conversion_status === 'failed').length,
+        results,
+        summary: `Migration: ${migration.project_name}\nDate: ${migration.created_at}\nFiles: ${files.length}\nTotal Lines Before: ${totalLinesBefore}\nTotal Lines After: ${totalLinesAfter}`,
+        generated: true,
+      };
+      setGeneratedReport(report);
+      setShowGeneratedReport(true);
     }
   };
 
@@ -729,6 +773,19 @@ const History = () => {
           </DialogContent>
         </Dialog>
       </main>
+      {showGeneratedReport && generatedReport && (
+        <Dialog open={showGeneratedReport} onOpenChange={setShowGeneratedReport}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Migration Report (Generated)</DialogTitle>
+              <DialogClose />
+            </DialogHeader>
+            <div className="overflow-y-auto max-h-[80vh]">
+              <ReportViewer report={generatedReport} onBack={() => setShowGeneratedReport(false)} hideDownload />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
