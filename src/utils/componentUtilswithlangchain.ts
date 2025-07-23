@@ -10,6 +10,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
 import { supabase } from '@/integrations/supabase/client';
+import { isCacheEnabled } from '@/utils/conversionUtils';
 
 const _API_KEY = import.meta.env.VITE_API_KEY;
 console.log('Gemini API KEY:', _API_KEY);
@@ -165,25 +166,27 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
     const aiModel = "gemini-2.5-flash";
     const hash = getConversionCacheKey(normalizedContent, aiModel);
 
-    // 1. Check backend (DB) cache
-    const backendCached = await getBackendCachedConversion(hash, aiModel);
-    if (backendCached && backendCached.converted_code) {
-      console.log('[DB CACHE HIT]', file.name);
-      let result = JSON.parse(backendCached.converted_code);
-      if (result && result.performance) result.performance.conversionTimeMs = 1;
-      return result;
-    } else {
-      console.log('[DB CACHE MISS]', file.name);
-    }
+    if (isCacheEnabled()) {
+      // 1. Check backend (DB) cache
+      const backendCached = await getBackendCachedConversion(hash, aiModel);
+      if (backendCached && backendCached.converted_code) {
+        console.log('[DB CACHE HIT]', file.name);
+        let result = JSON.parse(backendCached.converted_code);
+        if (result && result.performance) result.performance.conversionTimeMs = 1;
+        return result;
+      } else {
+        console.log('[DB CACHE MISS]', file.name);
+      }
 
-    // 2. Check local cache
-    const cached = getCachedConversion(normalizedContent, aiModel);
-    if (cached) {
-      console.log('[LOCAL CACHE HIT]', file.name);
-      if (cached.performance) cached.performance.conversionTimeMs = 1;
-      return cached;
-    } else {
-      console.log('[LOCAL CACHE MISS]', file.name);
+      // 2. Check local cache
+      const cached = getCachedConversion(normalizedContent, aiModel);
+      if (cached) {
+        console.log('[LOCAL CACHE HIT]', file.name);
+        if (cached.performance) cached.performance.conversionTimeMs = 1;
+        return cached;
+      } else {
+        console.log('[LOCAL CACHE MISS]', file.name);
+      }
     }
     const chain = promptTemplate.pipe(model).pipe(parser);
     let aiOutput;
@@ -259,18 +262,20 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
         performanceOptimizations: aiOutput.performance_optimizations,
         oracleFeatures: aiOutput.oracle_features
     };
-    // Save to local cache
-    setCachedConversion(normalizedContent, aiModel, result);
-    // Save to backend cache
-    await setBackendCachedConversion(
-      hash,
-      normalizedContent,
-      aiModel,
-      JSON.stringify(result), // store as string
-      result.performance,
-      result.issues,
-      result.dataTypeMapping
-    );
+    if (isCacheEnabled()) {
+      // Save to local cache
+      setCachedConversion(normalizedContent, aiModel, result);
+      // Save to backend cache
+      await setBackendCachedConversion(
+        hash,
+        normalizedContent,
+        aiModel,
+        JSON.stringify(result), // store as string
+        result.performance,
+        result.issues,
+        result.dataTypeMapping
+      );
+    }
     return result;
 };
 
