@@ -476,17 +476,17 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               )}
 
               {/* Maintainability Index */}
-              {file.performanceMetrics.maintainabilityIndex && (
+              {file.performanceMetrics.maintainabilityIndex !== undefined && file.performanceMetrics.maintainabilityIndex !== null && (
                 <Card className="p-6">
                   <h4 className="text-lg font-medium mb-4">Maintainability Index</h4>
                   <div className="text-center">
                     <div className="text-3xl font-bold text-purple-600 mb-2">
-                      {file.performanceMetrics.maintainabilityIndex}/100
+                      {Math.min(100, Math.round(file.performanceMetrics.maintainabilityIndex))}/100
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
                       <div 
                         className="bg-purple-600 h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${file.performanceMetrics.maintainabilityIndex}%` }}
+                        style={{ width: `${Math.min(100, Math.round(file.performanceMetrics.maintainabilityIndex))}%` }}
                       ></div>
                     </div>
                     <p className="text-sm text-gray-600 mt-2">
@@ -551,16 +551,11 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               {/* Scalability & Maintainability Metrics */}
               {file.performanceMetrics.scalabilityMetrics && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Scalability Score */}
                     <Card className="p-4 text-center">
                       <p className="text-2xl font-bold" style={{ color: '#6C63FF' }}>{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
                       <p className="text-sm text-gray-600">Scalability Score</p>
-                    </Card>
-                    {/* Maintainability Score */}
-                    <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold" style={{ color: '#A259FF' }}>{file.performanceMetrics.scalabilityMetrics.maintainabilityScore}/10</p>
-                      <p className="text-sm text-gray-600">Maintainability Score</p>
                     </Card>
                     {/* Modern Features Used */}
                     <Card className="p-4 text-center">
