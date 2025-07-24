@@ -166,6 +166,18 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     }
   };
 
+  // Add color helpers:
+  const getScalabilityColor = (score) => {
+    if (score >= 8) return 'text-green-700 font-semibold';
+    if (score >= 5) return 'text-orange-600 font-semibold';
+    return 'text-red-700 font-semibold';
+  };
+  const getModernFeaturesColor = (count) => count > 0 ? 'text-blue-700 font-semibold' : 'text-gray-700 font-semibold';
+  const getBulkColor = (used) => used ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold';
+  const getLinesColor = (v) => v > 0 ? 'text-green-700 font-semibold' : v < 0 ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+  const getLoopsColor = (v) => v > 0 ? 'text-green-700 font-semibold' : v < 0 ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+  const getComplexityColor = (orig, conv) => conv < orig ? 'text-green-700 font-semibold' : conv > orig ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+
   return (
     <>
       {/* Removed top bar with filename, badges, and download button. Now only tabs and code sections remain. */}
@@ -514,12 +526,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     if (diff > 0) return 'Lines Increased';
                     return 'No Change';
                   })()}</h4>
-                  <p className={`text-2xl font-bold ${(() => {
-                    const diff = (file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0);
-                    if (diff < 0) return 'text-green-600';
-                    if (diff > 0) return 'text-red-600';
-                    return 'text-gray-600';
-                  })()}`}>{Math.abs((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}</p>
+                  <p className={`text-2xl font-bold ${getLinesColor((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}`}>{Math.abs((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}</p>
                   <p className="text-xs text-gray-500">
                     {(file.performanceMetrics.originalLines || 0)} → {(file.performanceMetrics.convertedLines || 0)}
                   </p>
@@ -533,12 +540,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     if (diff > 0) return 'Loops Increased';
                     return 'No Change';
                   })()}</h4>
-                  <p className={`text-2xl font-bold ${(() => {
-                    const diff = (file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0);
-                    if (diff < 0) return 'text-blue-600';
-                    if (diff > 0) return 'text-red-600';
-                    return 'text-gray-600';
-                  })()}`}>{Math.abs((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}</p>
+                  <p className={`text-2xl font-bold ${getLoopsColor((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}`}>{Math.abs((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}</p>
                   <p className="text-xs text-gray-500">
                     {(file.performanceMetrics.originalLoops || 0)} → {(file.performanceMetrics.convertedLoops || 0)}
                   </p>
@@ -559,17 +561,17 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {/* Scalability Score */}
                     <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold" style={{ color: '#6C63FF' }}>{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
+                      <p className={`text-2xl font-bold ${getScalabilityColor(file.performanceMetrics.scalabilityMetrics.scalabilityScore)}`}>{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
                       <p className="text-sm text-gray-600">Scalability Score</p>
                     </Card>
                     {/* Modern Features Used */}
                     <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold text-green-600">{file.performanceMetrics.scalabilityMetrics.modernOracleFeaturesCount}</p>
+                      <p className={`text-2xl font-bold ${getModernFeaturesColor(file.performanceMetrics.scalabilityMetrics.modernOracleFeaturesCount)}`}>{file.performanceMetrics.scalabilityMetrics.modernOracleFeaturesCount}</p>
                       <p className="text-sm text-gray-600">Modern Features Used</p>
                     </Card>
                     {/* Bulk Operations Used */}
                     <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold">
+                      <p className={`text-2xl font-bold ${getBulkColor(file.performanceMetrics.scalabilityMetrics.bulkOperationsUsed)}`}>
                         {file.performanceMetrics.scalabilityMetrics.bulkOperationsUsed ? (
                           <span style={{ color: 'green' }}>✔️</span>
                         ) : (
@@ -580,7 +582,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     </Card>
                     {/* Bulk Collect Used */}
                     <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold">
+                      <p className={`text-2xl font-bold ${getBulkColor(file.performanceMetrics.scalabilityMetrics.bulkCollectUsed)}`}>
                         {file.performanceMetrics.scalabilityMetrics.bulkCollectUsed ? (
                           <span style={{ color: 'green' }}>✔️</span>
                         ) : (

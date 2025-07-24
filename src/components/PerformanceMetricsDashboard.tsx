@@ -145,6 +145,23 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
   const safeScore10 = (value) => isNaN(value) || value === undefined || value === null ? 0 : Math.min(10, Math.round(value));
   const safeInt = (value) => isNaN(value) || value === undefined || value === null ? 0 : Math.round(value);
 
+  // In summary cards and file breakdown, apply color coding as follows:
+  // Scalability Score
+  const getScalabilityColor = (score) => {
+    if (score >= 8) return 'text-green-700 font-semibold';
+    if (score >= 5) return 'text-orange-600 font-semibold';
+    return 'text-red-700 font-semibold';
+  };
+  // Modern Features
+  const getModernFeaturesColor = (count) => count > 0 ? 'text-blue-700 font-semibold' : 'text-gray-700 font-semibold';
+  // Bulk Ops/Collect
+  const getBulkColor = (used) => used ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold';
+  // Lines/Loops Reduced
+  const getLinesColor = (v) => v > 0 ? 'text-green-700 font-semibold' : v < 0 ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+  const getLoopsColor = (v) => v > 0 ? 'text-green-700 font-semibold' : v < 0 ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+  // Complexity
+  const getComplexityColor = (orig, conv) => conv < orig ? 'text-green-700 font-semibold' : conv > orig ? 'text-red-700 font-semibold' : 'text-gray-700 font-semibold';
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -520,19 +537,19 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
                     </Badge>
                   </div>
                   <div className="flex-1 text-center">
-                    <span className="font-medium text-blue-600">{safeScore10(scalability)}</span>
+                    <span className={`font-medium ${getScalabilityColor(scalability)}`}>{scalability}</span>
                   </div>
                   <div className="flex-1 text-center">
                     <span className="font-medium text-purple-600">{editPercent}%</span>
                   </div>
                   <div className="flex-1 text-center">
-                    <span className="font-medium text-blue-700">{bulkOps}</span>
+                    <span className={`font-medium ${getBulkColor(bulkOps)}`}>{bulkOps}</span>
                   </div>
                   <div className="flex-1 text-center">
-                    <span className="font-medium text-blue-700">{bulkCollect}</span>
+                    <span className={`font-medium ${getBulkColor(bulkCollect)}`}>{bulkCollect}</span>
                   </div>
                   <div className="flex-1 text-center">
-                    <span className="font-medium text-green-700">{modernFeatures}</span>
+                    <span className={`font-medium ${getModernFeaturesColor(modernFeatures)}`}>{modernFeatures}</span>
                   </div>
                 </div>
               );
