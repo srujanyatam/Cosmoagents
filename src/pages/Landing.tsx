@@ -97,7 +97,7 @@ const Landing = () => {
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              <span className="inline-block min-h-[3.5rem]">{typedTagline}<span className="blinking-cursor">|</span></span>
+              <span className="inline-block min-h-[3.5rem]">{typedTagline}</span>
             </h2>
             <p className="text-xl mb-8 leading-relaxed bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-move font-semibold">
               {subTagline}

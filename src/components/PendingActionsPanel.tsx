@@ -253,6 +253,15 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     });
   };
 
+  // Handler for AI Rewrite button
+  const handleAIRewrite = async (file: UnreviewedFile) => {
+    // TODO: Implement AI rewrite logic here
+    toast({
+      title: 'AI Rewrite Triggered',
+      description: `AI rewrite requested for ${file.file_name}`,
+    });
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -538,6 +547,9 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                     Mark as Reviewed
               </Button>
               )}
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleAIRewrite(selectedFile)}>
+                  Rewrite with AI
+                </Button>
                 <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteUnreviewedFile(selectedFile.id)}>
                   Delete File
                 </Button>
