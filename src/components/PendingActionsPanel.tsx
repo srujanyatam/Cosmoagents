@@ -262,6 +262,43 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     });
   };
 
+  // Add state for AI Analyzer dialog
+  const [showAnalyzerDialog, setShowAnalyzerDialog] = useState(false);
+  const [analyzerLoading, setAnalyzerLoading] = useState(false);
+  const [analyzerResult, setAnalyzerResult] = useState<string | null>(null);
+  const [analyzerError, setAnalyzerError] = useState<string | null>(null);
+
+  // Handler for AI Analyzer button
+  const handleAIAnalyze = async (file: UnreviewedFile) => {
+    setShowAnalyzerDialog(true);
+    setAnalyzerLoading(true);
+    setAnalyzerResult(null);
+    setAnalyzerError(null);
+    try {
+      const response = await fetch('/api/ai-rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: file.converted_code,
+          prompt: 'Explain what this code does, the logic behind it, and provide a plain-English summary for a non-technical user.',
+          language: 'plsql',
+        }),
+      });
+      const data = await response.json();
+      if (data.rewrittenCode) {
+        setAnalyzerResult(data.rewrittenCode);
+      } else if (data.explanation) {
+        setAnalyzerResult(data.explanation);
+      } else {
+        setAnalyzerError('AI did not return an explanation.');
+      }
+    } catch (err) {
+      setAnalyzerError('An error occurred during AI analysis.');
+    } finally {
+      setAnalyzerLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -547,8 +584,8 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                     Mark as Reviewed
               </Button>
               )}
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleAIRewrite(selectedFile)}>
-                  Rewrite with AI
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleAIAnalyze(selectedFile)}>
+                  AI Analyzer
                 </Button>
                 <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteUnreviewedFile(selectedFile.id)}>
                   Delete File
@@ -569,6 +606,24 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 <span className="absolute left-1/2 -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 bg-black text-white text-xs rounded px-2 py-1 pointer-events-none transition-opacity">Finish review and generate the final migration report</span>
               </div>
             </div>
+            {/* AI Analyzer Dialog */}
+            {showAnalyzerDialog && (
+              <Dialog open={showAnalyzerDialog} onOpenChange={setShowAnalyzerDialog}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>AI Code Explanation</DialogTitle>
+                  </DialogHeader>
+                  <div className="py-2 min-h-[100px]">
+                    {analyzerLoading && <div>Analyzing code, please wait...</div>}
+                    {analyzerError && <div className="text-red-600">{analyzerError}</div>}
+                    {analyzerResult && <div className="whitespace-pre-wrap text-gray-800">{analyzerResult}</div>}
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowAnalyzerDialog(false)}>Close</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </>
         ) : (
           <Card className="h-full flex items-center justify-center shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-slate-800">

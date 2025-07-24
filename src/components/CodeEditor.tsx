@@ -7,6 +7,7 @@ import { EditorView } from '@codemirror/view';
 import { sql } from '@codemirror/lang-sql';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 interface CodeEditorProps {
   initialCode: string;
@@ -118,9 +119,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           <div className="flex justify-between p-2 bg-muted">
             <div>
               {isEditing && (
-                <Button variant="outline" size="sm" onClick={handleRewrite} disabled={rewriteLoading}>
-                  Rewrite with AI
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRewrite}
+                          disabled={!selection || selection.from === selection.to || rewriteLoading}
+                        >
+                          Rewrite with AI
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Select code to rewrite
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
             <div>
@@ -177,6 +194,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   {rewriteLoading ? 'Rewriting...' : 'Rewrite'}
                 </Button>
               </div>
+              {/* Error message for failed rewrite */}
+              {rewriteLoading === false && selection && selection.from !== selection.to && !rewritePrompt.trim() && (
+                <div className="text-red-600 mt-2 text-sm">Please enter a suggestion for the rewrite.</div>
+              )}
             </div>
           </div>
         )}
