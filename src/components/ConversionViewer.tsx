@@ -454,22 +454,24 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                   <div className="text-center">
                     <h4 className="text-sm font-medium text-gray-600 mb-2">Improvement</h4>
                     <p className={`text-2xl font-bold ${
-                      file.performanceMetrics.improvementPercentage > 0
-                        ? 'text-blue-600'
-                        : file.performanceMetrics.improvementPercentage < 0
-                          ? 'text-red-600'
-                          : 'text-gray-600'
+                      (() => {
+                        const orig = file.performanceMetrics.originalComplexity || 0;
+                        const conv = file.performanceMetrics.convertedComplexity || 0;
+                        if (orig === 0) return 'text-gray-600';
+                        if (conv < orig) return 'text-blue-600';
+                        if (conv > orig) return 'text-red-600';
+                        return 'text-gray-600';
+                      })()
                     }`}>
-                      {(
-                        file.performanceMetrics.originalComplexity === 0 ||
-                        file.performanceMetrics.originalComplexity === undefined ||
-                        file.performanceMetrics.originalComplexity === null ||
-                        isNaN(file.performanceMetrics.improvementPercentage)
-                      )
-                        ? '0%'
-                        : file.performanceMetrics.improvementPercentage > 0
-                          ? `+${file.performanceMetrics.improvementPercentage}%`
-                          : `${file.performanceMetrics.improvementPercentage}%`}
+                      {(() => {
+                        const orig = file.performanceMetrics.originalComplexity || 0;
+                        const conv = file.performanceMetrics.convertedComplexity || 0;
+                        if (orig === 0) return '0%';
+                        const percent = Math.round(((orig - conv) / orig) * 100);
+                        if (percent > 0) return `+${percent}%`;
+                        if (percent < 0) return `${percent}%`;
+                        return '0%';
+                      })()}
                     </p>
                     <p className="text-xs text-gray-500">Performance Gain</p>
                   </div>
@@ -534,9 +536,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 {/* Lines Reduced/Increased */}
                 <Card className="p-4 text-center">
                   <div className="font-semibold text-gray-700 mb-2">Lines Change</div>
-                  <p className={`text-2xl font-bold ${getLinesColor((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}`}>{Math.abs((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}</p>
+                  <p className={`text-2xl font-bold ${getLinesColor((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}`}>{Math.abs(parseInt(((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0)).toString(), 10))}</p>
                   <p className="text-xs text-gray-500">
-                    {(file.performanceMetrics.originalLines || 0)} → {(file.performanceMetrics.convertedLines || 0)}
+                    {parseInt((file.performanceMetrics.originalLines || 0).toString(), 10)} → {parseInt((file.performanceMetrics.convertedLines || 0).toString(), 10)}
                   </p>
                   <h4 className="text-sm font-medium text-gray-600 mt-2">{(() => {
                     const diff = (file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0);
@@ -548,9 +550,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 {/* Loops Reduced/Increased */}
                 <Card className="p-4 text-center">
                   <div className="font-semibold text-gray-700 mb-2">Loops Change</div>
-                  <p className={`text-2xl font-bold ${getLoopsColor((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}`}>{Math.abs((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}</p>
+                  <p className={`text-2xl font-bold ${getLoopsColor((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}`}>{Math.abs(parseInt(((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0)).toString(), 10))}</p>
                   <p className="text-xs text-gray-500">
-                    {(file.performanceMetrics.originalLoops || 0)} → {(file.performanceMetrics.convertedLoops || 0)}
+                    {parseInt((file.performanceMetrics.originalLoops || 0).toString(), 10)} → {parseInt((file.performanceMetrics.convertedLoops || 0).toString(), 10)}
                   </p>
                   <h4 className="text-sm font-medium text-gray-600 mt-2">{(() => {
                     const diff = (file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0);
