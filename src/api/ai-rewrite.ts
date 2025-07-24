@@ -16,14 +16,20 @@ async function callGeminiAI({ code, prompt, language }: { code: string; prompt: 
     body: JSON.stringify({ contents: messages }),
   });
 
+  const data = await response.json();
+  console.log('Gemini API response:', JSON.stringify(data, null, 2)); // <-- Add this for debugging
+
   if (!response.ok) {
-    throw new Error('Gemini API error');
+    throw new Error(data.error?.message || 'Gemini API error');
   }
 
-  const data = await response.json();
-  // Gemini's response structure may vary; adjust as needed
-  const rewrittenCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  return rewrittenCode;
+  // Try to extract both code and explanation
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    || data.candidates?.[0]?.content?.text
+    || data.candidates?.[0]?.content
+    || '';
+
+  return text;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     const rewrittenCode = await callGeminiAI({ code, prompt, language });
     res.status(200).json({ rewrittenCode });
-  } catch (err) {
-    res.status(500).json({ error: 'AI rewrite failed' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'AI rewrite failed' });
   }
 } 
