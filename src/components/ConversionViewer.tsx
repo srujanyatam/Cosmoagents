@@ -520,30 +520,30 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 {/* Lines Reduced/Increased */}
                 <Card className="p-4 text-center">
                   <div className="font-semibold text-gray-700 mb-2">Lines Change</div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">{(() => {
+                  <p className={`text-2xl font-bold ${getLinesColor((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}`}>{Math.abs((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}</p>
+                  <p className="text-xs text-gray-500">
+                    {(file.performanceMetrics.originalLines || 0)} → {(file.performanceMetrics.convertedLines || 0)}
+                  </p>
+                  <h4 className="text-sm font-medium text-gray-600 mt-2">{(() => {
                     const diff = (file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0);
                     if (diff < 0) return 'Lines Reduced';
                     if (diff > 0) return 'Lines Increased';
                     return 'No Change';
                   })()}</h4>
-                  <p className={`text-2xl font-bold ${getLinesColor((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}`}>{Math.abs((file.performanceMetrics.convertedLines || 0) - (file.performanceMetrics.originalLines || 0))}</p>
-                  <p className="text-xs text-gray-500">
-                    {(file.performanceMetrics.originalLines || 0)} → {(file.performanceMetrics.convertedLines || 0)}
-                  </p>
                 </Card>
                 {/* Loops Reduced/Increased */}
                 <Card className="p-4 text-center">
                   <div className="font-semibold text-gray-700 mb-2">Loops Change</div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">{(() => {
+                  <p className={`text-2xl font-bold ${getLoopsColor((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}`}>{Math.abs((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}</p>
+                  <p className="text-xs text-gray-500">
+                    {(file.performanceMetrics.originalLoops || 0)} → {(file.performanceMetrics.convertedLoops || 0)}
+                  </p>
+                  <h4 className="text-sm font-medium text-gray-600 mt-2">{(() => {
                     const diff = (file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0);
                     if (diff < 0) return 'Loops Reduced';
                     if (diff > 0) return 'Loops Increased';
                     return 'No Change';
                   })()}</h4>
-                  <p className={`text-2xl font-bold ${getLoopsColor((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}`}>{Math.abs((file.performanceMetrics.convertedLoops || 0) - (file.performanceMetrics.originalLoops || 0))}</p>
-                  <p className="text-xs text-gray-500">
-                    {(file.performanceMetrics.originalLoops || 0)} → {(file.performanceMetrics.convertedLoops || 0)}
-                  </p>
                 </Card>
                 {/* Conversion Time */}
                 <Card className="p-4 text-center">
