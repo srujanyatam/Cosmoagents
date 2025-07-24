@@ -36,7 +36,6 @@ const ConversionResults: React.FC<ConversionResultsProps> = ({
   const selectedResult = results.find(r => r.id === selectedResultId);
   
   const handleUpdateConvertedCode = (resultId: string, updatedCode: string) => {
-    console.log('Updated code for', resultId, updatedCode);
     toast({
       title: 'Code Updated',
       description: 'Your changes to the converted code have been saved.'

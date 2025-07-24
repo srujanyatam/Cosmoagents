@@ -139,7 +139,6 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     ...reviewedOther
   ];
   const currentIndex = allFilteredFiles.findIndex(f => f.id === selectedFileId);
-  console.log('DEBUG: currentIndex', currentIndex, 'selectedFileId', selectedFileId, 'allFilteredFiles', allFilteredFiles.map(f => f.id));
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex >= 0 && currentIndex < allFilteredFiles.length - 1;
 
