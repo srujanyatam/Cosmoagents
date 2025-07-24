@@ -40,3 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+
+.blinking-cursor {
+  animation: blink 1s steps(2, start) infinite;
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+.animate-gradient-move {
+  background-size: 200% 200%;
+  animation: gradientMove 3s linear infinite;
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}

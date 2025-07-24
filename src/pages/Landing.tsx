@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Database, FileText, Zap, Shield, Clock, Users, ArrowRight, History, HelpCircle } from 'lucide-react';
@@ -6,6 +6,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Help from '@/components/Help';
 import UserDropdown from '@/components/UserDropdown';
+
+// Typing animation for tagline
+const useTypingEffect = (text: string, speed = 40) => {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    let i = 0;
+    const interval = setInterval(() => {
+      setDisplayed(text.slice(0, i + 1));
+      i++;
+      if (i === text.length) clearInterval(interval);
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed]);
+  return displayed;
+};
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -28,10 +43,14 @@ const Landing = () => {
     }
   };
 
+  const mainTagline = 'Migrate Your Sybase Database to Oracle with AI-Powered Precision';
+  const subTagline = 'Transform your legacy Sybase applications to modern Oracle infrastructure with intelligent code conversion, automated testing, and seamless deployment.';
+  const typedTagline = useTypingEffect(mainTagline, 32);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="bg-white/90 backdrop-blur-sm border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -74,22 +93,20 @@ const Landing = () => {
       {showHelp && <Help onClose={() => setShowHelp(false)} />}
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-20">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-              Migrate Your Sybase Database to Oracle with{' '}
-              <span className="text-primary">AI-Powered Precision</span>
+              <span className="inline-block min-h-[3.5rem]">{typedTagline}<span className="blinking-cursor">|</span></span>
             </h2>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Transform your legacy Sybase applications to modern Oracle infrastructure 
-              with intelligent code conversion, automated testing, and seamless deployment.
+            <p className="text-xl mb-8 leading-relaxed bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent animate-gradient-move font-semibold">
+              {subTagline}
             </p>
             <div className="flex justify-center">
               <Button 
                 onClick={handleGetStarted}
                 size="lg" 
-                className="text-lg px-8 py-4"
+                className="text-lg px-8 py-4 shadow-lg hover:scale-105 transition-transform"
               >
                 Start Migration
                 <ArrowRight className="ml-2 h-5 w-5" />
