@@ -431,8 +431,27 @@ const History = () => {
     if (migration.report_id) {
       navigate(`/report/${migration.report_id}`);
     } else {
-      // Generate a minimal report from migration and file data
-      const files = migrationFiles.filter(f => f.migration_id === migration.id);
+      // Always fetch files for this migration if not already loaded
+      let files = migrationFiles.filter(f => f.migration_id === migration.id);
+      if (files.length === 0) {
+        await fetchMigrationFiles(migration.id);
+        files = migrationFiles.filter(f => f.migration_id === migration.id);
+        // After fetch, if still empty, try to get directly from DB (in case state is not updated yet)
+        if (files.length === 0) {
+          const { data, error } = await supabase
+            .from('migration_files')
+            .select('*')
+            .eq('migration_id', migration.id);
+          if (data && data.length > 0) {
+            files = data.map(file => ({
+              ...file,
+              conversion_status: ['pending', 'success', 'failed'].includes(file.conversion_status)
+                ? file.conversion_status as 'pending' | 'success' | 'failed'
+                : 'pending',
+            }));
+          }
+        }
+      }
       if (files.length === 0) {
         toast({ title: 'No Files', description: 'No files found for this migration.' });
         return;
@@ -471,8 +490,31 @@ const History = () => {
         summary: `Migration: ${migration.project_name}\nDate: ${migration.created_at}\nFiles: ${files.length}\nTotal Lines Before: ${totalLinesBefore}\nTotal Lines After: ${totalLinesAfter}`,
         generated: true,
       };
-      setGeneratedReport(report);
-      setShowGeneratedReport(true);
+      // Save the generated report to the DB
+      try {
+        const { data: reportData, error: reportError } = await supabase
+          .from('migration_reports')
+          .insert({
+            migration_id: migration.id,
+            report_content: JSON.stringify(report),
+          })
+          .select()
+          .single();
+        if (reportError) {
+          toast({ title: 'Error', description: 'Failed to save generated report.' });
+          setGeneratedReport(report);
+          setShowGeneratedReport(true);
+          return;
+        }
+        // Update the migration in state to include the new report_id
+        setMigrations(prev => prev.map(m => m.id === migration.id ? { ...m, report_id: reportData.id } : m));
+        // Navigate to the saved report page
+        navigate(`/report/${reportData.id}`);
+      } catch (err) {
+        toast({ title: 'Error', description: 'Failed to save generated report.' });
+        setGeneratedReport(report);
+        setShowGeneratedReport(true);
+      }
     }
   };
 
