@@ -12,6 +12,7 @@ import CodeDiffViewer from '@/components/CodeDiffViewer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
+import ReportViewer from '@/components/ReportViewer';
 
 interface Migration {
   id: string;
@@ -21,6 +22,7 @@ interface Migration {
   success_count: number;
   failed_count: number;
   pending_count: number;
+  report_id?: string; // Add report_id
 }
 
 interface MigrationFile {
@@ -34,6 +36,7 @@ interface MigrationFile {
   error_message: string | null;
   created_at: string;
   migration_id: string; // Added for multi-select
+  performance_metrics?: any | null;
 }
 
 const History = () => {
@@ -54,6 +57,8 @@ const History = () => {
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [selectedMigrationIds, setSelectedMigrationIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
+  const [showGeneratedReport, setShowGeneratedReport] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState<any>(null);
 
   // Get the return tab from location state
   const returnTab = location.state?.returnTab || 'upload';
@@ -72,8 +77,7 @@ const History = () => {
   const fetchHistory = async () => {
     try {
       setIsLoading(true);
-      
-      // Fetch migrations with file counts
+      // Fetch migrations with file counts and reports
       const { data: migrationsData, error: migrationsError } = await supabase
         .from('migrations')
         .select(`
@@ -83,11 +87,11 @@ const History = () => {
           migration_files (
             id,
             conversion_status
-          )
+          ),
+          migration_reports(id)
         `)
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
-
       if (migrationsError) {
         console.error('Error fetching migrations:', migrationsError);
         toast({
@@ -98,6 +102,10 @@ const History = () => {
       } else {
         const processedMigrations = migrationsData?.map(migration => {
           const files = migration.migration_files || [];
+          let reportId: string | undefined = undefined;
+          if (Array.isArray(migration.migration_reports) && migration.migration_reports.length > 0 && migration.migration_reports[0] && typeof migration.migration_reports[0] === 'object') {
+            reportId = migration.migration_reports[0].id;
+          }
           return {
             id: migration.id,
             project_name: migration.project_name,
@@ -106,12 +114,11 @@ const History = () => {
             success_count: files.filter((f: any) => f.conversion_status === 'success').length,
             failed_count: files.filter((f: any) => f.conversion_status === 'failed').length,
             pending_count: files.filter((f: any) => f.conversion_status === 'pending').length,
+            report_id: reportId,
           };
         }) || [];
-        
         setMigrations(processedMigrations);
       }
-      
     } catch (error) {
       console.error('Error fetching history:', error);
       toast({
@@ -146,7 +153,7 @@ const History = () => {
     try {
       const { data, error } = await supabase
         .from('migration_files')
-        .select('*, migration_id')
+        .select('id, file_name, file_path, file_type, original_content, converted_content, conversion_status, error_message, created_at, migration_id, performance_metrics')
         .eq('migration_id', migrationId)
         .order('file_name', { ascending: true });
         
@@ -347,7 +354,8 @@ const History = () => {
         original_code: file.original_content,
         data_type_mapping: [], // If you have mapping info, add here
         issues: [], // If you have issues info, add here
-        performance_metrics: {}, // If you have metrics, add here
+        performance_metrics: file.performance_metrics || {}, // If you have metrics, add here
+        user_id: user?.id || '',
       });
       toast({
         title: 'Undo Successful',
@@ -416,6 +424,101 @@ const History = () => {
       toast({ title: 'Deleted', description: 'Selected migrations and files deleted.' });
     } catch (err) {
       toast({ title: 'Error', description: 'Failed to delete selected items', variant: 'destructive' });
+    }
+  };
+
+  // Add handler to view report
+  const handleViewReport = async (e: React.MouseEvent, migration: Migration) => {
+    e.stopPropagation();
+    if (migration.report_id) {
+      navigate(`/report/${migration.report_id}`);
+    } else {
+      // Always fetch files for this migration if not already loaded
+      let files = migrationFiles.filter(f => f.migration_id === migration.id);
+      if (files.length === 0) {
+        await fetchMigrationFiles(migration.id);
+        files = migrationFiles.filter(f => f.migration_id === migration.id);
+        // After fetch, if still empty, try to get directly from DB (in case state is not updated yet)
+        if (files.length === 0) {
+          const { data, error } = await supabase
+            .from('migration_files')
+            .select('*')
+            .eq('migration_id', migration.id);
+          if (data && data.length > 0) {
+            files = data.map(file => ({
+              ...file,
+              conversion_status: ['pending', 'success', 'failed'].includes(file.conversion_status)
+                ? file.conversion_status as 'pending' | 'success' | 'failed'
+                : 'pending',
+            }));
+          }
+        }
+      }
+      if (files.length === 0) {
+        toast({ title: 'No Files', description: 'No files found for this migration.' });
+        return;
+      }
+      // Calculate lines before/after and other details
+      let totalLinesBefore = 0;
+      let totalLinesAfter = 0;
+      const results = files.map(file => {
+        const before = file.original_content ? file.original_content.split('\n').length : 0;
+        const after = file.converted_content ? file.converted_content.split('\n').length : 0;
+        totalLinesBefore += before;
+        totalLinesAfter += after;
+        return {
+          id: file.id,
+          originalFile: {
+            id: file.id,
+            name: file.file_name,
+            content: file.original_content,
+            type: file.file_type,
+            status: file.conversion_status,
+          },
+          convertedCode: file.converted_content || '',
+          status: file.conversion_status,
+          linesBefore: before,
+          linesAfter: after,
+          issues: file.error_message ? [file.error_message] : [],
+          performance: file.performance_metrics || {},
+        };
+      });
+      const report = {
+        timestamp: migration.created_at,
+        filesProcessed: files.length,
+        successCount: files.filter(f => f.conversion_status === 'success').length,
+        warningCount: files.filter(f => f.conversion_status === 'pending').length,
+        errorCount: files.filter(f => f.conversion_status === 'failed').length,
+        results,
+        summary: `Migration: ${migration.project_name}\nDate: ${migration.created_at}\nFiles: ${files.length}\nTotal Lines Before: ${totalLinesBefore}\nTotal Lines After: ${totalLinesAfter}`,
+        generated: true,
+      };
+      // Save the generated report to the DB
+      try {
+        const { data: reportData, error: reportError } = await supabase
+          .from('migration_reports')
+          .insert({
+            migration_id: migration.id,
+            user_id: user?.id,
+            report: report,
+          })
+          .select()
+          .single();
+        if (reportError) {
+          toast({ title: 'Error', description: 'Failed to save generated report.' });
+          setGeneratedReport(report);
+          setShowGeneratedReport(true);
+          return;
+        }
+        // Update the migration in state to include the new report_id
+        setMigrations(prev => prev.map(m => m.id === migration.id ? { ...m, report_id: reportData.id } : m));
+        // Navigate to the saved report page
+        navigate(`/report/${reportData.id}`);
+      } catch (err) {
+        toast({ title: 'Error', description: 'Failed to save generated report.' });
+        setGeneratedReport(report);
+        setShowGeneratedReport(true);
+      }
     }
   };
 
@@ -600,6 +703,14 @@ const History = () => {
                               <Button 
                                 size="sm" 
                                 variant="ghost"
+                                onClick={(e) => handleViewReport(e, migration)}
+                                title="View Report"
+                              >
+                                <FileText className="h-4 w-4 text-blue-600" />
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
                                 onClick={(e) => handleDeleteMigration(e, migration.id)}
                                 title="Delete Migration"
                               >
@@ -707,6 +818,21 @@ const History = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog for Generated Report */}
+        {showGeneratedReport && generatedReport && (
+          <Dialog open={showGeneratedReport} onOpenChange={setShowGeneratedReport}>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>Migration Report (Generated)</DialogTitle>
+                <DialogClose />
+              </DialogHeader>
+              <div className="overflow-y-auto max-h-[80vh]">
+                <ReportViewer report={generatedReport} onBack={() => setShowGeneratedReport(false)} />
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </main>
     </div>
   );

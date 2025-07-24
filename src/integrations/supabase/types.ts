@@ -111,27 +111,27 @@ export type Database = {
       }
       migration_reports: {
         Row: {
-          created_at: string
-          efficiency_metrics: Json | null
-          id: string
-          migration_id: string
-          report_content: string
-        }
+          id: string;
+          user_id: string | null;
+          created_at: string;
+          report: Json;
+          migration_id: string | null;
+        };
         Insert: {
-          created_at?: string
-          efficiency_metrics?: Json | null
-          id?: string
-          migration_id: string
-          report_content: string
-        }
+          id?: string;
+          user_id?: string | null;
+          created_at?: string;
+          report: Json;
+          migration_id?: string | null;
+        };
         Update: {
-          created_at?: string
-          efficiency_metrics?: Json | null
-          id?: string
-          migration_id?: string
-          report_content?: string
-        }
-        Relationships: []
+          id?: string;
+          user_id?: string | null;
+          created_at?: string;
+          report?: Json;
+          migration_id?: string | null;
+        };
+        Relationships: [];
       }
       migrations: {
         Row: {

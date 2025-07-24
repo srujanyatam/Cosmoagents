@@ -107,6 +107,7 @@ export const convertSybaseToOracle = async (
     file.content,
     convertedCode
   );
+  console.log('[PERF METRICS]', file.name, performanceMetrics);
 
   // Generate issues based on quantitative analysis
   const issues: ConversionIssue[] = generateQuantitativeIssues(
@@ -391,7 +392,16 @@ const generatePerformanceMetrics = (
       commentRatio: Math.round(convertedComplexity.commentRatio * 100),
       complexityLevel: convertedComplexity.cyclomaticComplexity > 10 ? 'High' : convertedComplexity.cyclomaticComplexity > 5 ? 'Medium' : 'Low' as 'Low' | 'Medium' | 'High'
     },
-    recommendations
+    recommendations,
+    // Legacy/DB compatibility keys
+    score: performanceScore,
+    maintainability: convertedComplexity.maintainabilityIndex,
+    orig_complexity: originalComplexity.cyclomaticComplexity,
+    conv_complexity: convertedComplexity.cyclomaticComplexity,
+    improvement: improvementPercentage,
+    lines_reduced: Math.max(0, linesReduced),
+    loops_reduced: Math.max(0, loopsReduced),
+    time_ms: conversionTime,
   };
 };
 
