@@ -1,16 +1,19 @@
 
 import React, { useState, useRef } from 'react';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import CodeMirror, { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+import { EditorView } from '@codemirror/view';
+import { sql } from '@codemirror/lang-sql';
+import { javascript } from '@codemirror/lang-javascript';
+import { oneDark } from '@codemirror/theme-one-dark';
 
 interface CodeEditorProps {
   initialCode: string;
   readOnly?: boolean;
   onSave?: (updatedCode: string) => void;
   height?: string;
-  language?: 'sql' | 'plsql';
+  language?: 'sql' | 'plsql' | 'js' | 'javascript';
   showLineNumbers?: boolean;
 }
 
@@ -27,49 +30,52 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [showRewritePrompt, setShowRewritePrompt] = useState(false);
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [rewriteLoading, setRewriteLoading] = useState(false);
-  const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [selection, setSelection] = useState<{ from: number; to: number } | null>(null);
+  const editorRef = useRef<ReactCodeMirrorRef>(null);
   const { toast } = useToast();
-  
-  const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setCode(e.target.value);
+
+  // Language extensions
+  const getExtensions = () => {
+    if (language === 'sql' || language === 'plsql') return [sql()];
+    if (language === 'js' || language === 'javascript') return [javascript()];
+    return [];
   };
-  
+
+  // Save logic
   const handleSave = () => {
     if (onSave) {
       onSave(code);
       setIsEditing(false);
-      
       toast({
         title: 'Changes Saved',
         description: 'Your code changes have been saved.',
       });
     }
   };
-  
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-  
+
+  const handleEdit = () => setIsEditing(true);
   const handleCancel = () => {
     setCode(initialCode);
     setIsEditing(false);
-    
     toast({
       title: 'Changes Discarded',
       description: 'Your code changes have been discarded.',
     });
   };
 
-  // Selection logic
-  const handleSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const target = e.target as HTMLTextAreaElement;
-    setSelection({ start: target.selectionStart, end: target.selectionEnd });
+  // Selection logic for CodeMirror
+  const handleSelection = (view: EditorView) => {
+    const sel = view.state.selection.main;
+    if (sel.from !== sel.to) {
+      setSelection({ from: sel.from, to: sel.to });
+    } else {
+      setSelection(null);
+    }
   };
 
   // AI Rewrite logic
   const handleRewrite = () => {
-    if (!selection || selection.start === selection.end) {
+    if (!selection || selection.from === selection.to) {
       toast({ title: 'No code selected', description: 'Please highlight code to rewrite.' });
       return;
     }
@@ -77,10 +83,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const handleRewriteSubmit = async () => {
-    if (!selection || selection.start === selection.end || !rewritePrompt.trim()) return;
+    if (!selection || selection.from === selection.to || !rewritePrompt.trim()) return;
     setRewriteLoading(true);
     try {
-      const selectedCode = code.slice(selection.start, selection.end);
+      const selectedCode = code.slice(selection.from, selection.to);
       // Call your backend AI API here
       const response = await fetch('/api/ai-rewrite', {
         method: 'POST',
@@ -89,7 +95,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       });
       const data = await response.json();
       if (data.rewrittenCode) {
-        const newCode = code.slice(0, selection.start) + data.rewrittenCode + code.slice(selection.end);
+        const newCode = code.slice(0, selection.from) + data.rewrittenCode + code.slice(selection.to);
         setCode(newCode);
         setShowRewritePrompt(false);
         setRewritePrompt('');
@@ -104,22 +110,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       setRewriteLoading(false);
     }
   };
-  
-  // Simple syntax highlighting function (a real implementation would use a library like Prism)
-  const getHighlightedCode = () => {
-    if (!showLineNumbers) return code;
-    
-    const lines = code.split('\n');
-    const paddingLength = lines.length.toString().length;
-    
-    return lines
-      .map((line, index) => {
-        const lineNumber = (index + 1).toString().padStart(paddingLength, ' ');
-        return `${lineNumber} | ${line}`;
-      })
-      .join('\n');
-  };
-  
+
   return (
     <div className="w-full">
       <div className="rounded-md border bg-card">
@@ -150,20 +141,21 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             </div>
           </div>
         )}
-        
-        <ScrollArea style={{ height }}>
-          <Textarea
-            ref={textareaRef}
-            value={isEditing ? code : getHighlightedCode()}
-            onChange={handleCodeChange}
-            onSelect={isEditing ? handleSelect : undefined}
-            className={`font-mono text-sm w-full h-full p-4 resize-none border-none focus-visible:ring-0 ${
-              readOnly || !isEditing ? 'bg-slate-900 text-white' : ''
-            }`}
+        <div style={{ height }}>
+          <CodeMirror
+            value={code}
+            height={height}
+            theme={oneDark}
+            extensions={getExtensions()}
             readOnly={readOnly || !isEditing}
-            style={{ minHeight: height }}
+            onChange={(value) => setCode(value)}
+            onUpdate={(viewUpdate) => {
+              if (isEditing && viewUpdate.view) handleSelection(viewUpdate.view);
+            }}
+            basicSetup={{ lineNumbers: showLineNumbers }}
+            ref={editorRef}
           />
-        </ScrollArea>
+        </div>
         {/* AI Rewrite Prompt Modal */}
         {showRewritePrompt && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">

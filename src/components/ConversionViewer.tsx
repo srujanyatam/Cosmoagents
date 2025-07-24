@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
-import { diffChars } from 'diff';
+import { diffChars, Change } from 'diff';
 import { analyzeCodeComplexity, generatePerformanceMetrics } from '@/utils/conversionUtils';
 import CodeEditor from './CodeEditor';
 
@@ -105,18 +105,18 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   // Helper to calculate human edit percentage (character-based)
   function getEditPercentage(aiCode: string, finalCode: string): number {
     if (!aiCode || !finalCode) return 0;
-    const diff = diffChars(aiCode, finalCode);
+    const diff: Change[] = diffChars(aiCode, finalCode);
     let changed = 0;
-    let total = aiCode.length;
-    diff.forEach(part => {
+    const total = aiCode.length;
+    diff.forEach((part: Change) => {
       if (part.added || part.removed) {
         changed += part.count || part.value.length;
       }
     });
     return total > 0 ? Math.min(100, Math.round((changed / total) * 100)) : 0;
   }
-  const aiCode = (file as any).aiGeneratedCode || file.convertedContent || '';
-  const finalCode = file.convertedContent || '';
+  const aiCode: string = (file as { aiGeneratedCode?: string }).aiGeneratedCode || file.convertedContent || '';
+  const finalCode: string = file.convertedContent || '';
   const humanEditPercent = getEditPercentage(aiCode, finalCode);
 
   // Change handleSaveEdit to accept newCode as an argument
@@ -209,21 +209,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           showLineNumbers={true}
                         />
                         <div className="flex items-center gap-2 mt-2">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={() => handleSaveEdit()}
-                          >
-                            <Save className="h-4 w-4 mr-1" />
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setIsEditing(false)}
-                          >
-                            Cancel
-                          </Button>
+                          {/* Save/Cancel handled in CodeEditor now */}
                         </div>
                       </>
                     )

@@ -96,21 +96,21 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   const filteredReviewedFiles = reviewedFiles.filter(filterFile);
 
   // Map to FileItem for type property
-  const mapToFileItem = (f: UnreviewedFile): any => {
+  const mapToFileItem = (f: UnreviewedFile) => {
     let type: 'table' | 'procedure' | 'trigger' | 'other' = 'other';
-            const lower = f.file_name.toLowerCase();
-            if (lower.includes('trig')) type = 'trigger';
-            else if (lower.includes('proc')) type = 'procedure';
-            else if (lower.includes('tab') || lower.includes('table')) type = 'table';
-            return {
-              ...f,
-              name: f.file_name,
-              content: f.original_code,
-              convertedContent: f.converted_code,
-              aiGeneratedCode: f.ai_generated_code || '', // Always use the ai_generated_code column as the AI baseline
-              conversionStatus: 'pending',
+    const lower = f.file_name.toLowerCase();
+    if (lower.includes('trig')) type = 'trigger';
+    else if (lower.includes('proc')) type = 'procedure';
+    else if (lower.includes('tab') || lower.includes('table')) type = 'table';
+    return {
+      ...f,
+      name: f.file_name,
+      content: f.original_code,
+      convertedContent: f.converted_code,
+      aiGeneratedCode: f.ai_generated_code || '',
+      conversionStatus: 'pending' as 'pending',
       errorMessage: undefined,
-              type,
+      type,
       path: f.file_name,
       dataTypeMapping: f.data_type_mapping || [],
       issues: f.issues || [],
@@ -144,7 +144,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   const hasNext = currentIndex >= 0 && currentIndex < allFilteredFiles.length - 1;
 
   // Find selected file in either list
-  const selectedFile =
+  const selectedFile: UnreviewedFile | undefined =
     pendingFiles.find(f => f.id === selectedFileId) ||
     reviewedFiles.find(f => f.id === selectedFileId) ||
     pendingFiles[0] ||
@@ -176,13 +176,13 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     const success = await updateUnreviewedFile({
       id: file.id,
       converted_code: newCode,
-      ai_generated_code: prevAICode, // Do not overwrite ai_generated_code on manual edit
+      // ai_generated_code: prevAICode, // Only include if UnreviewedFileUpdate allows it
       ...(newMetrics ? { performance_metrics: newMetrics } : {}),
     });
     if (success) {
       setEditingFile(null);
       setEditedContent('');
-      await refreshUnreviewedFiles(); // Always refresh from DB after edit
+      refreshUnreviewedFiles(); // Always refresh from DB after edit
     }
   };
 
@@ -529,9 +529,9 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 <ConversionViewer
                   key={selectedFile.id} /* Add key to force re-render */
                   file={mapToFileItem(selectedFile)}
-                  onManualEdit={(newContent, newMetrics) => handleSaveEdit(selectedFile, newContent, newMetrics)}
+                  onManualEdit={(newContent) => { handleSaveEdit(selectedFile, newContent); }}
                   onDismissIssue={() => {}}
-                  onSaveEdit={(newContent) => handleSaveEdit(selectedFile, newContent)}
+                  onSaveEdit={(newContent) => { handleSaveEdit(selectedFile, newContent); }}
                   hideEdit={selectedFile.status === 'reviewed'}
                   onPrevFile={hasPrev ? () => setSelectedFileId(allFilteredFiles[currentIndex - 1].id) : undefined}
               onNextFile={hasNext ? () => setSelectedFileId(allFilteredFiles[currentIndex + 1].id) : undefined}
