@@ -455,8 +455,7 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                   <th className="px-3 py-2 text-left font-semibold">File Name</th>
                   <th className="px-3 py-2 text-left font-semibold">🏅 Score</th>
                   <th className="px-3 py-2 text-left font-semibold">🧮 Maintainability</th>
-                  <th className="px-3 py-2 text-left font-semibold">📉 Orig. Complexity</th>
-                  <th className="px-3 py-2 text-left font-semibold">📈 Conv. Complexity</th>
+                  <th className="px-3 py-2 text-left font-semibold">📊 Complexity</th>
                   <th className="px-3 py-2 text-left font-semibold">🔥 Improvement</th>
                   <th className="px-3 py-2 text-left font-semibold">🟩 Lines Reduced</th>
                   <th className="px-3 py-2 text-left font-semibold">🔵 Loops Reduced</th>
@@ -493,8 +492,15 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                       </td>
                       <td className="px-3 py-2">{perf.performanceScore !== undefined && perf.performanceScore !== null ? perf.performanceScore : 0}/100</td>
                       <td className="px-3 py-2">{maintainability}/100</td>
-                      <td className="px-3 py-2">{perf.originalComplexity !== undefined && perf.originalComplexity !== null ? perf.originalComplexity : 0}</td>
-                      <td className="px-3 py-2">{perf.convertedComplexity !== undefined && perf.convertedComplexity !== null ? perf.convertedComplexity : 0}</td>
+                      <td className={(() => {
+                        const orig = perf.originalComplexity !== undefined && perf.originalComplexity !== null ? perf.originalComplexity : 0;
+                        const conv = perf.convertedComplexity !== undefined && perf.convertedComplexity !== null ? perf.convertedComplexity : 0;
+                        if (conv > orig) return 'px-3 py-2 text-red-700 font-semibold';
+                        if (conv < orig) return 'px-3 py-2 text-green-700 font-semibold';
+                        return 'px-3 py-2 text-gray-700 font-semibold';
+                      })()}>
+                        {`${perf.originalComplexity !== undefined && perf.originalComplexity !== null ? perf.originalComplexity : 0} → ${perf.convertedComplexity !== undefined && perf.convertedComplexity !== null ? perf.convertedComplexity : 0}`}
+                      </td>
                       <td className={`px-3 py-2 ${perf.improvementPercentage > 0 ? 'text-green-700' : perf.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{perf.improvementPercentage !== undefined && perf.improvementPercentage !== null ? (perf.improvementPercentage > 0 ? '+' : '') + perf.improvementPercentage : 0}%</td>
                       <td className="px-3 py-2">{perf.linesReduced !== undefined && perf.linesReduced !== null ? perf.linesReduced : 0}</td>
                       <td className="px-3 py-2">{perf.loopsReduced !== undefined && perf.loopsReduced !== null ? perf.loopsReduced : 0}</td>
