@@ -368,7 +368,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               <h3 className="text-lg font-medium">Quantitative Performance Analysis</h3>
               {file.performanceMetrics.complexityCategory && (
                 <div className="text-center">
-                  <span className="inline-block rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-semibold mb-2">
+                  <span
+                    className={`inline-block rounded-full px-3 py-1 text-sm font-semibold mb-2
+                      ${file.performanceMetrics.complexityCategory === 'Simple' ? 'bg-green-100 text-green-700' : ''}
+                      ${file.performanceMetrics.complexityCategory === 'Moderate' ? 'bg-orange-100 text-orange-700' : ''}
+                      ${file.performanceMetrics.complexityCategory === 'Complex' ? 'bg-red-100 text-red-700' : ''}
+                    `}
+                  >
                     Complexity Category: {file.performanceMetrics.complexityCategory}
                   </span>
                 </div>
