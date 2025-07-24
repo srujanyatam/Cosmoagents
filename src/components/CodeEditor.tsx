@@ -88,8 +88,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     setRewriteLoading(true);
     try {
       const selectedCode = code.slice(selection.from, selection.to);
-      // Call your backend AI API here
-      const response = await fetch('/api/ai-rewrite', {
+      // Call your Netlify function AI API here
+      const response = await fetch('/.netlify/functions/ai-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: selectedCode, prompt: rewritePrompt, language }),
@@ -103,7 +103,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         setSelection(null);
         toast({ title: 'AI Rewrite Complete', description: 'The selected code was rewritten by AI.' });
       } else {
-        toast({ title: 'Rewrite Failed', description: 'AI did not return a rewrite.' });
+        toast({ title: 'Rewrite Failed', description: data.error || 'AI did not return a rewrite.' });
       }
     } catch (err) {
       toast({ title: 'Rewrite Failed', description: 'An error occurred during AI rewrite.' });

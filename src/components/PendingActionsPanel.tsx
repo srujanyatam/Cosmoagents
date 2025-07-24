@@ -275,12 +275,12 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     setAnalyzerResult(null);
     setAnalyzerError(null);
     try {
-      const response = await fetch('/api/ai-rewrite', {
+      const response = await fetch('/.netlify/functions/ai-rewrite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: file.converted_code,
-          prompt: 'Explain what this code does, the logic behind it, and provide a plain-English summary for a non-technical user.',
+          prompt: 'Please explain the following code in plain English for a non-technical user. Include the logic and purpose:',
           language: 'plsql',
         }),
       });
@@ -290,7 +290,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
       } else if (data.explanation) {
         setAnalyzerResult(data.explanation);
       } else {
-        setAnalyzerError('AI did not return an explanation.');
+        setAnalyzerError(data.error || 'AI did not return an explanation.');
       }
     } catch (err) {
       setAnalyzerError('An error occurred during AI analysis.');
