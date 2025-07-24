@@ -502,13 +502,27 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                         {`${perf.originalComplexity !== undefined && perf.originalComplexity !== null ? perf.originalComplexity : 0} → ${perf.convertedComplexity !== undefined && perf.convertedComplexity !== null ? perf.convertedComplexity : 0}`}
                       </td>
                       <td className={`px-3 py-2 ${perf.improvementPercentage > 0 ? 'text-green-700' : perf.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{perf.improvementPercentage !== undefined && perf.improvementPercentage !== null ? (perf.improvementPercentage > 0 ? '+' : '') + perf.improvementPercentage : 0}%</td>
-                      <td className="px-3 py-2">{perf.linesReduced !== undefined && perf.linesReduced !== null ? perf.linesReduced : 0}</td>
-                      <td className="px-3 py-2">{perf.loopsReduced !== undefined && perf.loopsReduced !== null ? perf.loopsReduced : 0}</td>
+                      <td className={(() => {
+                        const v = perf.linesReduced !== undefined && perf.linesReduced !== null ? perf.linesReduced : 0;
+                        if (v > 0) return 'px-3 py-2 text-green-700 font-semibold';
+                        if (v < 0) return 'px-3 py-2 text-red-700 font-semibold';
+                        return 'px-3 py-2 text-gray-700 font-semibold';
+                      })()}>{perf.linesReduced !== undefined && perf.linesReduced !== null ? perf.linesReduced : 0}</td>
+                      <td className={(() => {
+                        const v = perf.loopsReduced !== undefined && perf.loopsReduced !== null ? perf.loopsReduced : 0;
+                        if (v > 0) return 'px-3 py-2 text-green-700 font-semibold';
+                        if (v < 0) return 'px-3 py-2 text-red-700 font-semibold';
+                        return 'px-3 py-2 text-gray-700 font-semibold';
+                      })()}>{perf.loopsReduced !== undefined && perf.loopsReduced !== null ? perf.loopsReduced : 0}</td>
                       <td className="px-3 py-2">{perf.conversionTimeMs !== undefined && perf.conversionTimeMs !== null ? perf.conversionTimeMs : 0}</td>
-                      <td className="px-3 py-2">{scalabilityScore}/10</td>
-                      <td className="px-3 py-2">{modernFeatures}</td>
-                      <td className="px-3 py-2">{bulkOps}</td>
-                      <td className="px-3 py-2">{bulkCollect}</td>
+                      <td className={(() => {
+                        if (scalabilityScore >= 8) return 'px-3 py-2 text-green-700 font-semibold';
+                        if (scalabilityScore >= 5) return 'px-3 py-2 text-orange-600 font-semibold';
+                        return 'px-3 py-2 text-red-700 font-semibold';
+                      })()}>{scalabilityScore}/10</td>
+                      <td className={modernFeatures > 0 ? 'px-3 py-2 text-blue-700 font-semibold' : 'px-3 py-2 text-gray-700 font-semibold'}>{modernFeatures}</td>
+                      <td className={bulkOps === '✔️' ? 'px-3 py-2 text-green-700 font-semibold' : 'px-3 py-2 text-red-700 font-semibold'}>{bulkOps}</td>
+                      <td className={bulkCollect === '✔️' ? 'px-3 py-2 text-green-700 font-semibold' : 'px-3 py-2 text-red-700 font-semibold'}>{bulkCollect}</td>
                     </tr>
                   );
                 })}
