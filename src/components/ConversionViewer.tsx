@@ -13,6 +13,7 @@ import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
 import { analyzeCodeComplexity, generatePerformanceMetrics } from '@/utils/conversionUtils';
+import CodeEditor from './CodeEditor';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -118,36 +119,37 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const finalCode = file.convertedContent || '';
   const humanEditPercent = getEditPercentage(aiCode, finalCode);
 
-  const handleSaveEdit = async () => {
+  // Change handleSaveEdit to accept newCode as an argument
+  const handleSaveEdit = async (newCode?: string) => {
     const originalCode = file.content; // or file.original_code if available
-    const newCode = editedContent;
+    const codeToSave = newCode !== undefined ? newCode : editedContent;
 
     // 1. Recalculate metrics
     const originalComplexity = analyzeCodeComplexity(originalCode);
-    const convertedComplexity = analyzeCodeComplexity(newCode);
+    const convertedComplexity = analyzeCodeComplexity(codeToSave);
     const conversionTime = 0; // Optionally, you can track edit time
     const newMetrics = generatePerformanceMetrics(
       originalComplexity,
       convertedComplexity,
       conversionTime,
       originalCode,
-      newCode
+      codeToSave
     );
 
     // 2. Update in Supabase
     await supabase
       .from('unreviewed_files')
       .update({
-        converted_code: newCode,
+        converted_code: codeToSave,
         performance_metrics: newMetrics,
       })
       .eq('id', file.id);
 
     // 3. Update in local state/UI
-    onManualEdit(newCode, newMetrics); // pass newMetrics to update state/UI
+    onManualEdit(codeToSave); // pass only the new code to update state/UI
     setIsEditing(false);
     if (onSaveEdit) {
-      await onSaveEdit(newCode);
+      await onSaveEdit(codeToSave);
       return;
     }
   };
@@ -195,16 +197,22 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       </pre>
                     ) : (
                       <>
-                        <Textarea
-                          value={editedContent}
-                          onChange={e => setEditedContent(e.target.value)}
-                          className="min-h-64 font-mono text-sm mb-2"
+                        <CodeEditor
+                          initialCode={editedContent}
+                          readOnly={false}
+                          onSave={(newCode) => {
+                            setEditedContent(newCode);
+                            handleSaveEdit(newCode);
+                          }}
+                          height="300px"
+                          language="plsql"
+                          showLineNumbers={true}
                         />
                         <div className="flex items-center gap-2 mt-2">
                           <Button
                             size="sm"
                             variant="default"
-                            onClick={handleSaveEdit}
+                            onClick={() => handleSaveEdit()}
                           >
                             <Save className="h-4 w-4 mr-1" />
                             Save
