@@ -472,7 +472,7 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               <div className="w-1/12 text-center">Time</div>
               <div className="w-1/12 text-center">Status</div>
               <div className="w-1/12 text-center">Scalability</div>
-              <div className="w-1/12 text-center">Maintainability</div>
+              <div className="w-1/12 text-center">Human Edits</div>
               <div className="w-1/12 text-center">Bulk Ops</div>
               <div className="w-1/12 text-center">Bulk Collect</div>
               <div className="w-1/12 text-center">Modern Features</div>
@@ -488,8 +488,8 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               const linesLabel = lineDiff < 0 ? 'Lines Reduced' : lineDiff > 0 ? 'Lines Increased' : 'No Change';
               const scalability = result.performance?.scalabilityMetrics?.scalabilityScore ?? '-';
               const maintainability = result.performance?.scalabilityMetrics?.maintainabilityScore ?? '-';
-              const bulkOps = result.performance?.scalabilityMetrics?.bulkOperationsUsed ? '✔️' : '';
-              const bulkCollect = result.performance?.scalabilityMetrics?.bulkCollectUsed ? '✔️' : '';
+              const bulkOps = result.performance?.scalabilityMetrics?.bulkOperationsUsed ? '✔️' : '❌';
+              const bulkCollect = result.performance?.scalabilityMetrics?.bulkCollectUsed ? '✔️' : '❌';
               const modernFeatures = result.performance?.scalabilityMetrics?.modernOracleFeaturesCount ?? 0;
               return (
                 <div
@@ -523,7 +523,7 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
                     <span className="font-medium text-blue-600">{safeScore10(scalability)}</span>
                   </div>
                   <div className="w-1/12 text-center">
-                    <span className="font-medium text-purple-600">{/* maintainability removed */}</span>
+                    <span className="font-medium text-purple-600">{editPercent}%</span>
                   </div>
                   <div className="w-1/12 text-center">
                     <span className="font-medium text-blue-700">{bulkOps}</span>
