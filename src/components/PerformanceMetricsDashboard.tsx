@@ -414,40 +414,42 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-blue-500" />
-            Scalability & Maintainability Metrics
+            Scalability Metrics
           </CardTitle>
           <CardDescription>
-            Aggregated scalability and maintainability metrics across all conversions
+            Aggregated scalability metrics across all conversions
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Scalability Score */}
+            <Card className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-600">
                 {safeScore10(results.reduce((sum, r) => sum + (r.performance?.scalabilityMetrics?.scalabilityScore || 0), 0) / (totalFiles || 1))}/10
               </p>
               <p className="text-sm text-muted-foreground">Scalability Score</p>
-            </div>
-            <div className="text-center">
+            </Card>
+            {/* Modern Features Used */}
+            <Card className="p-4 text-center">
               <p className="text-2xl font-bold text-green-600">
                 {results.reduce((sum, r) => sum + (r.performance?.scalabilityMetrics?.modernOracleFeaturesCount || 0), 0)}
               </p>
               <p className="text-sm text-muted-foreground">Modern Features Used</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-            <div className="text-center">
+            </Card>
+            {/* Bulk Operations Used */}
+            <Card className="p-4 text-center">
               <p className="text-lg font-bold text-blue-700">
                 {results.filter(r => r.performance?.scalabilityMetrics?.bulkOperationsUsed).length} / {totalFiles}
               </p>
               <p className="text-sm text-muted-foreground">Bulk Operations Used</p>
-            </div>
-            <div className="text-center">
+            </Card>
+            {/* Bulk Collect Used */}
+            <Card className="p-4 text-center">
               <p className="text-lg font-bold text-blue-700">
                 {results.filter(r => r.performance?.scalabilityMetrics?.bulkCollectUsed).length} / {totalFiles}
               </p>
               <p className="text-sm text-muted-foreground">Bulk Collect Used</p>
-            </div>
+            </Card>
           </div>
         </CardContent>
       </Card>
