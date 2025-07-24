@@ -121,6 +121,23 @@ const analyzeCodeComplexity = (code: string) => {
     };
 };
 
+// Halstead Volume calculator for SQL code
+function calculateHalsteadVolume(code: string) {
+  // Tokenize code into operators and operands (very basic for SQL)
+  const operators = code.match(/(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|AND|OR|NOT|IN|ON|JOIN|LEFT|RIGHT|INNER|OUTER|=|<|>|\+|\-|\*|\/|,|;)/gi) || [];
+  const operands = code.match(/\b[a-zA-Z_][a-zA-Z0-9_]*\b/g) || [];
+  const uniqueOperators = new Set(operators);
+  const uniqueOperands = new Set(operands);
+  const n1 = uniqueOperators.size;
+  const n2 = uniqueOperands.size;
+  const N1 = operators.length;
+  const N2 = operands.length;
+  const vocabulary = n1 + n2;
+  const length = N1 + N2;
+  // Halstead Volume = length * log2(vocabulary)
+  return vocabulary > 0 ? length * Math.log2(vocabulary) : 0;
+}
+
 // --- Local Cache Logic ---
 function getConversionCacheKey(code: string, model: string) {
   // Simple hash for cache key
@@ -310,6 +327,15 @@ const generateBalancedPerformanceMetrics = (
     if (complexityAssessment === 'complex' && optimizationLevel === 'none') {
         recommendations.push('⚡ Complex code could benefit from optimization patterns');
     }
+    // Standard Maintainability Index
+    const cyclomatic = convertedComplexity.complexityScore || 1;
+    const loc = convertedComplexity.totalLines || 1;
+    const halstead = calculateHalsteadVolume(safeConvertedCode);
+    let maintainabilityIndex = 0;
+    if (halstead > 0 && loc > 0) {
+      maintainabilityIndex = Math.max(0, (171 - 5.2 * Math.log(halstead) - 0.23 * cyclomatic - 16.2 * Math.log(loc)) * 100 / 171);
+      maintainabilityIndex = Math.round(maintainabilityIndex);
+    }
     return {
         originalComplexity: originalComplexity.complexityScore,
         convertedComplexity: convertedComplexity.complexityScore,
@@ -319,7 +345,7 @@ const generateBalancedPerformanceMetrics = (
         ),
         conversionTimeMs: conversionTime,
         performanceScore: Math.max(0, Math.min(100, performanceScore)),
-        maintainabilityIndex: Math.round(convertedComplexity.commentRatio * 100 * 100) / 100,
+        maintainabilityIndex,
         codeQuality: {
             totalLines: convertedComplexity.totalLines,
             codeLines: convertedComplexity.codeLines,
