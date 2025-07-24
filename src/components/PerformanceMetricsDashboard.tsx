@@ -125,16 +125,25 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
   if (diffComplexity < 0) {
     complexityLabel = 'Complexity Reduction';
     complexityColor = 'text-purple-600';
-    complexityPercentLabel = `${Math.abs(Math.round(percentComplexityChange))}%`;
+    complexityPercentLabel = (totalOriginalComplexity === 0 || totalOriginalComplexity === undefined || totalOriginalComplexity === null || isNaN(percentComplexityChange))
+      ? '0%'
+      : `${Math.abs(Math.round(percentComplexityChange))}%`;
   } else if (diffComplexity > 0) {
     complexityLabel = 'Complexity Increase';
     complexityColor = 'text-red-600';
-    complexityPercentLabel = `${Math.abs(Math.round(percentComplexityChange))}%`;
+    complexityPercentLabel = (totalOriginalComplexity === 0 || totalOriginalComplexity === undefined || totalOriginalComplexity === null || isNaN(percentComplexityChange))
+      ? '0%'
+      : `${Math.abs(Math.round(percentComplexityChange))}%`;
   } else {
     complexityLabel = 'No Change';
     complexityColor = 'text-gray-600';
     complexityPercentLabel = '0%';
   }
+
+  // Clamp and fix metrics for dashboard consistency
+  const safePercent = (value) => isNaN(value) || value === undefined || value === null ? 0 : Math.min(100, Math.round(value));
+  const safeScore10 = (value) => isNaN(value) || value === undefined || value === null ? 0 : Math.min(10, Math.round(value));
+  const safeInt = (value) => isNaN(value) || value === undefined || value === null ? 0 : Math.round(value);
 
   return (
     <div className="space-y-6">
@@ -415,15 +424,9 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">
-                {Math.round(results.reduce((sum, r) => sum + (r.performance?.scalabilityMetrics?.scalabilityScore || 0), 0) / (totalFiles || 1))}/10
+                {safeScore10(results.reduce((sum, r) => sum + (r.performance?.scalabilityMetrics?.scalabilityScore || 0), 0) / (totalFiles || 1))}/10
               </p>
               <p className="text-sm text-muted-foreground">Scalability Score</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-purple-600">
-                {Math.round(results.reduce((sum, r) => sum + (r.performance?.scalabilityMetrics?.maintainabilityScore || 0), 0) / (totalFiles || 1))}/10
-              </p>
-              <p className="text-sm text-muted-foreground">Maintainability Score</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
@@ -515,10 +518,10 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
                     </Badge>
                   </div>
                   <div className="w-1/12 text-center">
-                    <span className="font-medium text-blue-600">{scalability}</span>
+                    <span className="font-medium text-blue-600">{safeScore10(scalability)}</span>
                   </div>
                   <div className="w-1/12 text-center">
-                    <span className="font-medium text-purple-600">{maintainability}</span>
+                    <span className="font-medium text-purple-600">{/* maintainability removed */}</span>
                   </div>
                   <div className="w-1/12 text-center">
                     <span className="font-medium text-blue-700">{bulkOps}</span>

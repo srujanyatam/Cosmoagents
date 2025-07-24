@@ -434,7 +434,12 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           ? 'text-red-600'
                           : 'text-gray-600'
                     }`}>
-                      {(file.performanceMetrics.improvementPercentage === 0 || file.performanceMetrics.improvementPercentage === undefined || file.performanceMetrics.improvementPercentage === null)
+                      {(
+                        file.performanceMetrics.originalComplexity === 0 ||
+                        file.performanceMetrics.originalComplexity === undefined ||
+                        file.performanceMetrics.originalComplexity === null ||
+                        isNaN(file.performanceMetrics.improvementPercentage)
+                      )
                         ? '0%'
                         : file.performanceMetrics.improvementPercentage > 0
                           ? `+${file.performanceMetrics.improvementPercentage}%`
