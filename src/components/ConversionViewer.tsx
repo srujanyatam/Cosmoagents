@@ -400,46 +400,50 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               )}
 
               {/* Complexity Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 text-center">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Original Complexity</h4>
-                  <p className="text-2xl font-bold text-red-600">
-                    {file.performanceMetrics.originalComplexity || 0}
-                  </p>
-                  <p className="text-xs text-gray-500">Cyclomatic Complexity</p>
-                </Card>
-                
-                <Card className="p-4 text-center">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Converted Complexity</h4>
-                  <p className={`text-2xl font-bold ${
-                    file.performanceMetrics.convertedComplexity < file.performanceMetrics.originalComplexity
-                      ? 'text-green-600'
-                      : file.performanceMetrics.convertedComplexity > file.performanceMetrics.originalComplexity
-                        ? 'text-red-600'
-                        : 'text-gray-600'
-                  }`}>
-                    {file.performanceMetrics.convertedComplexity || 0}
-                  </p>
-                  <p className="text-xs text-gray-500">Cyclomatic Complexity</p>
-                </Card>
-                
-                <Card className="p-4 text-center">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Improvement</h4>
-                  <p className={`text-2xl font-bold ${
-                    file.performanceMetrics.improvementPercentage > 0
-                      ? 'text-blue-600'
-                      : file.performanceMetrics.improvementPercentage < 0
-                        ? 'text-red-600'
-                        : 'text-gray-600'
-                  }`}>
-                    {file.performanceMetrics.improvementPercentage > 0
-                      ? `+${file.performanceMetrics.improvementPercentage}`
-                      : file.performanceMetrics.improvementPercentage}
-                    %
-                  </p>
-                  <p className="text-xs text-gray-500">Performance Gain</p>
-                </Card>
-              </div>
+              <Card className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Original Complexity */}
+                  <div className="text-center">
+                    <h4 className="text-sm font-medium text-gray-600 mb-2">Original Complexity</h4>
+                    <p className="text-2xl font-bold text-red-600">
+                      {file.performanceMetrics.originalComplexity || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">Cyclomatic Complexity</p>
+                  </div>
+                  {/* Converted Complexity */}
+                  <div className="text-center">
+                    <h4 className="text-sm font-medium text-gray-600 mb-2">Converted Complexity</h4>
+                    <p className={`text-2xl font-bold ${
+                      file.performanceMetrics.convertedComplexity < file.performanceMetrics.originalComplexity
+                        ? 'text-green-600'
+                        : file.performanceMetrics.convertedComplexity > file.performanceMetrics.originalComplexity
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                    }`}>
+                      {file.performanceMetrics.convertedComplexity || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">Cyclomatic Complexity</p>
+                  </div>
+                  {/* Improvement */}
+                  <div className="text-center">
+                    <h4 className="text-sm font-medium text-gray-600 mb-2">Improvement</h4>
+                    <p className={`text-2xl font-bold ${
+                      file.performanceMetrics.improvementPercentage > 0
+                        ? 'text-blue-600'
+                        : file.performanceMetrics.improvementPercentage < 0
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                    }`}>
+                      {(file.performanceMetrics.improvementPercentage === 0 || file.performanceMetrics.improvementPercentage === undefined || file.performanceMetrics.improvementPercentage === null)
+                        ? '0%'
+                        : file.performanceMetrics.improvementPercentage > 0
+                          ? `+${file.performanceMetrics.improvementPercentage}%`
+                          : `${file.performanceMetrics.improvementPercentage}%`}
+                    </p>
+                    <p className="text-xs text-gray-500">Performance Gain</p>
+                  </div>
+                </div>
+              </Card>
 
               {/* Code Quality Metrics */}
               {file.performanceMetrics.codeQuality && (
@@ -546,31 +550,47 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               
               {/* Scalability & Maintainability Metrics */}
               {file.performanceMetrics.scalabilityMetrics && (
-                <Card className="p-6">
-                  <h4 className="text-lg font-medium mb-4">Scalability & Maintainability Metrics</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {/* Scalability Score */}
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold" style={{ color: '#6C63FF' }}>{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
                       <p className="text-sm text-gray-600">Scalability Score</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{file.performanceMetrics.scalabilityMetrics.maintainabilityScore}/10</p>
+                    </Card>
+                    {/* Maintainability Score */}
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold" style={{ color: '#A259FF' }}>{file.performanceMetrics.scalabilityMetrics.maintainabilityScore}/10</p>
                       <p className="text-sm text-gray-600">Maintainability Score</p>
-                    </div>
-                    <div className="text-center">
+                    </Card>
+                    {/* Modern Features Used */}
+                    <Card className="p-4 text-center">
                       <p className="text-2xl font-bold text-green-600">{file.performanceMetrics.scalabilityMetrics.modernOracleFeaturesCount}</p>
                       <p className="text-sm text-gray-600">Modern Features Used</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-700">{file.performanceMetrics.scalabilityMetrics.bulkOperationsUsed ? '✔️' : '❌'}</p>
+                    </Card>
+                    {/* Bulk Operations Used */}
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold">
+                        {file.performanceMetrics.scalabilityMetrics.bulkOperationsUsed ? (
+                          <span style={{ color: 'green' }}>✔️</span>
+                        ) : (
+                          <span style={{ color: 'red' }}>❌</span>
+                        )}
+                      </p>
                       <p className="text-sm text-gray-600">Bulk Operations Used</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-700">{file.performanceMetrics.scalabilityMetrics.bulkCollectUsed ? '✔️' : '❌'}</p>
+                    </Card>
+                    {/* Bulk Collect Used */}
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold">
+                        {file.performanceMetrics.scalabilityMetrics.bulkCollectUsed ? (
+                          <span style={{ color: 'green' }}>✔️</span>
+                        ) : (
+                          <span style={{ color: 'red' }}>❌</span>
+                        )}
+                      </p>
                       <p className="text-sm text-gray-600">Bulk Collect Used</p>
-                    </div>
+                    </Card>
                   </div>
-                </Card>
+                </>
               )}
               
               {/* Recommendations */}
