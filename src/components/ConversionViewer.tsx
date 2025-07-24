@@ -59,6 +59,7 @@ interface PerformanceMetrics {
     bulkOperationsUsed: boolean;
     bulkCollectUsed: boolean;
   };
+  complexityCategory?: string; // Added this field
 }
 
 interface FileItem {
@@ -365,6 +366,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
           {file.performanceMetrics ? (
             <div className="space-y-6">
               <h3 className="text-lg font-medium">Quantitative Performance Analysis</h3>
+              {file.performanceMetrics.complexityCategory && (
+                <div className="text-center">
+                  <span className="inline-block rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-sm font-semibold mb-2">
+                    Complexity Category: {file.performanceMetrics.complexityCategory}
+                  </span>
+                </div>
+              )}
               
               {/* Performance Score */}
               <Card className="p-6">

@@ -327,25 +327,39 @@ const generateBalancedPerformanceMetrics = (
     if (complexityAssessment === 'complex' && optimizationLevel === 'none') {
         recommendations.push('⚡ Complex code could benefit from optimization patterns');
     }
-    // Standard Maintainability Index
-    const cyclomatic = convertedComplexity.complexityScore || 1;
-    const loc = convertedComplexity.totalLines || 1;
-    const halstead = calculateHalsteadVolume(safeConvertedCode);
+    // --- Category-based metrics ---
+    const complexityScore = convertedComplexity.complexityScore || 0;
+    let complexityCategory = 'Simple';
+    if (complexityScore >= 30) complexityCategory = 'Complex';
+    else if (complexityScore >= 10) complexityCategory = 'Moderate';
+
     let maintainabilityIndex = 0;
-    if (halstead > 0 && loc > 0) {
-      maintainabilityIndex = Math.max(0, (171 - 5.2 * Math.log(halstead) - 0.23 * cyclomatic - 16.2 * Math.log(loc)) * 100 / 171);
-      maintainabilityIndex = Math.round(maintainabilityIndex);
+    let improvementPercentage = 0;
+    if (complexityCategory === 'Simple') {
+        maintainabilityIndex = 80;
+        improvementPercentage = 0;
+    } else {
+        // Standard Maintainability Index
+        const cyclomatic = convertedComplexity.complexityScore || 1;
+        const loc = convertedComplexity.totalLines || 1;
+        const halstead = calculateHalsteadVolume(safeConvertedCode);
+        if (halstead > 0 && loc > 0) {
+            maintainabilityIndex = Math.max(0, (171 - 5.2 * Math.log(halstead) - 0.23 * cyclomatic - 16.2 * Math.log(loc)) * 100 / 171);
+            maintainabilityIndex = Math.round(maintainabilityIndex);
+        }
+        improvementPercentage = Math.round(
+            ((originalComplexity.complexityScore - convertedComplexity.complexityScore) /
+            (originalComplexity.complexityScore || 1)) * 100
+        );
     }
     return {
         originalComplexity: originalComplexity.complexityScore,
         convertedComplexity: convertedComplexity.complexityScore,
-        improvementPercentage: Math.round(
-            ((originalComplexity.complexityScore - convertedComplexity.complexityScore) / 
-            originalComplexity.complexityScore) * 100
-        ),
+        improvementPercentage,
         conversionTimeMs: conversionTime,
         performanceScore: Math.max(0, Math.min(100, performanceScore)),
         maintainabilityIndex,
+        complexityCategory,
         codeQuality: {
             totalLines: convertedComplexity.totalLines,
             codeLines: convertedComplexity.codeLines,
