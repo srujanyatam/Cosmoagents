@@ -459,7 +459,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       <p className="text-sm text-gray-600">Code Lines</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-gray-800">{file.performanceMetrics.codeQuality.commentRatio}%</p>
+                      <p className="text-2xl font-bold text-gray-800">{parseInt(file.performanceMetrics.codeQuality.commentRatio.toString(), 10)}%</p>
                       <p className="text-sm text-gray-600">Comment Ratio</p>
                     </div>
                     <div className="text-center">

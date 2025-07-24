@@ -99,7 +99,7 @@ const analyzeCodeComplexity = (code: string) => {
     const lines = code.split('\n');
     const codeLines = lines.filter(line => line.trim() && !line.trim().startsWith('--')).length;
     const commentLines = lines.filter(line => line.trim().startsWith('--')).length;
-    const commentRatio = lines.length > 0 ? Math.round((commentLines / lines.length) * 100) / 100 : 0;
+    const commentRatio = lines.length > 0 ? Math.round((commentLines / lines.length) * 100) : 0;
     // Simple complexity scoring based on code patterns
     const complexityFactors = {
         loops: (code.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length,
