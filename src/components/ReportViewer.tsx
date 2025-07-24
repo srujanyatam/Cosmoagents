@@ -12,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { diffChars } from 'diff';
+import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/utils/componentUtilswithlangchain';
 
 interface ReportViewerProps {
   report: ConversionReport;
@@ -235,14 +237,42 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
     }
   };
   
+  // Ensure metrics are recalculated for consistency with dev review tab
+  const getConsistentPerformance = (result: any) => {
+    if (result.performance && result.performance.performanceScore !== undefined) {
+      return result.performance;
+    }
+    // Recalculate if missing or incomplete
+    const originalCode = result.originalFile.content || '';
+    const convertedCode = result.convertedCode || '';
+    const originalComplexity = analyzeCodeComplexity(originalCode);
+    const convertedComplexity = analyzeCodeComplexity(convertedCode);
+    // Use defaults for assessment/optimization/expansion if missing
+    const complexityAssessment = result.performance?.complexityAssessment || 'moderate';
+    const optimizationLevel = result.performance?.optimizationLevel || 'basic';
+    const expansionRatio = (convertedComplexity.totalLines || 1) / (originalComplexity.totalLines || 1);
+    return generateBalancedPerformanceMetrics(
+      originalComplexity,
+      convertedComplexity,
+      result.performance?.conversionTimeMs || 0,
+      complexityAssessment,
+      optimizationLevel,
+      expansionRatio,
+      convertedCode
+    );
+  };
+
   // Prepare data for charts
-  const chartData = report.results.filter((result: any) => result.performance).map((result: any) => ({
-    name: result.originalFile.name,
-    score: result.performance.performanceScore,
-    maintainability: result.performance.maintainabilityIndex,
-    time: result.performance.conversionTimeMs,
-    improvement: result.performance.improvementPercentage,
-  }));
+  const chartData = report.results.map((result: any) => {
+    const perf = getConsistentPerformance(result);
+    return {
+      name: result.originalFile.name,
+      score: perf.performanceScore !== undefined && perf.performanceScore !== null ? perf.performanceScore : 0,
+      maintainability: perf.maintainabilityIndex !== undefined && perf.maintainabilityIndex !== null ? perf.maintainabilityIndex : 0,
+      time: perf.conversionTimeMs !== undefined && perf.conversionTimeMs !== null ? perf.conversionTimeMs : 0,
+      improvement: perf.improvementPercentage !== undefined && perf.improvementPercentage !== null ? perf.improvementPercentage : 0,
+    };
+  });
   const statusCounts = [
     { name: 'Success', value: report.successCount, color: '#22c55e' }, // Green
     { name: 'Warning', value: report.warningCount, color: '#f97316' }, // Orange
@@ -431,25 +461,51 @@ const ReportViewer: React.FC<ReportViewerProps> = ({ report, onBack }) => {
                   <th className="px-3 py-2 text-left font-semibold">🟩 Lines Reduced</th>
                   <th className="px-3 py-2 text-left font-semibold">🔵 Loops Reduced</th>
                   <th className="px-3 py-2 text-left font-semibold">⏱️ Time (ms)</th>
+                  <th className="px-3 py-2 text-left font-semibold">⚡ Scalability</th>
+                  <th className="px-3 py-2 text-left font-semibold">✨ Modern Features</th>
+                  <th className="px-3 py-2 text-left font-semibold">📦 Bulk Ops</th>
+                  <th className="px-3 py-2 text-left font-semibold">📦 Bulk Collect</th>
                 </tr>
               </thead>
               <tbody>
-                {report.results.filter((result: any) => result.performance).map((result: any) => (
-                  <tr key={result.id + '-perf-row'}>
-                    <td className="px-3 py-2 font-medium flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-blue-400" />
-                      {result.originalFile.name}
-                    </td>
-                    <td className="px-3 py-2">{result.performance.performanceScore}/100</td>
-                    <td className="px-3 py-2">{result.performance.maintainabilityIndex}/100</td>
-                    <td className="px-3 py-2">{result.performance.originalComplexity}</td>
-                    <td className="px-3 py-2">{result.performance.convertedComplexity}</td>
-                    <td className={`px-3 py-2 ${result.performance.improvementPercentage > 0 ? 'text-green-700' : result.performance.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{result.performance.improvementPercentage > 0 ? '+' : ''}{result.performance.improvementPercentage}%</td>
-                    <td className="px-3 py-2">{result.performance.linesReduced}</td>
-                    <td className="px-3 py-2">{result.performance.loopsReduced}</td>
-                    <td className="px-3 py-2">{result.performance.conversionTimeMs}</td>
-                  </tr>
-                ))}
+                {report.results.map((result: any) => {
+                  const perf = getConsistentPerformance(result);
+                  // Clamp maintainability index
+                  const maintainability =
+                    perf.maintainabilityIndex === undefined || perf.maintainabilityIndex === null || isNaN(perf.maintainabilityIndex)
+                      ? 0
+                      : Math.max(0, Math.min(100, Math.round(perf.maintainabilityIndex)));
+                  // Extract scalability metrics
+                  const scalability = perf.scalabilityMetrics || {};
+                  const scalabilityScore = scalability.scalabilityScore !== undefined && scalability.scalabilityScore !== null && !isNaN(scalability.scalabilityScore)
+                    ? Math.max(0, Math.min(10, Math.round(scalability.scalabilityScore)))
+                    : 0;
+                  const modernFeatures = scalability.modernFeaturesCount !== undefined && scalability.modernFeaturesCount !== null && !isNaN(scalability.modernFeaturesCount)
+                    ? Math.max(0, Math.round(scalability.modernFeaturesCount))
+                    : 0;
+                  const bulkOps = scalability.bulkOpsUsed ? '✔️' : '❌';
+                  const bulkCollect = scalability.bulkCollectUsed ? '✔️' : '❌';
+                  return (
+                    <tr key={result.id + '-perf-row'}>
+                      <td className="px-3 py-2 font-medium flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-blue-400" />
+                        {result.originalFile.name}
+                      </td>
+                      <td className="px-3 py-2">{perf.performanceScore !== undefined && perf.performanceScore !== null ? perf.performanceScore : 0}/100</td>
+                      <td className="px-3 py-2">{maintainability}/100</td>
+                      <td className="px-3 py-2">{perf.originalComplexity !== undefined && perf.originalComplexity !== null ? perf.originalComplexity : 0}</td>
+                      <td className="px-3 py-2">{perf.convertedComplexity !== undefined && perf.convertedComplexity !== null ? perf.convertedComplexity : 0}</td>
+                      <td className={`px-3 py-2 ${perf.improvementPercentage > 0 ? 'text-green-700' : perf.improvementPercentage < 0 ? 'text-red-700' : 'text-gray-700'}`}>{perf.improvementPercentage !== undefined && perf.improvementPercentage !== null ? (perf.improvementPercentage > 0 ? '+' : '') + perf.improvementPercentage : 0}%</td>
+                      <td className="px-3 py-2">{perf.linesReduced !== undefined && perf.linesReduced !== null ? perf.linesReduced : 0}</td>
+                      <td className="px-3 py-2">{perf.loopsReduced !== undefined && perf.loopsReduced !== null ? perf.loopsReduced : 0}</td>
+                      <td className="px-3 py-2">{perf.conversionTimeMs !== undefined && perf.conversionTimeMs !== null ? perf.conversionTimeMs : 0}</td>
+                      <td className="px-3 py-2">{scalabilityScore}/10</td>
+                      <td className="px-3 py-2">{modernFeatures}</td>
+                      <td className="px-3 py-2">{bulkOps}</td>
+                      <td className="px-3 py-2">{bulkCollect}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
