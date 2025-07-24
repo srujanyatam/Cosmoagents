@@ -259,7 +259,8 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
         aiOutput.complexity_assessment,
         aiOutput.optimization_applied,
         expansionRatio,
-        aiOutput.converted_code
+        aiOutput.converted_code,
+        file.content
     );
     const result: ConversionResult = {
         id: crypto.randomUUID(),
@@ -304,7 +305,8 @@ const generateBalancedPerformanceMetrics = (
     complexityAssessment: string,
     optimizationLevel: string,
     expansionRatio: number,
-    convertedCode: string
+    convertedCode: string,
+    originalCode: string // <-- add this parameter
 ) => {
     let performanceScore = 70; // Base score
     const safeConvertedCode = typeof convertedCode === 'string' ? convertedCode : '';
@@ -373,7 +375,12 @@ const generateBalancedPerformanceMetrics = (
             modernOracleFeaturesCount: countModernFeatures(safeConvertedCode),
             scalabilityScore: calculateScalabilityScore(safeConvertedCode),
             maintainabilityScore: Math.round(convertedComplexity.commentRatio * 10 * 100) / 100
-        }
+        },
+        // Add these fields for dashboard and viewer
+        originalLines: originalComplexity.totalLines,
+        convertedLines: convertedComplexity.totalLines,
+        originalLoops: originalComplexity.complexityScore ? (originalCode.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length : 0,
+        convertedLoops: convertedComplexity.complexityScore ? (convertedCode.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length : 0
     };
 };
 
