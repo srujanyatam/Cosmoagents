@@ -463,19 +463,19 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-lg overflow-hidden w-full">
             {/* Header Row */}
-            <div className="flex items-center font-semibold bg-slate-100 border-b py-2">
-              <div className="w-1/6 px-2">File Name</div>
-              <div className="w-1/12 text-center">Lines</div>
-              <div className="w-1/12 text-center">Loops</div>
-              <div className="w-1/12 text-center">Time</div>
-              <div className="w-1/12 text-center">Status</div>
-              <div className="w-1/12 text-center">Scalability</div>
-              <div className="w-1/12 text-center">Human Edits</div>
-              <div className="w-1/12 text-center">Bulk Ops</div>
-              <div className="w-1/12 text-center">Bulk Collect</div>
-              <div className="w-1/12 text-center">Modern Features</div>
+            <div className="flex items-center font-semibold bg-slate-100 border-b py-2 w-full">
+              <div className="flex-[2] px-2">File Name</div>
+              <div className="flex-1 text-center">Lines</div>
+              <div className="flex-1 text-center">Loops</div>
+              <div className="flex-1 text-center">Time</div>
+              <div className="flex-1 text-center">Status</div>
+              <div className="flex-1 text-center">Scalability</div>
+              <div className="flex-1 text-center">Human Edits</div>
+              <div className="flex-1 text-center">Bulk Ops</div>
+              <div className="flex-1 text-center">Bulk Collect</div>
+              <div className="flex-1 text-center">Modern Features</div>
             </div>
             {results.map((result, idx) => {
               const aiCode = result.aiGeneratedCode || result.convertedCode || '';
@@ -494,44 +494,44 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               return (
                 <div
                   key={result.id}
-                  className={`flex items-center py-1 border-b last:border-b-0 ${idx % 2 === 1 ? 'bg-slate-50' : ''}`}
+                  className={`flex items-center py-1 border-b ${idx === results.length - 1 ? '' : 'last:border-b-0'} ${idx % 2 === 1 ? 'bg-slate-50' : ''} w-full`}
                 >
-                  <div className="w-1/6 px-2 flex items-center gap-2 truncate">
+                  <div className="flex-[2] px-2 flex items-center gap-2 truncate">
                     {getStatusIcon(result.status)}
                     <span className="font-medium truncate">{result.originalFile.name}</span>
                     <span className="text-xs text-muted-foreground ml-2">{result.originalFile.type}</span>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className={`font-medium ${linesColor}`}>{Math.abs(lineDiff)}</span>
                     <div className="text-xs text-muted-foreground">{linesLabel}</div>
                     <div className="text-xs text-gray-400">{originalLines} → {convertedLines}</div>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-blue-600">{result.performance?.loopsReduced || 0}</span>
                     <div className="text-xs text-muted-foreground">Loops</div>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-orange-600">{result.performance?.conversionTimeMs || 0}ms</span>
                     <div className="text-xs text-muted-foreground">Time</div>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <Badge variant="outline" className={getStatusColor(result.status)}>
                       {result.status}
                     </Badge>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-blue-600">{safeScore10(scalability)}</span>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-purple-600">{editPercent}%</span>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-blue-700">{bulkOps}</span>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-blue-700">{bulkCollect}</span>
                   </div>
-                  <div className="w-1/12 text-center">
+                  <div className="flex-1 text-center">
                     <span className="font-medium text-green-700">{modernFeatures}</span>
                   </div>
                 </div>
