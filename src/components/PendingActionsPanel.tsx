@@ -625,7 +625,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 <ConversionViewer
                   key={selectedFile.id} /* Add key to force re-render */
                   file={mapToFileItem(selectedFile)}
-                  onManualEdit={(newContent, newMetrics) => handleSaveEdit(selectedFile, newContent, newMetrics)}
+                  onManualEdit={(newContent) => handleSaveEdit(selectedFile, newContent)}
                   onDismissIssue={() => {}}
                   onSaveEdit={(newContent) => handleSaveEdit(selectedFile, newContent)}
                   hideEdit={selectedFile.status === 'reviewed'}

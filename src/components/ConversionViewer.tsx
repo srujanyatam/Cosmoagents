@@ -50,6 +50,15 @@ interface PerformanceMetrics {
   convertedLoops?: number;
   linesReduced?: number;
   loopsReduced?: number;
+  complexityAssessment?: string;
+  optimizationLevel?: string;
+  scalabilityMetrics?: {
+    scalabilityScore: number;
+    maintainabilityScore: number;
+    modernOracleFeaturesCount: number;
+    bulkOperationsUsed: boolean;
+    bulkCollectUsed: boolean;
+  };
 }
 
 interface FileItem {
@@ -126,11 +135,16 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     const originalComplexity = analyzeCodeComplexity(originalCode);
     const convertedComplexity = analyzeCodeComplexity(newCode);
     const conversionTime = 0; // Optionally, you can track edit time
+    // Use the correct arguments for generateBalancedPerformanceMetrics
     const newMetrics = generateBalancedPerformanceMetrics(
       originalComplexity,
       convertedComplexity,
       conversionTime,
-      originalCode,
+      // The next three arguments are required: complexityAssessment, optimizationLevel, expansionRatio
+      // For manual edits, we can estimate or reuse previous values if available, or use defaults
+      file.performanceMetrics?.complexityAssessment || 'moderate',
+      file.performanceMetrics?.optimizationLevel || 'basic',
+      (convertedComplexity.totalLines || 1) / (originalComplexity.totalLines || 1),
       newCode
     );
 
@@ -144,7 +158,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
       .eq('id', file.id);
 
     // 3. Update in local state/UI
-    onManualEdit(newCode, newMetrics); // pass newMetrics to update state/UI
+    onManualEdit(newCode); // pass only newCode as expected
     setIsEditing(false);
     if (onSaveEdit) {
       await onSaveEdit(newCode);
@@ -526,6 +540,37 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 </p>
                 <p className="text-xs text-gray-500">Processing Time</p>
               </Card>
+
+              {/* Scalability & Maintainability Metrics */}
+              {file.performanceMetrics.scalabilityMetrics && (
+                <Card className="p-6">
+                  <h4 className="text-lg font-medium mb-4">Scalability & Maintainability Metrics</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-blue-600">{file.performanceMetrics.scalabilityMetrics.scalabilityScore}/10</p>
+                      <p className="text-sm text-gray-600">Scalability Score</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-purple-600">{file.performanceMetrics.scalabilityMetrics.maintainabilityScore}/10</p>
+                      <p className="text-sm text-gray-600">Maintainability Score</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">{file.performanceMetrics.scalabilityMetrics.modernOracleFeaturesCount}</p>
+                      <p className="text-sm text-gray-600">Modern Features Used</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-blue-700">{file.performanceMetrics.scalabilityMetrics.bulkOperationsUsed ? '✔️' : '❌'}</p>
+                      <p className="text-sm text-gray-600">Bulk Operations Used</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-bold text-blue-700">{file.performanceMetrics.scalabilityMetrics.bulkCollectUsed ? '✔️' : '❌'}</p>
+                      <p className="text-sm text-gray-600">Bulk Collect Used</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
               
               {/* Recommendations */}
               {file.performanceMetrics.recommendations && file.performanceMetrics.recommendations.length > 0 && (
