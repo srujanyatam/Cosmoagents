@@ -8,6 +8,7 @@ import { sql } from '@codemirror/lang-sql';
 import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CodeEditorProps {
   initialCode: string;
@@ -176,7 +177,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* AI Rewrite Prompt Modal */}
         {showRewritePrompt && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md max-h-[80vh] flex flex-col">
               <h3 className="text-lg font-semibold mb-2">Rewrite Selected Code with AI</h3>
               <textarea
                 className="w-full border rounded p-2 mb-4"
@@ -186,6 +187,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 onChange={e => setRewritePrompt(e.target.value)}
                 disabled={rewriteLoading}
               />
+              <ScrollArea className="flex-1 min-h-[60px] max-h-[40vh] mb-2">
+                {/* If you want to show the AI response here, add it as needed */}
+              </ScrollArea>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={() => setShowRewritePrompt(false)} disabled={rewriteLoading}>
                   Cancel

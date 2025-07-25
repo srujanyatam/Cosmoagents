@@ -609,15 +609,17 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
             {/* AI Analyzer Dialog */}
             {showAnalyzerDialog && (
               <Dialog open={showAnalyzerDialog} onOpenChange={setShowAnalyzerDialog}>
-                <DialogContent>
+                <DialogContent className="max-h-[80vh] w-full max-w-2xl flex flex-col">
                   <DialogHeader>
                     <DialogTitle>AI Code Explanation</DialogTitle>
                   </DialogHeader>
-                  <div className="py-2 min-h-[100px]">
-                    {analyzerLoading && <div>Analyzing code, please wait...</div>}
-                    {analyzerError && <div className="text-red-600">{analyzerError}</div>}
-                    {analyzerResult && <div className="whitespace-pre-wrap text-gray-800">{analyzerResult}</div>}
-                  </div>
+                  <ScrollArea className="flex-1 min-h-[100px] max-h-[60vh] pr-2">
+                    <div className="py-2">
+                      {analyzerLoading && <div>Analyzing code, please wait...</div>}
+                      {analyzerError && <div className="text-red-600">{analyzerError}</div>}
+                      {analyzerResult && <div className="whitespace-pre-wrap text-gray-800">{analyzerResult}</div>}
+                    </div>
+                  </ScrollArea>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setShowAnalyzerDialog(false)}>Close</Button>
                   </DialogFooter>
