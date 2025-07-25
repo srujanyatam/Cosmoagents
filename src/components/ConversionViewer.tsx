@@ -113,6 +113,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [isRewriting, setIsRewriting] = useState(false);
   const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+  const [showExplainDialog, setShowExplainDialog] = useState(false);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [explanation, setExplanation] = useState('');
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -281,7 +284,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
                         {file.convertedContent}
                       </pre>
-                      {!hideEdit && (
+                      {!hideEdit && !isEditing && (
                         <div className="flex items-center gap-2 mt-2">
                           <Button
                             size="sm"
@@ -290,6 +293,32 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              setShowExplainDialog(true);
+                              setIsExplaining(true);
+                              setExplanation('');
+                              try {
+                                const res = await fetch('/api/ai-explain', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
+                                });
+                                const data = await res.json();
+                                setExplanation(data.explanation || 'No explanation returned.');
+                              } catch (err) {
+                                setExplanation('Failed to get explanation.');
+                              } finally {
+                                setIsExplaining(false);
+                              }
+                            }}
+                            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 flex items-center gap-2"
+                          >
+                            <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                            AI Code Analyzer
                           </Button>
                         </div>
                       )}
@@ -727,6 +756,24 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
             >
               {isRewriting ? 'Rewriting...' : 'Rewrite'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showExplainDialog} onOpenChange={setShowExplainDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>AI Code Analyzer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {isExplaining ? (
+              <div className="text-center py-4">Analyzing code with AI...</div>
+            ) : (
+              <pre className="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap max-h-96 overflow-auto">{explanation}</pre>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExplainDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
