@@ -112,6 +112,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [showRewriteDialog, setShowRewriteDialog] = useState(false);
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [isRewriting, setIsRewriting] = useState(false);
+  const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -232,6 +233,10 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           value={editedContent}
                           onChange={e => setEditedContent(e.target.value)}
                           className="min-h-64 font-mono text-sm mb-2"
+                          onSelect={e => {
+                            const target = e.target as HTMLTextAreaElement;
+                            setSelection({ start: target.selectionStart, end: target.selectionEnd });
+                          }}
                         />
                         <div className="flex items-center gap-2 mt-2">
                           <Button
@@ -256,7 +261,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                                   size="sm"
                                   variant="outline"
                                   onClick={() => setShowRewriteDialog(true)}
-                                  disabled={isRewriting}
+                                  disabled={isRewriting || selection.start === selection.end}
                                   className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
                                 >
                                   <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
@@ -680,19 +685,34 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               onClick={async () => {
                 setIsRewriting(true);
                 try {
+                  // Only send the selected code to the AI
+                  const selectedText = editedContent.slice(selection.start, selection.end);
                   const res = await fetch('/api/ai-rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      code: editedContent || file.convertedContent || '',
-                      prompt: rewritePrompt,
+                      code: selectedText,
+                      prompt: `${rewritePrompt}\n\nOnly return the rewritten code. Do not include explanations, markdown, or comments unless they are part of the code itself.`,
                       language: 'oracle sql',
                     }),
                   });
                   const data = await res.json();
                   if (data.rewrittenCode) {
-                    setEditedContent(data.rewrittenCode);
-                    toast({ title: 'AI Rewrite Complete', description: 'The code has been rewritten by AI.' });
+                    // Post-process: remove markdown/code fences and explanations
+                    let rewritten = data.rewrittenCode;
+                    rewritten = rewritten.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '');
+                    rewritten = rewritten.split('\n').filter(line =>
+                      !line.trim().startsWith('I changed') &&
+                      !line.trim().startsWith('Here\'s') &&
+                      !line.trim().startsWith('If you prefer') &&
+                      !line.trim().startsWith('Explanation:')
+                    ).join('\n');
+                    setEditedContent(
+                      editedContent.slice(0, selection.start) +
+                      rewritten +
+                      editedContent.slice(selection.end)
+                    );
+                    toast({ title: 'AI Rewrite Complete', description: 'The selected code has been rewritten by AI.' });
                     setShowRewriteDialog(false);
                   } else {
                     toast({ title: 'AI Rewrite Failed', description: data.error || 'Unknown error', variant: 'destructive' });
