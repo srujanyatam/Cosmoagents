@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Save, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Edit, Save, Clock, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import ConversionIssuesPanel from './ConversionIssuesPanel';
 import FileDownloader from './FileDownloader';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,9 @@ import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
 import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/utils/componentUtilswithlangchain';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -106,6 +109,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [isMarkedUnreviewed, setIsMarkedUnreviewed] = useState(false);
+  const [showRewriteDialog, setShowRewriteDialog] = useState(false);
+  const [rewritePrompt, setRewritePrompt] = useState('');
+  const [isRewriting, setIsRewriting] = useState(false);
+  const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+  const [showExplainDialog, setShowExplainDialog] = useState(false);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const [explanation, setExplanation] = useState('');
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -226,6 +236,10 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           value={editedContent}
                           onChange={e => setEditedContent(e.target.value)}
                           className="min-h-64 font-mono text-sm mb-2"
+                          onSelect={e => {
+                            const target = e.target as HTMLTextAreaElement;
+                            setSelection({ start: target.selectionStart, end: target.selectionEnd });
+                          }}
                         />
                         <div className="flex items-center gap-2 mt-2">
                           <Button
@@ -243,6 +257,25 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           >
                             Cancel
                           </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRewriteDialog(true)}
+                                  disabled={isRewriting || selection.start === selection.end}
+                                  className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                                  {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Rewrite the code using AI to optimize performance, add comments, or improve readability.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </>
                     )
@@ -251,7 +284,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
                         {file.convertedContent}
                       </pre>
-                      {!hideEdit && (
+                      {!hideEdit && !isEditing && (
                         <div className="flex items-center gap-2 mt-2">
                           <Button
                             size="sm"
@@ -260,6 +293,32 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              setShowExplainDialog(true);
+                              setIsExplaining(true);
+                              setExplanation('');
+                              try {
+                                const res = await fetch('/api/ai-explain', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
+                                });
+                                const data = await res.json();
+                                setExplanation(data.explanation || 'No explanation returned.');
+                              } catch (err) {
+                                setExplanation('Failed to get explanation.');
+                              } finally {
+                                setIsExplaining(false);
+                              }
+                            }}
+                            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 flex items-center gap-2"
+                          >
+                            <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                            AI Code Analyzer
                           </Button>
                         </div>
                       )}
@@ -633,6 +692,91 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={showRewriteDialog} onOpenChange={setShowRewriteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rewrite with AI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Instruction for AI:</label>
+            <Input
+              value={rewritePrompt}
+              onChange={e => setRewritePrompt(e.target.value)}
+              placeholder="E.g. Optimize for performance, add comments, etc."
+              disabled={isRewriting}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRewriteDialog(false)} disabled={isRewriting}>Cancel</Button>
+            <Button
+              variant="default"
+              onClick={async () => {
+                setIsRewriting(true);
+                try {
+                  // Only send the selected code to the AI
+                  const selectedText = editedContent.slice(selection.start, selection.end);
+                  const res = await fetch('/api/ai-rewrite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      code: selectedText,
+                      prompt: `${rewritePrompt}\n\nOnly return the rewritten code. Do not include explanations, markdown, or comments unless they are part of the code itself.`,
+                      language: 'oracle sql',
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.rewrittenCode) {
+                    // Post-process: remove markdown/code fences and explanations
+                    let rewritten = data.rewrittenCode;
+                    rewritten = rewritten.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '');
+                    rewritten = rewritten.split('\n').filter(line =>
+                      !line.trim().startsWith('I changed') &&
+                      !line.trim().startsWith('Here\'s') &&
+                      !line.trim().startsWith('If you prefer') &&
+                      !line.trim().startsWith('Explanation:')
+                    ).join('\n');
+                    setEditedContent(
+                      editedContent.slice(0, selection.start) +
+                      rewritten +
+                      editedContent.slice(selection.end)
+                    );
+                    toast({ title: 'AI Rewrite Complete', description: 'The selected code has been rewritten by AI.' });
+                    setShowRewriteDialog(false);
+                  } else {
+                    toast({ title: 'AI Rewrite Failed', description: data.error || 'Unknown error', variant: 'destructive' });
+                  }
+                } catch (err) {
+                  toast({ title: 'AI Rewrite Failed', description: 'Network or server error', variant: 'destructive' });
+                } finally {
+                  setIsRewriting(false);
+                }
+              }}
+              disabled={isRewriting || !rewritePrompt}
+            >
+              {isRewriting ? 'Rewriting...' : 'Rewrite'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showExplainDialog} onOpenChange={setShowExplainDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>AI Code Analyzer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {isExplaining ? (
+              <div className="text-center py-4">Analyzing code with AI...</div>
+            ) : (
+              <pre className="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap max-h-96 overflow-auto">{explanation}</pre>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExplainDialog(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

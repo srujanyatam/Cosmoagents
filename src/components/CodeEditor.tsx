@@ -24,6 +24,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 }) => {
   const [code, setCode] = useState<string>(initialCode);
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const { toast } = useToast();
   
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -55,6 +56,32 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       description: 'Your code changes have been discarded.',
     });
   };
+
+  const handleRewriteWithAI = async () => {
+    setIsRewriting(true);
+    try {
+      const response = await fetch('/api/ai-rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, prompt: 'Rewrite and optimize this code', language }),
+      });
+      if (!response.ok) throw new Error('AI rewrite failed');
+      const data = await response.json();
+      setCode(data.rewrittenCode || code);
+      toast({
+        title: 'AI Rewrite Complete',
+        description: 'Your code has been rewritten by AI.',
+      });
+    } catch (err) {
+      toast({
+        title: 'AI Rewrite Failed',
+        description: 'Could not rewrite code with AI.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRewriting(false);
+    }
+  };
   
   // Simple syntax highlighting function (a real implementation would use a library like Prism)
   const getHighlightedCode = () => {
@@ -75,20 +102,23 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     <div className="w-full">
       <div className="rounded-md border bg-card">
         {!readOnly && (
-          <div className="flex justify-end p-2 bg-muted">
+          <div className="flex justify-end p-2 bg-muted gap-2">
             {!isEditing ? (
               <Button variant="ghost" size="sm" onClick={handleEdit}>
                 Edit
               </Button>
             ) : (
-              <div className="flex gap-2">
+              <>
                 <Button variant="ghost" size="sm" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button variant="default" size="sm" onClick={handleSave}>
                   Save
                 </Button>
-              </div>
+                <Button variant="outline" size="sm" onClick={handleRewriteWithAI} disabled={isRewriting}>
+                  {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
+                </Button>
+              </>
             )}
           </div>
         )}

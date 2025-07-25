@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { isCacheEnabled } from '@/utils/conversionUtils';
 
 const _API_KEY = import.meta.env.VITE_API_KEY;
-console.log('Gemini API KEY:', _API_KEY);
+// console.log('Gemini API KEY:', _API_KEY); // Removed for security
 
 // Use a balanced model configuration
 const model = new ChatGoogleGenerativeAI({
