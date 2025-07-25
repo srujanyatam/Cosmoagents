@@ -13,6 +13,8 @@ import { useUnreviewedFiles } from '@/hooks/useUnreviewedFiles';
 import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars } from 'diff';
 import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/utils/componentUtilswithlangchain';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -106,6 +108,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [isMarkedUnreviewed, setIsMarkedUnreviewed] = useState(false);
+  const [showRewriteDialog, setShowRewriteDialog] = useState(false);
+  const [rewritePrompt, setRewritePrompt] = useState('');
+  const [isRewriting, setIsRewriting] = useState(false);
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -242,6 +247,14 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             onClick={() => setIsEditing(false)}
                           >
                             Cancel
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowRewriteDialog(true)}
+                            disabled={isRewriting}
+                          >
+                            {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
                           </Button>
                         </div>
                       </>
@@ -633,6 +646,58 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={showRewriteDialog} onOpenChange={setShowRewriteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rewrite with AI</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium">Instruction for AI:</label>
+            <Input
+              value={rewritePrompt}
+              onChange={e => setRewritePrompt(e.target.value)}
+              placeholder="E.g. Optimize for performance, add comments, etc."
+              disabled={isRewriting}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRewriteDialog(false)} disabled={isRewriting}>Cancel</Button>
+            <Button
+              variant="default"
+              onClick={async () => {
+                setIsRewriting(true);
+                try {
+                  const res = await fetch('/api/ai-rewrite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      code: editedContent || file.convertedContent || '',
+                      prompt: rewritePrompt,
+                      language: 'oracle sql',
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.rewrittenCode) {
+                    setEditedContent(data.rewrittenCode);
+                    toast({ title: 'AI Rewrite Complete', description: 'The code has been rewritten by AI.' });
+                    setShowRewriteDialog(false);
+                  } else {
+                    toast({ title: 'AI Rewrite Failed', description: data.error || 'Unknown error', variant: 'destructive' });
+                  }
+                } catch (err) {
+                  toast({ title: 'AI Rewrite Failed', description: 'Network or server error', variant: 'destructive' });
+                } finally {
+                  setIsRewriting(false);
+                }
+              }}
+              disabled={isRewriting || !rewritePrompt}
+            >
+              {isRewriting ? 'Rewriting...' : 'Rewrite'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
