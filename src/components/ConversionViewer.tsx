@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Save, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Edit, Save, Clock, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import ConversionIssuesPanel from './ConversionIssuesPanel';
 import FileDownloader from './FileDownloader';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,7 @@ import { diffChars } from 'diff';
 import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/utils/componentUtilswithlangchain';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -248,14 +249,25 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           >
                             Cancel
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setShowRewriteDialog(true)}
-                            disabled={isRewriting}
-                          >
-                            {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setShowRewriteDialog(true)}
+                                  disabled={isRewriting}
+                                  className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
+                                >
+                                  <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                                  {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Rewrite the code using AI to optimize performance, add comments, or improve readability.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </>
                     )
