@@ -280,15 +280,12 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           code: file.converted_code,
-          prompt: 'Please explain the following code in plain English for a non-technical user. Include the logic and purpose:',
-          language: 'plsql',
+          prompt: 'Explain the following code in plain English for a non-technical user. Include the logic and purpose.',
         }),
       });
       const data = await response.json();
       if (data.rewrittenCode) {
         setAnalyzerResult(data.rewrittenCode);
-      } else if (data.explanation) {
-        setAnalyzerResult(data.explanation);
       } else {
         setAnalyzerError(data.error || 'AI did not return an explanation.');
       }
