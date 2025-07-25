@@ -2,6 +2,9 @@ const fetch = require('node-fetch');
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
+const SYSTEM_PROMPT =
+  'You are Cosmo Agents, an expert assistant. Only answer questions about SQL, GitHub, Sybase, Oracle, or Supabase. If the question is not about these, politely say you can only answer questions related to SQL, GitHub, Sybase, Oracle, or Supabase. Keep your answers short, precise, and accurate.';
+
 async function fetchWithRetry(body, maxRetries = 3) {
   let lastError = null;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -34,14 +37,14 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
   const { code, prompt } = JSON.parse(event.body);
-  if (!code || !prompt) {
+  if ((!code || code.trim() === '') && (!prompt || prompt.trim() === '')) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing code or prompt' }) };
   }
   const body = {
     model: 'qwen/qwen3-coder:free',
     messages: [
-      { role: 'system', content: 'You are a helpful AI assistant for code rewriting and explanation.' },
-      { role: 'user', content: `${prompt}\n\n${code}` }
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt || code }
     ]
   };
   const result = await fetchWithRetry(body, 3);
