@@ -9,7 +9,7 @@ import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 import { isCacheEnabled } from '@/utils/conversionUtils';
 
 const _API_KEY = import.meta.env.VITE_API_KEY;
