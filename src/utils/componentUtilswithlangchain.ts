@@ -139,19 +139,25 @@ function calculateHalsteadVolume(code: string) {
 }
 
 // --- Local Cache Logic ---
-function getConversionCacheKey(code: string, model: string) {
-  // Simple hash for cache key
-  return `conversion-cache-${model}-${btoa(unescape(encodeURIComponent(code))).slice(0, 20)}`;
+async function sha256(str: string): Promise<string> {
+  const buf = new TextEncoder().encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-function getCachedConversion(code: string, model: string) {
-  const key = getConversionCacheKey(code, model);
+async function getConversionCacheKey(code: string, model: string): Promise<string> {
+  const hash = await sha256(model + ':' + code);
+  return `conversion-cache-${hash}`;
+}
+
+async function getCachedConversion(code: string, model: string) {
+  const key = await getConversionCacheKey(code, model);
   const cached = localStorage.getItem(key);
   return cached ? JSON.parse(cached) : null;
 }
 
-function setCachedConversion(code: string, model: string, result: any) {
-  const key = getConversionCacheKey(code, model);
+async function setCachedConversion(code: string, model: string, result: any) {
+  const key = await getConversionCacheKey(code, model);
   localStorage.setItem(key, JSON.stringify(result));
 }
 
@@ -181,7 +187,7 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
     const startTime = Date.now();
     const normalizedContent = file.content.replace(/\r\n/g, '\n').trim();
     const aiModel = "gemini-2.5-flash";
-    const hash = getConversionCacheKey(normalizedContent, aiModel);
+    const hash = await getConversionCacheKey(normalizedContent, aiModel);
 
     if (isCacheEnabled()) {
       // 1. Check backend (DB) cache
@@ -196,7 +202,7 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
       }
 
       // 2. Check local cache
-      const cached = getCachedConversion(normalizedContent, aiModel);
+      const cached = await getCachedConversion(normalizedContent, aiModel);
       if (cached) {
         console.log('[LOCAL CACHE HIT]', file.name);
         if (cached.performance) cached.performance.conversionTimeMs = 1;
@@ -282,7 +288,7 @@ const convertSybaseToOracle = async (file: CodeFile): Promise<ConversionResult> 
     };
     if (isCacheEnabled()) {
       // Save to local cache
-      setCachedConversion(normalizedContent, aiModel, result);
+      await setCachedConversion(normalizedContent, aiModel, result);
       // Save to backend cache
       await setBackendCachedConversion(
         hash,
