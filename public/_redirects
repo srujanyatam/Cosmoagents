@@ -1,1 +1,2 @@
-/*    /index.html   200 
+/api/ai-explain    /.netlify/functions/ai-explain    200
+/api/ai-rewrite    /.netlify/functions/ai-rewrite    200 
