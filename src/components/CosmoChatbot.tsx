@@ -41,16 +41,26 @@ const CosmoChatbot: React.FC = () => {
         }),
       });
       const data = await response.json();
-      setMessages((msgs) => [
-        ...msgs,
-        { role: 'assistant', content: data.rewrittenCode || data.answer || data.error || 'Sorry, I could not answer that.' },
-      ]);
+      if (response.ok) {
+        setMessages((msgs) => [
+          ...msgs,
+          { role: 'assistant', content: data.rewrittenCode || data.answer || 'Sorry, I could not answer that.' },
+        ]);
+      } else {
+        setMessages((msgs) => [
+          ...msgs,
+          { role: 'assistant', content: data.error || 'Sorry, there was an error. Please try again.' },
+        ]);
+        setError(data.error || 'Sorry, there was an error. Please try again.');
+        console.error('Chatbot backend error:', data.error);
+      }
     } catch (err) {
       setMessages((msgs) => [
         ...msgs,
-        { role: 'assistant', content: 'Sorry, there was an error. Please try again.' },
+        { role: 'assistant', content: 'Sorry, there was a network error. Please try again.' },
       ]);
-      setError('Sorry, there was an error. Please try again.');
+      setError('Sorry, there was a network error. Please try again.');
+      console.error('Chatbot network error:', err);
     } finally {
       setLoading(false);
     }
@@ -144,7 +154,8 @@ const CosmoChatbot: React.FC = () => {
                 disabled={loading}
               />
               <Button size="sm" onClick={sendMessage} disabled={loading || !input.trim()}>
-                {loading ? '...' : 'Send'}
+                {loading ? <span className="animate-spin mr-1">⏳</span> : null}
+                {loading ? 'Sending...' : 'Send'}
               </Button>
             </div>
             {error && <div className="text-red-600 text-xs p-2">{error}</div>}
