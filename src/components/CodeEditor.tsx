@@ -33,6 +33,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [rewriteLoading, setRewriteLoading] = useState(false);
   const [selection, setSelection] = useState<{ from: number; to: number } | null>(null);
+  const [rewriteInProgress, setRewriteInProgress] = useState(false);
   const editorRef = useRef<ReactCodeMirrorRef>(null);
   const { toast } = useToast();
 
@@ -77,6 +78,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   // AI Rewrite logic
   const handleRewrite = () => {
+    if (rewriteInProgress) return;
     if (!selection || selection.from === selection.to) {
       toast({ title: 'No code selected', description: 'Please highlight code to rewrite.' });
       return;
@@ -85,8 +87,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   const handleRewriteSubmit = async () => {
+    if (rewriteInProgress) return;
     if (!selection || selection.from === selection.to || !rewritePrompt.trim()) return;
     setRewriteLoading(true);
+    setRewriteInProgress(true);
     try {
       const selectedCode = code.slice(selection.from, selection.to);
       // Call your Netlify function AI API here
@@ -110,6 +114,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       toast({ title: 'Rewrite Failed', description: 'An error occurred during AI rewrite.' });
     } finally {
       setRewriteLoading(false);
+      setRewriteInProgress(false);
     }
   };
 
@@ -128,9 +133,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                           variant="outline"
                           size="sm"
                           onClick={handleRewrite}
-                          disabled={!selection || selection.from === selection.to || rewriteLoading}
+                          disabled={!selection || selection.from === selection.to || rewriteLoading || rewriteInProgress}
                         >
-                          Rewrite with AI
+                          {rewriteLoading || rewriteInProgress ? 'Rewriting...' : 'Rewrite with AI'}
                         </Button>
                       </span>
                     </TooltipTrigger>
@@ -194,8 +199,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 <Button variant="outline" size="sm" onClick={() => setShowRewritePrompt(false)} disabled={rewriteLoading}>
                   Cancel
                 </Button>
-                <Button variant="default" size="sm" onClick={handleRewriteSubmit} disabled={rewriteLoading || !rewritePrompt.trim()}>
-                  {rewriteLoading ? 'Rewriting...' : 'Rewrite'}
+                <Button variant="default" size="sm" onClick={handleRewriteSubmit} disabled={rewriteLoading || rewriteInProgress || !rewritePrompt.trim()}>
+                  {rewriteLoading || rewriteInProgress ? 'Rewriting...' : 'Rewrite'}
                 </Button>
               </div>
               {/* Error message for failed rewrite */}

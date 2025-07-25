@@ -56,6 +56,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   const [selectedFileIds, setSelectedFileIds] = useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [activeTab, setActiveTab] = useState('unreviewed');
+  const [markingReviewed, setMarkingReviewed] = useState(false);
 
   // Ref and state for sticky offset
   const searchCardRef = useRef<HTMLDivElement>(null);
@@ -187,6 +188,8 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   };
 
   const handleMarkAsReviewed = async (file: UnreviewedFile) => {
+    if (markingReviewed) return;
+    setMarkingReviewed(true);
     const codeToSave = editingFile === file.id ? editedContent : file.converted_code;
     const originalCode = file.original_code || '';
     const success = await markAsReviewed(file.id, file.file_name, codeToSave, originalCode);
@@ -201,6 +204,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
       reviewedFiles.concat([{ ...file, status: 'reviewed' }])[0]?.id ||
       null
     );
+    setMarkingReviewed(false);
   };
 
   const handleDelete = async (fileId: string) => {
@@ -534,7 +538,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
         {/* Main File Review Card */}
         {selectedFile ? (
           <>
-            <Card className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-green-800">
+            <Card className="shadow-lg rounded-xl bg-white/90 dark:bg-slate-900/80 border border-green-100 dark:border-slate-800">
               <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2 border-b border-green-100 dark:border-green-800">
                 <span className="text-xl font-bold">{selectedFile.file_name}</span>
                 <div className="flex items-center gap-3">
@@ -577,12 +581,12 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
                 {/* Action Buttons previously outside the card, now inside */}
                 {/* Place your Mark as Reviewed, Delete File, etc. buttons here. Example: */}
               {selectedFile.status !== 'reviewed' && (
-                  <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleMarkAsReviewed(selectedFile)}>
-                    Mark as Reviewed
-              </Button>
+                  <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleMarkAsReviewed(selectedFile)} disabled={markingReviewed}>
+                    {markingReviewed ? 'Marking...' : 'Mark as Reviewed'}
+                  </Button>
               )}
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleAIAnalyze(selectedFile)}>
-                  AI Analyzer
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => handleAIAnalyze(selectedFile)} disabled={analyzerLoading}>
+                  {analyzerLoading ? 'Analyzing...' : 'AI Analyzer'}
                 </Button>
                 <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={() => deleteUnreviewedFile(selectedFile.id)}>
                   Delete File
