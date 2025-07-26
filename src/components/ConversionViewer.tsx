@@ -156,7 +156,8 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
       file.performanceMetrics?.complexityAssessment || 'moderate',
       file.performanceMetrics?.optimizationLevel || 'basic',
       (convertedComplexity.totalLines || 1) / (originalComplexity.totalLines || 1),
-      newCode
+      newCode,
+      originalCode
     );
 
     // 2. Update in Supabase
@@ -694,11 +695,11 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
       </Tabs>
 
       <Dialog open={showRewriteDialog} onOpenChange={setShowRewriteDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby="rewrite-instruction">
           <DialogHeader>
             <DialogTitle>Rewrite with AI</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
+          <div id="rewrite-instruction" className="space-y-2">
             <label className="block text-sm font-medium">Instruction for AI:</label>
             <Input
               value={rewritePrompt}
@@ -761,11 +762,11 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
       </Dialog>
 
       <Dialog open={showExplainDialog} onOpenChange={setShowExplainDialog}>
-        <DialogContent>
+        <DialogContent aria-describedby="ai-explanation">
           <DialogHeader>
             <DialogTitle>AI Code Analyzer</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
+          <div id="ai-explanation" className="space-y-2">
             {isExplaining ? (
               <div className="text-center py-4">Analyzing code with AI...</div>
             ) : (
