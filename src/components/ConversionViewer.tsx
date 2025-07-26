@@ -302,7 +302,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               setIsExplaining(true);
                               setExplanation('');
                               try {
-                                const res = await fetch('/api/ai-explain', {
+                                const res = await fetch('/.netlify/functions/ai-explain', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
@@ -716,7 +716,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 try {
                   // Only send the selected code to the AI
                   const selectedText = editedContent.slice(selection.start, selection.end);
-                  const res = await fetch('/api/ai-rewrite', {
+                  const res = await fetch('/.netlify/functions/ai-rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
