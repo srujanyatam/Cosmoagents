@@ -34,3 +34,4 @@ jobs:
             VITE_GEMINI_API_KEY=${{ secrets.VITE_GEMINI_API_KEY }}
             VITE_API_KEY=${{ secrets.VITE_API_KEY }}
             VITE_OPENROUTER_API_KEY=${{ secrets.VITE_OPENROUTER_API_KEY }} 
+            OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
