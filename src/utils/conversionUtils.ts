@@ -5,8 +5,15 @@ import { supabase } from '../integrations/supabase/client';
 
 let cacheEnabled = true;
 
-// Initialize Google Generative AI
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '');
+// Get API key safely for browser environment
+const getApiKey = () => {
+  if (typeof window !== 'undefined') {
+    // Browser environment - try to get from window or use empty string
+    return (window as any).__NEXT_PUBLIC_GOOGLE_API_KEY || '';
+  }
+  // Server environment
+  return process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
+};
 
 export function isCacheEnabled() {
   return cacheEnabled;
@@ -76,6 +83,14 @@ export const convertSybaseToOracle = async (
 
   // Analyze code complexity before conversion
   const originalComplexity = analyzeCodeComplexity(file.content);
+
+  // Initialize Google Generative AI only when needed
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error('Google API key not found. Please set NEXT_PUBLIC_GOOGLE_API_KEY environment variable.');
+  }
+  
+  const genAI = new GoogleGenerativeAI(apiKey);
 
   // Use custom prompt if provided, otherwise use default
   const prompt = customPrompt && customPrompt.trim().length > 0
