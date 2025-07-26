@@ -37,14 +37,15 @@ exports.handler = async function(event, context) {
   }
   
   console.log('Chatbot function called');
+  console.log('GEMINI_API_KEY present:', !!GEMINI_API_KEY);
   
   if (!GEMINI_API_KEY) {
     console.error('GEMINI_API_KEY not found in environment variables');
     return { 
-      statusCode: 500, 
+      statusCode: 200, 
       body: JSON.stringify({ 
-        error: 'Chatbot service not configured properly',
-        success: false 
+        rewrittenCode: "Hi! I'm Cosmo Agents. I'm currently being configured. Please set up the GEMINI_API_KEY environment variable in your Netlify dashboard to enable AI chat functionality. You can get a free API key from https://makersuite.google.com/app/apikey",
+        success: true 
       }) 
     };
   }

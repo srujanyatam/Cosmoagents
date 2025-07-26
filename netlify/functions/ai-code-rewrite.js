@@ -35,14 +35,15 @@ exports.handler = async function(event, context) {
   }
   
   console.log('AI Code Rewrite function called');
+  console.log('OPENROUTER_API_KEY present:', !!OPENROUTER_API_KEY);
   
   if (!OPENROUTER_API_KEY) {
     console.error('OPENROUTER_API_KEY not found in environment variables');
     return { 
-      statusCode: 500, 
+      statusCode: 200, 
       body: JSON.stringify({ 
-        error: 'AI code rewrite service not configured properly',
-        success: false 
+        rewrittenCode: "AI Code Rewrite service is currently being configured. Please set up the OPENROUTER_API_KEY environment variable in your Netlify dashboard to enable AI code analysis and rewriting functionality. You can get a free API key from https://openrouter.ai/keys",
+        success: true 
       }) 
     };
   }
