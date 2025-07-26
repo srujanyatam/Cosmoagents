@@ -8,13 +8,13 @@ This guide explains how to set up the AI functionality for both the chatbot and 
 
 You need to set the following environment variables in your Netlify dashboard:
 
-1. **GEMINI_API_KEY** - For code conversion and AI rewrite functionality
+1. **GEMINI_API_KEY** - For chatbot functionality
    - Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-   - This is used for the AI code rewrite feature in the dev review page
+   - This is used for the CosmoChatbot feature (general conversations)
 
-2. **OPENROUTER_API_KEY** - For the chatbot functionality
+2. **OPENROUTER_API_KEY** - For AI code rewrite and analyzer functionality
    - Get your API key from [OpenRouter](https://openrouter.ai/keys)
-   - This is used for the CosmoChatbot feature
+   - This is used for the AI code rewrite feature in the dev review page
 
 ### For Local Development
 
@@ -28,23 +28,37 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 ## How It Works
 
 ### Chatbot (CosmoChatbot)
-- Uses OpenRouter API with the `qwen/qwen3-coder:free` model
+- Uses Google Gemini API with the `gemini-2.5-pro` model
 - Endpoint: `/.netlify/functions/ai-rewrite`
 - Purpose: General questions about SQL, Sybase, Oracle, etc.
+- Better for conversational interactions
 
 ### AI Code Rewrite
-- Uses Google Gemini API with the `gemini-2.5-pro` model
+- Uses OpenRouter API with the `qwen/qwen3-coder:free` model
 - Endpoint: `/.netlify/functions/ai-code-rewrite`
 - Purpose: Code conversion and optimization in the dev review page
+- Better for code analysis and rewriting tasks
+
+## API Key Setup
+
+### Getting Gemini API Key
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Copy the key (format: `AIzaSyC...`)
+
+### Getting OpenRouter API Key
+1. Go to [OpenRouter](https://openrouter.ai/keys)
+2. Create a new API key
+3. Copy the key
 
 ## Troubleshooting
 
-### If AI Rewrite is not working:
+### If Chatbot is not working:
 1. Check that `GEMINI_API_KEY` is set in your Netlify environment variables
 2. Verify the API key is valid and has sufficient quota
 3. Check the browser console for any error messages
 
-### If Chatbot is not working:
+### If AI Code Rewrite is not working:
 1. Check that `OPENROUTER_API_KEY` is set in your Netlify environment variables
 2. Verify the API key is valid and has sufficient quota
 3. Check the browser console for any error messages
@@ -52,4 +66,6 @@ OPENROUTER_API_KEY=your_openrouter_api_key_here
 ### Both systems can work simultaneously:
 - They use different API keys and endpoints
 - No conflicts between the two systems
-- Each serves a different purpose in the application 
+- Each serves a different purpose in the application
+- Chatbot: Gemini API for conversations
+- Code Rewrite: Qwen 3 for code tasks 

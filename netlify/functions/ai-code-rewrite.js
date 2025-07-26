@@ -1,24 +1,25 @@
 const fetch = require('node-fetch');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 async function fetchWithRetry(body, maxRetries = 3) {
   let lastError = null;
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       });
       const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const text = data.choices?.[0]?.message?.content || '';
       if (text && text.trim().length > 0) {
         return { success: true, text: text.trim() };
       }
-      lastError = data.error?.message || 'AI did not return a result.';
+      lastError = data.error || 'AI did not return a result.';
     } catch (err) {
       lastError = err.message || 'AI code rewrite failed';
     }
@@ -35,12 +36,12 @@ exports.handler = async function(event, context) {
   
   console.log('AI Code Rewrite function called');
   
-  if (!GEMINI_API_KEY) {
-    console.error('GEMINI_API_KEY not found in environment variables');
+  if (!OPENROUTER_API_KEY) {
+    console.error('OPENROUTER_API_KEY not found in environment variables');
     return { 
       statusCode: 500, 
       body: JSON.stringify({ 
-        error: 'AI service not configured properly',
+        error: 'AI code rewrite service not configured properly',
         success: false 
       }) 
     };
@@ -66,11 +67,11 @@ exports.handler = async function(event, context) {
   systemPrompt += 'Provide only the corrected Oracle PL/SQL code without explanations or markdown formatting.';
 
   const body = {
-    contents: [{
-      parts: [{
-        text: `${systemPrompt}\n\nOriginal Sybase code:\n${originalCode || ''}\n\nCurrent Oracle code:\n${code}`
-      }]
-    }]
+    model: 'qwen/qwen3-coder:free',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: `Original Sybase code:\n${originalCode || ''}\n\nCurrent Oracle code:\n${code}` }
+    ]
   };
 
   const result = await fetchWithRetry(body, 3);
