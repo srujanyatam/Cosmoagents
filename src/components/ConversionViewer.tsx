@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Save, Clock, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Edit, Save, Clock, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
 import ConversionIssuesPanel from './ConversionIssuesPanel';
 import FileDownloader from './FileDownloader';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ import CodeDiffViewer from './CodeDiffViewer';
 import { diffChars, Change } from 'diff';
 import { analyzeCodeComplexity, generatePerformanceMetrics } from '@/utils/conversionUtils';
 import CodeEditor from './CodeEditor';
+import { useAIRewrite } from '@/utils/aiRewriteUtils';
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -94,9 +95,11 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
 }) => {
   const { toast } = useToast();
   const { addUnreviewedFile } = useUnreviewedFiles();
+  const { rewriteCode } = useAIRewrite();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [isMarkedUnreviewed, setIsMarkedUnreviewed] = useState(false);
+  const [isAIRewriting, setIsAIRewriting] = useState(false);
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -151,6 +154,42 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     if (onSaveEdit) {
       await onSaveEdit(codeToSave);
       return;
+    }
+  };
+
+  // Handle AI rewrite for specific issues
+  const handleAIRewrite = async (issue?: string) => {
+    if (isAIRewriting) return;
+    
+    setIsAIRewriting(true);
+    try {
+      const currentCode = file.convertedContent || '';
+      const originalCode = file.content;
+      
+      const rewrittenCode = await rewriteCode(
+        currentCode,
+        issue,
+        originalCode,
+        issue ? `Fix this specific issue: ${issue}` : 'Optimize this Oracle PL/SQL code for better performance and maintainability'
+      );
+      
+      if (rewrittenCode) {
+        // Update the code in the UI
+        setEditedContent(rewrittenCode);
+        onManualEdit(rewrittenCode);
+        
+        // Save the changes
+        await handleSaveEdit(rewrittenCode);
+      }
+    } catch (error) {
+      console.error('AI rewrite error:', error);
+      toast({
+        title: 'AI Rewrite Error',
+        description: 'Failed to rewrite code with AI.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsAIRewriting(false);
     }
   };
 
@@ -227,6 +266,15 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           >
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAIRewrite()}
+                            disabled={isAIRewriting}
+                          >
+                            <RefreshCw className={`h-4 w-4 mr-1 ${isAIRewriting ? 'animate-spin' : ''}`} />
+                            {isAIRewriting ? 'AI Processing...' : 'AI Rewrite'}
                           </Button>
                         </div>
                       )}
@@ -326,6 +374,8 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
           <ConversionIssuesPanel
             issues={file.issues || []}
             onDismissIssue={onDismissIssue}
+            onAIRewrite={handleAIRewrite}
+            isAIRewriting={isAIRewriting}
           />
         </TabsContent>
         
