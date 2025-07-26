@@ -4,6 +4,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/ai-explain/"
+  to = "/.netlify/functions/ai-explain"
+  status = 200
+
+[[redirects]]
   from = "/api/ai-rewrite"
+  to = "/.netlify/functions/ai-rewrite"
+  status = 200
+
+[[redirects]]
+  from = "/api/ai-rewrite/"
   to = "/.netlify/functions/ai-rewrite"
   status = 200 
