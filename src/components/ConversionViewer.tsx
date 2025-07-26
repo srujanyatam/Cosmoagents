@@ -267,15 +267,6 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleAIRewrite()}
-                            disabled={isAIRewriting}
-                          >
-                            <RefreshCw className={`h-4 w-4 mr-1 ${isAIRewriting ? 'animate-spin' : ''}`} />
-                            {isAIRewriting ? 'AI Processing...' : 'AI Rewrite'}
-                          </Button>
                         </div>
                       )}
                     </>

@@ -176,17 +176,6 @@ const ConversionIssuesPanel: React.FC<ConversionIssuesPanelProps> = ({
                 </div>
                 
                 <div className="flex items-center gap-2 ml-4">
-                  {onAIRewrite && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onAIRewrite(issue.description)}
-                      disabled={isAIRewriting}
-                    >
-                      <RefreshCw className={`h-4 w-4 mr-1 ${isAIRewriting ? 'animate-spin' : ''}`} />
-                      {isAIRewriting ? 'Processing...' : 'Fix with AI'}
-                    </Button>
-                  )}
                   <Button
                     size="sm"
                     variant="ghost"
