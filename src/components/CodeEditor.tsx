@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -7,53 +7,54 @@ import { useToast } from '@/hooks/use-toast';
 
 interface CodeEditorProps {
   initialCode: string;
+  value?: string;
+  onChange?: (value: string) => void;
   readOnly?: boolean;
   onSave?: (updatedCode: string) => void;
   height?: string;
   language?: 'sql' | 'plsql';
   showLineNumbers?: boolean;
+  selection?: { start: number; end: number };
+  onSelectionChange?: (sel: { start: number; end: number }) => void;
 }
 
 const CodeEditor: React.FC<CodeEditorProps> = ({
   initialCode,
+  value,
+  onChange,
   readOnly = false,
   onSave,
   height = '400px',
   language = 'sql',
   showLineNumbers = true,
+  selection,
+  onSelectionChange,
 }) => {
-  const [code, setCode] = useState<string>(initialCode);
-  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [code, setCode] = useState<string>(value !== undefined ? value : initialCode);
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
   const { toast } = useToast();
-  
+
+  useEffect(() => {
+    if (value !== undefined && value !== code) setCode(value);
+  }, [value]);
+
   const handleCodeChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
+    if (onChange) onChange(e.target.value);
   };
-  
-  const handleSave = () => {
-    if (onSave) {
-      onSave(code);
-      setIsEditing(false);
-      
-      toast({
-        title: 'Changes Saved',
-        description: 'Your code changes have been saved.',
-      });
+
+  const handleSelection = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    if (onSelectionChange) {
+      const target = e.target as HTMLTextAreaElement;
+      onSelectionChange({ start: target.selectionStart, end: target.selectionEnd });
     }
   };
-  
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
-  
-  const handleCancel = () => {
-    setCode(initialCode);
-    setIsEditing(false);
-    
+
+  const handleSave = () => {
+    if (onSave) onSave(code);
     toast({
-      title: 'Changes Discarded',
-      description: 'Your code changes have been discarded.',
+      title: 'Changes Saved',
+      description: 'Your code changes have been saved.',
     });
   };
 
@@ -68,6 +69,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       if (!response.ok) throw new Error('AI rewrite failed');
       const data = await response.json();
       setCode(data.rewrittenCode || code);
+      if (onChange) onChange(data.rewrittenCode || code);
       toast({
         title: 'AI Rewrite Complete',
         description: 'Your code has been rewritten by AI.',
@@ -82,57 +84,48 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       setIsRewriting(false);
     }
   };
-  
-  // Simple syntax highlighting function (a real implementation would use a library like Prism)
-  const getHighlightedCode = () => {
-    if (!showLineNumbers) return code;
-    
-    const lines = code.split('\n');
-    const paddingLength = lines.length.toString().length;
-    
-    return lines
-      .map((line, index) => {
-        const lineNumber = (index + 1).toString().padStart(paddingLength, ' ');
-        return `${lineNumber} | ${line}`;
-      })
-      .join('\n');
-  };
-  
+
   return (
     <div className="w-full">
       <div className="rounded-md border bg-card">
-        {!readOnly && (
-          <div className="flex justify-end p-2 bg-muted gap-2">
-            {!isEditing ? (
-              <Button variant="ghost" size="sm" onClick={handleEdit}>
-                Edit
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={handleCancel}>
-                  Cancel
-                </Button>
-                <Button variant="default" size="sm" onClick={handleSave}>
-                  Save
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleRewriteWithAI} disabled={isRewriting}>
-                  {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-        
         <ScrollArea style={{ height }}>
-          <Textarea
-            value={isEditing ? code : getHighlightedCode()}
-            onChange={handleCodeChange}
-            className={`font-mono text-sm w-full h-full p-4 resize-none border-none focus-visible:ring-0 ${
-              readOnly || !isEditing ? 'bg-slate-900 text-white' : ''
-            }`}
-            readOnly={readOnly || !isEditing}
+          <div
+            className={`flex font-mono text-sm w-full h-full p-0 bg-white`}
             style={{ minHeight: height }}
-          />
+          >
+            {/* Line numbers column */}
+            {showLineNumbers && (
+              <div
+                className="select-none text-right pr-4 py-4 bg-gray-50 border-r border-gray-200 text-gray-400"
+                style={{ userSelect: 'none', minWidth: '3em' }}
+                aria-hidden="true"
+              >
+                {code.split('\n').map((_, i) => (
+                  <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
+                ))}
+              </div>
+            )}
+            {/* Code column */}
+            <div className="flex-1 py-4">
+              {readOnly ? (
+                <pre
+                  className="w-full h-full bg-white text-black whitespace-pre-wrap focus:outline-none"
+                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                  tabIndex={0}
+                >
+                  {code}
+                </pre>
+              ) : (
+                <Textarea
+                  value={code}
+                  onChange={handleCodeChange}
+                  onSelect={handleSelection}
+                  className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black"
+                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
+                />
+              )}
+            </div>
+          </div>
         </ScrollArea>
       </div>
     </div>

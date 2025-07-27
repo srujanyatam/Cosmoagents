@@ -16,6 +16,7 @@ import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/uti
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import CodeEditor from './CodeEditor'; // Added import for CodeEditor
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -202,168 +203,184 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
         </TabsList>
         
         <TabsContent value="code" className="space-y-4">
-          {file.convertedContent ? (
-            <div className="relative grid grid-cols-2 gap-4">
-              {/* Left Column: Original Sybase Code with Prev Arrow */}
-              <div className="flex items-start">
-                {hasPrev && onPrevFile && (
-                  <button
-                    className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                    onClick={onPrevFile}
-                    aria-label="Previous file"
-                  >
-                    <ArrowLeft className="h-6 w-6" />
-                  </button>
-                )}
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
-                  <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                    {file.content}
-                  </pre>
+          {(file.content || file.convertedContent) ? (
+            file.convertedContent ? (
+              <div className="relative grid grid-cols-2 gap-4">
+                {/* Left Column: Original Sybase Code with Prev Arrow */}
+                <div className="flex items-start">
+                  {hasPrev && onPrevFile && (
+                    <button
+                      className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                      onClick={onPrevFile}
+                      aria-label="Previous file"
+                    >
+                      <ArrowLeft className="h-6 w-6" />
+                    </button>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
+                    <CodeEditor
+                      initialCode={file.content}
+                      readOnly={true}
+                      showLineNumbers={true}
+                      height="400px"
+                      language="sql"
+                    />
+                  </div>
                 </div>
-              </div>
-              {/* Right Column: Converted Oracle Code with Next Arrow */}
-              <div className="flex items-start">
-                <div className="flex-1">
-                  <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
-                  {isEditing ? (
-                    hideEdit ? (
-                      <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                        {file.convertedContent}
-                      </pre>
+                {/* Right Column: Converted Oracle Code with Next Arrow */}
+                <div className="flex items-start">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
+                    {isEditing ? (
+                      hideEdit ? (
+                        <CodeEditor
+                          initialCode={file.convertedContent}
+                          readOnly={true}
+                          showLineNumbers={true}
+                          height="400px"
+                          language="plsql"
+                        />
+                      ) : (
+                        <>
+                          <CodeEditor
+                            initialCode={file.convertedContent}
+                            value={editedContent}
+                            onChange={setEditedContent}
+                            readOnly={false}
+                            showLineNumbers={true}
+                            height="400px"
+                            language="plsql"
+                            selection={selection}
+                            onSelectionChange={setSelection}
+                          />
+                          <div className="flex items-center gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={handleSaveEdit}
+                            >
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setIsEditing(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setShowRewriteDialog(true)}
+                                    disabled={isRewriting || selection.start === selection.end}
+                                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
+                                  >
+                                    <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                                    {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Rewrite the code using AI to optimize performance, add comments, or improve readability.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </>
+                      )
                     ) : (
                       <>
-                        <Textarea
-                          value={editedContent}
-                          onChange={e => setEditedContent(e.target.value)}
-                          className="min-h-64 font-mono text-sm mb-2"
-                          onSelect={e => {
-                            const target = e.target as HTMLTextAreaElement;
-                            setSelection({ start: target.selectionStart, end: target.selectionEnd });
-                          }}
+                        <CodeEditor
+                          initialCode={file.convertedContent}
+                          readOnly={true}
+                          showLineNumbers={true}
+                          height="400px"
+                          language="plsql"
                         />
-                        <div className="flex items-center gap-2 mt-2">
-                          <Button
-                            size="sm"
-                            variant="default"
-                            onClick={handleSaveEdit}
-                          >
-                            <Save className="h-4 w-4 mr-1" />
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setIsEditing(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => setShowRewriteDialog(true)}
-                                  disabled={isRewriting || selection.start === selection.end}
-                                  className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
-                                >
-                                  <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
-                                  {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Rewrite the code using AI to optimize performance, add comments, or improve readability.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
+                        {!hideEdit && !isEditing && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setIsEditing(true)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                setShowExplainDialog(true);
+                                setIsExplaining(true);
+                                setExplanation('');
+                                try {
+                                  const res = await fetch('/.netlify/functions/ai-explain', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
+                                  });
+                                  const data = await res.json();
+                                  setExplanation(data.explanation || 'No explanation returned.');
+                                } catch (err) {
+                                  setExplanation('Failed to get explanation.');
+                                } finally {
+                                  setIsExplaining(false);
+                                }
+                              }}
+                              className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 flex items-center gap-2"
+                            >
+                              <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
+                              AI Code Analyzer
+                            </Button>
+                          </div>
+                        )}
                       </>
-                    )
-                  ) : (
-                    <>
-                      <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                        {file.convertedContent}
-                      </pre>
-                      {!hideEdit && !isEditing && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setIsEditing(true)}
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={async () => {
-                              setShowExplainDialog(true);
-                              setIsExplaining(true);
-                              setExplanation('');
-                              try {
-                                const res = await fetch('/.netlify/functions/ai-explain', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
-                                });
-                                const data = await res.json();
-                                setExplanation(data.explanation || 'No explanation returned.');
-                              } catch (err) {
-                                setExplanation('Failed to get explanation.');
-                              } finally {
-                                setIsExplaining(false);
-                              }
-                            }}
-                            className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 flex items-center gap-2"
-                          >
-                            <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
-                            AI Code Analyzer
-                          </Button>
-                        </div>
-                      )}
-                    </>
+                    )}
+                  </div>
+                  {hasNext && onNextFile && (
+                    <button
+                      className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                      onClick={onNextFile}
+                      aria-label="Next file"
+                    >
+                      <ArrowRight className="h-6 w-6" />
+                    </button>
                   )}
                 </div>
-                {hasNext && onNextFile && (
-                  <button
-                    className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                    onClick={onNextFile}
-                    aria-label="Next file"
-                  >
-                    <ArrowRight className="h-6 w-6" />
-                  </button>
-                )}
               </div>
-            </div>
+            ) : (
+              <div className="relative">
+                {/* Single full-width column for original code only */}
+                <div className="flex items-start">
+                  {hasPrev && onPrevFile && (
+                    <button
+                      className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                      onClick={onPrevFile}
+                      aria-label="Previous file"
+                    >
+                      <ArrowLeft className="h-6 w-6" />
+                    </button>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
+                    <CodeEditor
+                      initialCode={file.content}
+                      readOnly={true}
+                      showLineNumbers={true}
+                      height="400px"
+                      language="sql"
+                    />
+                  </div>
+                </div>
+              </div>
+            )
           ) : (
-            <div className="relative flex items-start justify-center">
-              {hasPrev && onPrevFile && (
-                <button
-                  className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
-                  onClick={onPrevFile}
-                  aria-label="Previous file"
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                </button>
-              )}
-              <div className="flex-1 w-full">
-                <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
-                <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                  {file.content}
-                </pre>
-              </div>
-              {hasNext && onNextFile && (
-                <button
-                  className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
-                  onClick={onNextFile}
-                  aria-label="Next file"
-                >
-                  <ArrowRight className="h-6 w-6" />
-                </button>
-              )}
-            </div>
+            <div className="text-center text-gray-400">No code available.</div>
           )}
           {file.errorMessage && (
             <div>
