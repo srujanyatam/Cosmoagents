@@ -563,13 +563,13 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     <div className="w-full relative">
       <div className="rounded-md border bg-card">
         {/* Full Screen Button */}
-        <div className="flex items-center justify-between p-2 border-b bg-gray-50">
-          <div className="text-sm text-gray-600">{filename || 'main.py'}</div>
+        <div className="flex items-center justify-between p-2 border-b bg-white">
+          <div className="text-sm text-gray-700">{filename || 'main.py'}</div>
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleFullScreen}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-gray-100"
             title="Full Screen (F11)"
           >
             <Maximize2 className="h-4 w-4" />
