@@ -564,7 +564,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       <div className="rounded-md border bg-card">
         {/* Full Screen Button */}
         <div className="flex items-center justify-between p-2 border-b bg-gray-50">
-          <div className="text-sm text-gray-600">Code Editor</div>
+          <div className="text-sm text-gray-600">{filename || 'main.py'}</div>
           <Button
             variant="ghost"
             size="sm"
