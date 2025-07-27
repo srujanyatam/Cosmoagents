@@ -170,10 +170,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         replaceCurrent();
       }
       
-      if (showSearch && e.ctrlKey && e.key === 'a') {
-        e.preventDefault();
-        replaceAll();
-      }
+             if (showSearch && e.ctrlKey && e.key === 'a') {
+         e.preventDefault();
+         // Select all text in the search input
+         if (searchInputRef.current) {
+           searchInputRef.current.select();
+         }
+       }
+       
+       if (showSearch && e.ctrlKey && e.shiftKey && e.key === 'l') {
+         e.preventDefault();
+         replaceAll();
+       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
