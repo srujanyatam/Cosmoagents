@@ -380,8 +380,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   if (isFullScreen) {
     return (
       <div className="fixed inset-0 z-50 bg-white flex flex-col">
-        {/* Minimal Top Bar */}
-        <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50/50 backdrop-blur-sm">
+        {/* Minimal Top Bar with filename on left and full-screen button on right */}
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700">{filename || 'main.py'}</span>
           </div>
@@ -391,7 +391,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               variant="ghost"
               size="sm"
               onClick={toggleFullScreen}
-              className="h-8 w-8 p-0 hover:bg-gray-200"
+              className="h-8 w-8 p-0 hover:bg-gray-100"
               title="Exit Full Screen (F11)"
             >
               <Minimize2 className="h-4 w-4" />
@@ -400,7 +400,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         </div>
         
         {/* Full Screen Code Editor */}
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-hidden relative">
           <div className="h-full bg-white">
             <ScrollArea ref={scrollContainerRef} className="h-full">
               <div className="flex font-mono text-sm w-full h-full p-0 bg-white">
