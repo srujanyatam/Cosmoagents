@@ -116,6 +116,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [isRewriting, setIsRewriting] = useState(false);
   const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
+  const [preservedSelection, setPreservedSelection] = useState<{ start: number; end: number } | null>(null);
   const [showExplainDialog, setShowExplainDialog] = useState(false);
   const [isExplaining, setIsExplaining] = useState(false);
   const [explanation, setExplanation] = useState('');
@@ -727,6 +728,8 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
             </Button>
             <Button
               onClick={async () => {
+                // Preserve the current selection
+                setPreservedSelection({ start: selection.start, end: selection.end });
                 setIsRewriting(true);
                 try {
                   // Get the selected code only
@@ -749,6 +752,15 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     const newContent = beforeSelection + data.rewrittenCode + afterSelection;
                     setEditedContent(newContent);
                     setShowRewriteDialog(false);
+                    
+                    // Restore the selection after a short delay to ensure the content is updated
+                    setTimeout(() => {
+                      if (preservedSelection) {
+                        setSelection(preservedSelection);
+                        setPreservedSelection(null);
+                      }
+                    }, 100);
+                    
                     toast({
                       title: "Code Rewritten",
                       description: "The selected code has been successfully rewritten by AI.",
