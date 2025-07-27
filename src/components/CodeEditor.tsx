@@ -83,21 +83,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     }
   };
   
-  // Simple syntax highlighting function (a real implementation would use a library like Prism)
-  const getHighlightedCode = () => {
-    if (!showLineNumbers) return code;
-    
-    const lines = code.split('\n');
-    const paddingLength = lines.length.toString().length;
-    
-    return lines
-      .map((line, index) => {
-        const lineNumber = (index + 1).toString().padStart(paddingLength, ' ');
-        return `${lineNumber} | ${line}`;
-      })
-      .join('\n');
-  };
-  
   return (
     <div className="w-full">
       <div className="rounded-md border bg-card">
@@ -122,17 +107,43 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             )}
           </div>
         )}
-        
         <ScrollArea style={{ height }}>
-          <Textarea
-            value={isEditing ? code : getHighlightedCode()}
-            onChange={handleCodeChange}
-            className={`font-mono text-sm w-full h-full p-4 resize-none border-none focus-visible:ring-0 ${
-              readOnly || !isEditing ? 'bg-slate-900 text-white' : ''
-            }`}
-            readOnly={readOnly || !isEditing}
+          <div
+            className={`flex font-mono text-sm w-full h-full p-0 bg-white ${readOnly || !isEditing ? 'bg-white' : ''}`}
             style={{ minHeight: height }}
-          />
+          >
+            {/* Line numbers column */}
+            {showLineNumbers && (
+              <div
+                className="select-none text-right pr-4 py-4 bg-gray-50 border-r border-gray-200 text-gray-400"
+                style={{ userSelect: 'none', minWidth: '3em' }}
+                aria-hidden="true"
+              >
+                {code.split('\n').map((_, i) => (
+                  <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
+                ))}
+              </div>
+            )}
+            {/* Code column */}
+            <div className="flex-1 py-4">
+              {readOnly || !isEditing ? (
+                <pre
+                  className="w-full h-full bg-white text-black whitespace-pre-wrap focus:outline-none"
+                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                  tabIndex={0}
+                >
+                  {code}
+                </pre>
+              ) : (
+                <Textarea
+                  value={code}
+                  onChange={handleCodeChange}
+                  className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black"
+                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
+                />
+              )}
+            </div>
+          </div>
         </ScrollArea>
       </div>
     </div>

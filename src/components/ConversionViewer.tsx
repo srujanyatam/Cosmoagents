@@ -16,6 +16,7 @@ import { analyzeCodeComplexity, generateBalancedPerformanceMetrics } from '@/uti
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import CodeEditor from './CodeEditor'; // Added import for CodeEditor
 
 interface DataTypeMapping {
   sybaseType: string;
@@ -217,9 +218,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 )}
                 <div className="flex-1">
                   <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
-                  <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                    {file.content}
-                  </pre>
+                  <CodeEditor
+                    initialCode={file.content}
+                    readOnly={true}
+                    showLineNumbers={true}
+                    height="400px"
+                    language="sql"
+                  />
                 </div>
               </div>
               {/* Right Column: Converted Oracle Code with Next Arrow */}
@@ -228,9 +233,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                   <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
                   {isEditing ? (
                     hideEdit ? (
-                      <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                        {file.convertedContent}
-                      </pre>
+                      <CodeEditor
+                        initialCode={file.convertedContent}
+                        readOnly={true}
+                        showLineNumbers={true}
+                        height="400px"
+                        language="plsql"
+                      />
                     ) : (
                       <>
                         <Textarea
@@ -282,9 +291,13 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     )
                   ) : (
                     <>
-                      <pre className="bg-green-50 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                        {file.convertedContent}
-                      </pre>
+                      <CodeEditor
+                        initialCode={file.convertedContent}
+                        readOnly={true}
+                        showLineNumbers={true}
+                        height="400px"
+                        language="plsql"
+                      />
                       {!hideEdit && !isEditing && (
                         <div className="flex items-center gap-2 mt-2">
                           <Button
@@ -338,32 +351,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               </div>
             </div>
           ) : (
-            <div className="relative flex items-start justify-center">
-              {hasPrev && onPrevFile && (
-                <button
-                  className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
-                  onClick={onPrevFile}
-                  aria-label="Previous file"
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                </button>
-              )}
-              <div className="flex-1 w-full">
-                <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
-                <pre className="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-64 whitespace-pre-wrap">
-                  {file.content}
-                </pre>
-              </div>
-              {hasNext && onNextFile && (
-                <button
-                  className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100 self-center"
-                  onClick={onNextFile}
-                  aria-label="Next file"
-                >
-                  <ArrowRight className="h-6 w-6" />
-                </button>
-              )}
-            </div>
+            <div className="text-center text-gray-400">No converted code available.</div>
           )}
           {file.errorMessage && (
             <div>
