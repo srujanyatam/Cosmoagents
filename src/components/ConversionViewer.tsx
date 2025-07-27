@@ -242,14 +242,16 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       />
                     ) : (
                       <>
-                        <Textarea
+                        <CodeEditor
+                          initialCode={file.convertedContent}
                           value={editedContent}
-                          onChange={e => setEditedContent(e.target.value)}
-                          className="min-h-64 font-mono text-sm mb-2"
-                          onSelect={e => {
-                            const target = e.target as HTMLTextAreaElement;
-                            setSelection({ start: target.selectionStart, end: target.selectionEnd });
-                          }}
+                          onChange={setEditedContent}
+                          readOnly={false}
+                          showLineNumbers={true}
+                          height="400px"
+                          language="plsql"
+                          selection={selection}
+                          onSelectionChange={setSelection}
                         />
                         <div className="flex items-center gap-2 mt-2">
                           <Button
