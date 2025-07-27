@@ -377,38 +377,39 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   if (isFullScreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-white">
-        {/* Full Screen Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-semibold">Code Editor - Full Screen</h2>
-            <span className="text-sm text-gray-500">Press F11 or click minimize to exit</span>
+      <div className="fixed inset-0 z-50 bg-white flex flex-col">
+        {/* Minimal Top Bar */}
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50/50 backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="ml-4 text-sm font-medium text-gray-700">Code Editor</span>
           </div>
           <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">Press F11 to exit</span>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={toggleFullScreen}
-              className="flex items-center gap-2"
+              className="h-8 w-8 p-0 hover:bg-gray-200"
+              title="Exit Full Screen (F11)"
             >
               <Minimize2 className="h-4 w-4" />
-              Exit Full Screen
             </Button>
           </div>
         </div>
         
         {/* Full Screen Code Editor */}
-        <div className="h-[calc(100vh-80px)]">
-          <div className="rounded-md border bg-card h-full">
+        <div className="flex-1 overflow-hidden">
+          <div className="h-full bg-white">
             <ScrollArea ref={scrollContainerRef} className="h-full">
-              <div
-                className={`flex font-mono text-sm w-full h-full p-0 bg-white`}
-              >
+              <div className="flex font-mono text-sm w-full h-full p-0 bg-white">
                 {/* Line numbers column */}
                 {showLineNumbers && (
                   <div
-                    className="select-none text-right pr-4 py-4 bg-gray-50 border-r border-gray-200 text-gray-400"
-                    style={{ userSelect: 'none', minWidth: '3em' }}
+                    className="select-none text-right pr-4 py-4 bg-gray-50/30 border-r border-gray-200/50 text-gray-400 sticky left-0"
+                    style={{ userSelect: 'none', minWidth: '3.5em' }}
                     aria-hidden="true"
                   >
                     {code.split('\n').map((_, i) => (
@@ -417,11 +418,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   </div>
                 )}
                 {/* Code column */}
-                <div className="flex-1 py-4 relative">
+                <div className="flex-1 py-4 px-4 relative">
                   {readOnly ? (
                     <pre
                       ref={preRef}
-                      className="w-full h-full bg-white text-black whitespace-pre-wrap focus:outline-none"
+                      className="w-full h-full bg-transparent text-gray-900 whitespace-pre-wrap focus:outline-none"
                       style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                       tabIndex={0}
                       dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
@@ -432,7 +433,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                       value={code}
                       onChange={handleCodeChange}
                       onSelect={handleSelection}
-                      className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black"
+                      className="w-full h-full p-0 border-none focus-visible:ring-0 bg-transparent text-gray-900 resize-none"
                       style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                     />
                   )}
@@ -442,9 +443,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
 
-        {/* Full Screen Search Overlay */}
+        {/* Full Screen Search Overlay - Only show when search is active */}
         {showSearch && (
-          <div className="absolute top-20 right-4 bg-white border rounded-lg shadow-lg p-3 z-50 min-w-[400px]">
+          <div className="absolute top-16 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-xl p-3 z-50 min-w-[400px]">
             <div className="flex items-center gap-2 mb-2">
               <Search className="h-4 w-4 text-gray-500" />
               <Input
@@ -452,7 +453,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search..."
-                className="flex-1 h-8 text-sm"
+                className="flex-1 h-8 text-sm bg-white/80"
               />
               <Button
                 variant="ghost"
@@ -477,7 +478,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   value={replaceTerm}
                   onChange={(e) => setReplaceTerm(e.target.value)}
                   placeholder="Replace with..."
-                  className="flex-1 h-8 text-sm"
+                  className="flex-1 h-8 text-sm bg-white/80"
                 />
                 <Button
                   variant="ghost"
