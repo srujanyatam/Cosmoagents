@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, ChevronUp, ChevronDown, Replace } from 'lucide-react';
+import { Search, X, ChevronUp, ChevronDown, Replace, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface CodeEditorProps {
   initialCode: string;
@@ -159,11 +159,19 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         }
       }
       
-      if (showSearch && e.ctrlKey && e.key === 'h') {
-        e.preventDefault();
-        setShowReplace(!showReplace);
-        setTimeout(() => replaceInputRef.current?.focus(), 100);
-      }
+             if (showSearch && e.ctrlKey && e.key === 'h') {
+         e.preventDefault();
+         setShowReplace(!showReplace);
+         setTimeout(() => {
+           if (showReplace) {
+             // If we're hiding replace, focus back to search
+             searchInputRef.current?.focus();
+           } else {
+             // If we're showing replace, focus to replace input
+             replaceInputRef.current?.focus();
+           }
+         }, 100);
+       }
       
       if (showSearch && e.ctrlKey && e.key === 'r') {
         e.preventDefault();
@@ -421,18 +429,27 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
              </Button>
           </div>
           
-          {showReplace && (
-            <div className="flex items-center gap-2 mb-2">
-              <Replace className="h-4 w-4 text-gray-500" />
-              <Input
-                ref={replaceInputRef}
-                value={replaceTerm}
-                onChange={(e) => setReplaceTerm(e.target.value)}
-                placeholder="Replace with..."
-                className="flex-1 h-8 text-sm"
-              />
-            </div>
-          )}
+                     {showReplace && (
+             <div className="flex items-center gap-2 mb-2">
+               <Replace className="h-4 w-4 text-gray-500" />
+               <Input
+                 ref={replaceInputRef}
+                 value={replaceTerm}
+                 onChange={(e) => setReplaceTerm(e.target.value)}
+                 placeholder="Replace with..."
+                 className="flex-1 h-8 text-sm"
+               />
+               <Button
+                 variant="ghost"
+                 size="sm"
+                 onClick={() => setShowReplace(false)}
+                 className="h-8 w-8 p-0"
+                 title="Collapse replace"
+               >
+                 <ChevronLeft className="h-4 w-4" />
+               </Button>
+             </div>
+           )}
           
           <div className="flex items-center justify-between text-xs text-gray-500">
             <div className="flex items-center gap-4">
