@@ -18,6 +18,7 @@ interface CodeEditorProps {
   showLineNumbers?: boolean;
   selection?: { start: number; end: number };
   onSelectionChange?: (sel: { start: number; end: number }) => void;
+  filename?: string;
 }
 
 interface SearchMatch {
@@ -38,6 +39,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   showLineNumbers = true,
   selection,
   onSelectionChange,
+  filename,
 }) => {
   const [code, setCode] = useState<string>(value !== undefined ? value : initialCode);
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
@@ -381,10 +383,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Minimal Top Bar */}
         <div className="flex items-center justify-between px-4 py-2 border-b bg-gray-50/50 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="ml-4 text-sm font-medium text-gray-700">Code Editor</span>
+            <span className="text-sm font-medium text-gray-700">{filename || 'main.py'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-500">Press F11 to exit</span>

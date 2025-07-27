@@ -224,6 +224,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                       showLineNumbers={true}
                       height="400px"
                       language="sql"
+                      filename={file.name}
                     />
                   </div>
                   {/* Next arrow for single column layout */}
@@ -250,6 +251,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             showLineNumbers={true}
                             height="400px"
                             language="plsql"
+                            filename={file.name}
                           />
                         ) : (
                           <>
@@ -263,6 +265,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               language="plsql"
                               selection={selection}
                               onSelectionChange={setSelection}
+                              filename={file.name}
                             />
                             <div className="flex items-center gap-2 mt-2">
                               <Button
@@ -310,6 +313,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             showLineNumbers={true}
                             height="400px"
                             language="plsql"
+                            filename={file.name}
                           />
                           {!hideEdit && !isEditing && (
                             <div className="flex items-center gap-2 mt-2">
@@ -485,6 +489,8 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                   <CodeDiffViewer 
                     originalCode={aiCode}
                     convertedCode={finalCode}
+                    originalFilename={`${file.name} (AI Generated)`}
+                    convertedFilename={`${file.name} (Human Edited)`}
                   />
                 </div>
               )}
