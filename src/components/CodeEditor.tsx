@@ -581,18 +581,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             className={`flex font-mono text-sm w-full h-full p-0 bg-white`}
             style={{ minHeight: height }}
           >
-            {/* Line numbers column */}
-            {showLineNumbers && (
-              <div
-                className="select-none text-right pr-4 py-4 bg-gray-50 border-r border-gray-200 text-gray-400"
-                style={{ userSelect: 'none', minWidth: '3em' }}
-                aria-hidden="true"
-              >
-                {code.split('\n').map((_, i) => (
-                  <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
-                ))}
-              </div>
-            )}
+                         {/* Line numbers column */}
+             {showLineNumbers && (
+               <div
+                 className="select-none text-right pr-4 py-4 bg-white border-r border-gray-200 text-gray-400"
+                 style={{ userSelect: 'none', minWidth: '3em' }}
+                 aria-hidden="true"
+               >
+                 {code.split('\n').map((_, i) => (
+                   <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
+                 ))}
+               </div>
+             )}
             {/* Code column */}
             <div className="flex-1 py-4 relative">
               {readOnly ? (
