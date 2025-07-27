@@ -406,14 +406,19 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               placeholder="Search..."
               className="flex-1 h-8 text-sm"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowSearch(false)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+                         <Button
+               variant="ghost"
+               size="sm"
+               onClick={() => {
+                 setShowSearch(false);
+                 setSearchTerm('');
+                 setMatches([]);
+                 setCurrentMatchIndex(-1);
+               }}
+               className="h-8 w-8 p-0"
+             >
+               <X className="h-4 w-4" />
+             </Button>
           </div>
           
           {showReplace && (
