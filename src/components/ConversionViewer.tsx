@@ -92,6 +92,7 @@ interface ConversionViewerProps {
   onNextFile?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
+  convertedFilename?: string;
 }
 
 const ConversionViewer: React.FC<ConversionViewerProps> = ({
@@ -104,6 +105,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   onNextFile,
   hasPrev,
   hasNext,
+  convertedFilename,
 }) => {
   const { toast } = useToast();
   const { addUnreviewedFile } = useUnreviewedFiles();
@@ -251,7 +253,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             showLineNumbers={true}
                             height="400px"
                             language="plsql"
-                            filename={file.name}
+                            filename={convertedFilename || file.name}
                           />
                         ) : (
                           <>
@@ -265,7 +267,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               language="plsql"
                               selection={selection}
                               onSelectionChange={setSelection}
-                              filename={file.name}
+                              filename={convertedFilename || file.name}
                             />
                             <div className="flex items-center gap-2 mt-2">
                               <Button
@@ -313,7 +315,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             showLineNumbers={true}
                             height="400px"
                             language="plsql"
-                            filename={file.name}
+                            filename={convertedFilename || file.name}
                           />
                           {!hideEdit && !isEditing && (
                             <div className="flex items-center gap-2 mt-2">
