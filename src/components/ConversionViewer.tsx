@@ -712,21 +712,28 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 setShowRewriteDialog(false);
                 setIsRewriting(true);
                 try {
+                  // Get the selected code only
+                  const selectedCode = editedContent.substring(selection.start, selection.end);
+                  
                   const res = await fetch('/.netlify/functions/ai-rewrite', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                      code: file.convertedContent,
+                      code: selectedCode,
                       prompt: rewritePrompt || 'Rewrite this code to improve performance, readability, and add appropriate comments',
                       language: 'oracle sql'
                     }),
                   });
                   const data = await res.json();
                   if (data.rewrittenCode) {
-                    setEditedContent(data.rewrittenCode);
+                    // Replace only the selected portion with the rewritten code
+                    const beforeSelection = editedContent.substring(0, selection.start);
+                    const afterSelection = editedContent.substring(selection.end);
+                    const newContent = beforeSelection + data.rewrittenCode + afterSelection;
+                    setEditedContent(newContent);
                     toast({
                       title: "Code Rewritten",
-                      description: "The code has been successfully rewritten by AI.",
+                      description: "The selected code has been successfully rewritten by AI.",
                     });
                   }
                 } catch (err) {
