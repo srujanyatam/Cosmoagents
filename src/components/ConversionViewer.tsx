@@ -756,18 +756,18 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
 
       {/* Explain Dialog */}
       <Dialog open={showExplainDialog} onOpenChange={setShowExplainDialog}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>AI Code Analysis</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-120px)]">
             {isExplaining ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Analyzing code...</p>
               </div>
             ) : (
-              <div className="prose max-w-none">
-                <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded">{explanation}</pre>
+              <div className="w-full">
+                <pre className="whitespace-pre-wrap text-sm bg-gray-50 p-4 rounded overflow-x-auto max-w-full break-words">{explanation}</pre>
               </div>
             )}
           </div>
