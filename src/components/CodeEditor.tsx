@@ -498,45 +498,43 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         
         {/* Full Screen Code Editor */}
         <div className={`flex-1 overflow-hidden relative ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
-          <div className={`h-full ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
-            <ScrollArea ref={scrollContainerRef} className={`h-full ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
-              <div className="flex font-mono text-sm w-full h-full p-0 bg-white">
-                {/* Line numbers column */}
-                {showLineNumbers && (
-                  <div
-                    className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
-                    style={{ userSelect: 'none', minWidth: '3.5em' }}
-                    aria-hidden="true"
-                  >
-                    {code.split('\n').map((_, i) => (
-                      <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
-                    ))}
-                  </div>
-                )}
-                {/* Code column */}
-                <div className={`flex-1 py-4 px-4 relative pl-3 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
-                  {readOnly ? (
-                    <pre
-                      ref={preRef}
-                      className={`w-full h-full whitespace-pre-wrap focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                      style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
-                      tabIndex={0}
-                      dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
-                      data-has-current-match={matches.length > 0}
-                    />
-                  ) : (
-                    <Textarea
-                      ref={textareaRef}
-                      value={code}
-                      onChange={handleCodeChange}
-                      onSelect={handleSelection}
-                      className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                      style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
-                    />
-                  )}
+          <div className={`h-full overflow-auto ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} ref={scrollContainerRef}>
+            <div className="flex font-mono text-sm w-full p-0 bg-white" style={{ minWidth: 'max-content' }}>
+              {/* Line numbers column */}
+              {showLineNumbers && (
+                <div
+                  className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 z-10 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
+                  style={{ userSelect: 'none', minWidth: '3.5em' }}
+                  aria-hidden="true"
+                >
+                  {code.split('\n').map((_, i) => (
+                    <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
+                  ))}
                 </div>
+              )}
+              {/* Code column */}
+              <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+                {readOnly ? (
+                  <pre
+                    ref={preRef}
+                    className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
+                    style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                    tabIndex={0}
+                    dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
+                    data-has-current-match={matches.length > 0}
+                  />
+                ) : (
+                  <Textarea
+                    ref={textareaRef}
+                    value={code}
+                    onChange={handleCodeChange}
+                    onSelect={handleSelection}
+                    className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
+                    style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                  />
+                )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
         </div>
 
@@ -732,15 +730,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
         
-        <ScrollArea ref={scrollContainerRef} style={{ height }} className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-auto" ref={scrollContainerRef} style={{ height }}>
           <div
-            className={`flex font-mono text-sm w-full h-full p-0 bg-white overflow-hidden`}
-            style={{ minHeight: height }}
+            className={`flex font-mono text-sm w-full p-0 bg-white`}
+            style={{ minHeight: height, minWidth: 'max-content' }}
           >
             {/* Line numbers column */}
             {showLineNumbers && (
               <div
-                 className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
+                 className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 z-10 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
                 style={{ userSelect: 'none', minWidth: '3em' }}
                 aria-hidden="true"
               >
@@ -750,11 +748,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               </div>
             )}
             {/* Code column */}
-            <div className={`flex-1 py-4 px-4 relative pl-3 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+            <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
               {readOnly ? (
                 <pre
                   ref={preRef}
-                  className={`w-full h-full whitespace-pre-wrap focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
+                  className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                   tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
@@ -772,7 +770,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               )}
             </div>
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* Search Overlay */}
