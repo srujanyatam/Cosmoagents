@@ -541,7 +541,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                     value={code}
                     onChange={handleCodeChange}
                     onSelect={handleSelection}
-                    className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
+                    className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none whitespace-pre ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                     style={{ height, fontFamily: 'inherit', fontSize: 'inherit', minHeight: `${code.split('\n').length * 1.5}em` }}
                   />
                 )}
@@ -796,7 +796,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   value={code}
                   onChange={handleCodeChange}
                   onSelect={handleSelection}
-                  className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
+                  className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none whitespace-pre ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                   style={{ height, fontFamily: 'inherit', fontSize: 'inherit', minHeight: `${code.split('\n').length * 1.5}em` }}
                 />
               )}
