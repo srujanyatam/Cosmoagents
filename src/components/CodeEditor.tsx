@@ -55,6 +55,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [showReplace, setShowReplace] = useState<boolean>(false);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showGoToLine, setShowGoToLine] = useState<boolean>(false);
+  const [lineNumber, setLineNumber] = useState<string>('');
   const { toast } = useToast();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -63,6 +65,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
   const currentMatchRef = useRef<HTMLSpanElement>(null);
+  const goToLineInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (value !== undefined && value !== code) setCode(value);
@@ -156,10 +159,25 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Debug: log when Ctrl+G is pressed
+      if (e.ctrlKey && e.key === 'g') {
+        console.log('Ctrl+G pressed, showGoToLine:', showGoToLine);
+      }
+      
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
         setShowSearch(true);
         setTimeout(() => searchInputRef.current?.focus(), 100);
+      }
+      
+      if (e.ctrlKey && e.key === 'g') {
+        e.preventDefault();
+        console.log('Setting showGoToLine to true');
+        setShowGoToLine(true);
+        setTimeout(() => {
+          console.log('Focusing goToLineInputRef:', goToLineInputRef.current);
+          goToLineInputRef.current?.focus();
+        }, 100);
       }
       
       if (e.key === 'Escape' && showSearch) {
@@ -170,6 +188,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         setCurrentMatchIndex(-1);
       }
       
+      if (e.key === 'Escape' && showGoToLine) {
+        e.preventDefault();
+        setShowGoToLine(false);
+        setLineNumber('');
+      }
+      
       if (showSearch && e.key === 'Enter') {
         e.preventDefault();
         if (e.shiftKey) {
@@ -177,6 +201,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         } else {
           navigateToNextMatch();
         }
+      }
+      
+      if (showGoToLine && e.key === 'Enter') {
+        e.preventDefault();
+        console.log('Enter pressed in goToLine, calling goToLine()');
+        goToLine();
       }
       
       if (showSearch && e.ctrlKey && e.key === 'h') {
@@ -214,7 +244,53 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showSearch, matches, currentMatchIndex]);
+  }, [showSearch, matches, currentMatchIndex, showGoToLine]);
+
+  const goToLine = () => {
+    console.log('goToLine called with lineNumber:', lineNumber);
+    const lineNum = parseInt(lineNumber);
+    const lines = code.split('\n');
+    console.log('Parsed lineNum:', lineNum, 'Total lines:', lines.length);
+    
+    if (isNaN(lineNum) || lineNum < 1 || lineNum > lines.length) {
+      console.log('Invalid line number, showing toast');
+      toast({
+        title: "Invalid line number",
+        description: `Please enter a number between 1 and ${lines.length}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Find the scrollable container (ScrollArea's viewport)
+    const scrollContainer = scrollContainerRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+    console.log('Scroll container found:', !!scrollContainer);
+    if (!scrollContainer) return;
+    
+    // Calculate the position of the target line
+    const lineHeight = 24; // More accurate line height including padding
+    const padding = 16; // Top and bottom padding
+    const targetLineTop = ((lineNum - 1) * lineHeight) + padding;
+    console.log('Target line top position:', targetLineTop);
+    
+    // Scroll to the target line
+    scrollContainer.scrollTop = Math.max(0, targetLineTop - 20);
+    console.log('Scrolled to position:', scrollContainer.scrollTop);
+    
+    // Set cursor position for editable mode
+    if (!readOnly && textareaRef.current) {
+      const linesBeforeTarget = lines.slice(0, lineNum - 1);
+      const charIndex = linesBeforeTarget.join('\n').length + (lineNum > 1 ? 1 : 0); // +1 for newline
+      textareaRef.current.setSelectionRange(charIndex, charIndex);
+      textareaRef.current.focus();
+      console.log('Set cursor position to:', charIndex);
+    }
+    
+    // Close the dialog
+    setShowGoToLine(false);
+    setLineNumber('');
+    console.log('Go to line completed');
+  };
 
   const navigateToNextMatch = () => {
     if (matches.length === 0) return;
@@ -403,7 +479,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   if (isFullScreen) {
     return (
-      <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+      <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} data-code-editor>
         {/* Minimal Top Bar with filename on left and full-screen button on right */}
         <div className={`flex items-center justify-between px-4 py-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white'}`}>
           <div className="flex items-center gap-2">
@@ -593,12 +669,55 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             </div>
           </div>
         )}
+
+        {/* Go to Line Overlay */}
+        {showGoToLine && (
+          <div className="absolute top-16 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-xl p-3 z-50 min-w-[300px]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Go to Line</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowGoToLine(false);
+                  setLineNumber('');
+                }}
+                className="h-8 w-8 p-0 ml-auto"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Input
+                ref={goToLineInputRef}
+                value={lineNumber}
+                onChange={(e) => setLineNumber(e.target.value)}
+                placeholder={`1-${code.split('\n').length}`}
+                className="flex-1 h-8 text-sm bg-white/80"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    goToLine();
+                  }
+                }}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={goToLine}
+                className="h-8 text-xs"
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative" data-code-editor>
       <div className="rounded-md border bg-card">
         {/* Full Screen Button and actions in header */}
         <div className={`flex items-center justify-between p-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -785,8 +904,51 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
       )}
-    </div>
-  );
-};
+
+        {/* Go to Line Overlay */}
+        {showGoToLine && (
+          <div className="absolute top-2 right-2 bg-white border rounded-lg shadow-lg p-3 z-50 min-w-[300px]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-sm font-medium text-gray-700">Go to Line</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowGoToLine(false);
+                  setLineNumber('');
+                }}
+                className="h-8 w-8 p-0 ml-auto"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Input
+                ref={goToLineInputRef}
+                value={lineNumber}
+                onChange={(e) => setLineNumber(e.target.value)}
+                placeholder={`1-${code.split('\n').length}`}
+                className="flex-1 h-8 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    goToLine();
+                  }
+                }}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={goToLine}
+                className="h-8 text-xs"
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
 export default CodeEditor;

@@ -154,6 +154,10 @@ const Help: React.FC<HelpProps> = ({ onClose }) => {
                     <span className="font-mono">Ctrl + H / Cmd + H</span>
                     <span className="text-sm text-gray-700">Replace in code editor</span>
                   </div>
+                  <div className="flex items-center justify-between p-3 border rounded bg-gray-50">
+                    <span className="font-mono">Ctrl + G / Cmd + G</span>
+                    <span className="text-sm text-gray-700">Go to line in code editor</span>
+                  </div>
                   {/* Add more shortcuts here as needed */}
                 </div>
               </div>
