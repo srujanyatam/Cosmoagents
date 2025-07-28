@@ -74,7 +74,7 @@ interface FileItem {
   content: string;
   conversionStatus: 'pending' | 'success' | 'failed';
   convertedContent?: string;
-  aiGeneratedCode?: string; // Add this field for human edits
+  aiGeneratedCode?: string; // Add this field for manual edits
   errorMessage?: string;
   dataTypeMapping?: DataTypeMapping[];
   issues?: ConversionIssue[];
@@ -141,7 +141,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
     setEditedContent(file.convertedContent || '');
   }, [file.id, file.convertedContent]); // Add file.id to dependency array
 
-  // Helper to calculate human edit percentage (character-based)
+  // Helper to calculate manual edit percentage (character-based)
   function getEditPercentage(aiCode: string, finalCode: string): number {
     if (!aiCode || !finalCode) return 0;
     const diff = diffChars(aiCode, finalCode);
@@ -503,10 +503,10 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 </div>
               </Card>
 
-              {/* Human Edits Metric */}
+              {/* Manual Edits Metric */}
               <Card className="p-6">
                 <div className="text-center">
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Human Edits</h4>
+                                      <h4 className="text-sm font-medium text-gray-600 mb-2">Manual Edits</h4>
                   <div className="text-4xl font-bold text-purple-600 mb-2">
                     {humanEditPercent}%
                   </div>
@@ -522,14 +522,14 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 </div>
               </Card>
 
-              {/* Human Edits Diff Viewer */}
+              {/* Manual Edits Diff Viewer */}
               {humanEditPercent > 0 && (
                 <div className="p-0">
                   <CodeDiffViewer 
                     originalCode={aiCode}
                     convertedCode={finalCode}
                     originalFilename={`${file.name} (AI Generated)`}
-                    convertedFilename={`${file.name} (Human Edited)`}
+                    convertedFilename={`${file.name} (Manual Edited)`}
                   />
                 </div>
               )}

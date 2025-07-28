@@ -87,7 +87,7 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
     }
   };
 
-  // Helper to calculate human edit percentage (character-based)
+  // Helper to calculate manual edit percentage (character-based)
   function getEditPercentage(aiCode: string, finalCode: string): number {
     if (!aiCode || !finalCode) return 0;
     const diff = diffChars(aiCode, finalCode);
@@ -489,7 +489,7 @@ const PerformanceMetricsDashboard: React.FC<PerformanceMetricsDashboardProps> = 
               <div className="flex-1 text-center">Time</div>
               <div className="flex-1 text-center">Status</div>
               <div className="flex-1 text-center">Scalability</div>
-              <div className="flex-1 text-center">Human Edits</div>
+              <div className="flex-1 text-center">Manual Edits</div>
               <div className="flex-1 text-center">Bulk Ops</div>
               <div className="flex-1 text-center">Bulk Collect</div>
               <div className="flex-1 text-center">Modern Features</div>
