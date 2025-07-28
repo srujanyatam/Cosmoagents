@@ -499,7 +499,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Full Screen Code Editor */}
         <div className={`flex-1 overflow-hidden relative ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
           <div className={`h-full overflow-auto ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} ref={scrollContainerRef}>
-            <div className="flex font-mono text-sm w-full p-0 bg-white" style={{ minWidth: 'max-content' }}>
+            <div className="flex font-mono text-sm w-full p-0 bg-white" style={{ height, minWidth: 'max-content' }}>
               {/* Line numbers column */}
               {showLineNumbers && (
                 <div
@@ -518,7 +518,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   <pre
                     ref={preRef}
                     className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                    style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                     tabIndex={0}
                     dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
                     data-has-current-match={matches.length > 0}
@@ -530,7 +530,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                     onChange={handleCodeChange}
                     onSelect={handleSelection}
                     className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                    style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit' }}
                   />
                 )}
               </div>
@@ -733,7 +733,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         <div className="flex-1 overflow-auto" ref={scrollContainerRef} style={{ height }}>
           <div
             className={`flex font-mono text-sm w-full p-0 bg-white`}
-            style={{ minHeight: height, minWidth: 'max-content' }}
+            style={{ height, minWidth: 'max-content' }}
           >
             {/* Line numbers column */}
             {showLineNumbers && (
@@ -753,7 +753,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 <pre
                   ref={preRef}
                   className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                   tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
                   data-has-current-match={matches.length > 0}
@@ -765,7 +765,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   onChange={handleCodeChange}
                   onSelect={handleSelection}
                   className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                  style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
+                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit' }}
                 />
               )}
             </div>

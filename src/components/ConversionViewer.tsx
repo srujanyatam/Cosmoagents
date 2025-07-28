@@ -218,7 +218,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
         
         <TabsContent value="code" className="space-y-4">
           {(file.content || file.convertedContent) ? (
-            <div className={`relative grid gap-6 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'} min-h-[800px]`}>
+            <div className={`relative grid gap-6 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Left Column: Original Sybase Code with Prev Arrow */}
                 <div className="flex flex-col min-h-0 overflow-hidden">
                   <div className="flex items-center mb-2">
