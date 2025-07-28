@@ -32,6 +32,7 @@ interface DevReviewPanelProps {
   deleteUnreviewedFile: (id: string, showToast?: boolean) => Promise<boolean>;
   updateUnreviewedFile: (updateData: UnreviewedFileUpdate) => Promise<boolean>;
   refreshUnreviewedFiles: () => Promise<void>;
+  forceMinimized?: boolean;
 }
 
 const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
@@ -44,6 +45,7 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
   deleteUnreviewedFile,
   updateUnreviewedFile,
   refreshUnreviewedFiles,
+  forceMinimized,
 }) => {
   const [editingFile, setEditingFile] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState<string>('');
@@ -71,6 +73,10 @@ const DevReviewPanel: React.FC<DevReviewPanelProps> = ({
     window.addEventListener('resize', updateOffset);
     return () => window.removeEventListener('resize', updateOffset);
   }, []);
+
+  useEffect(() => {
+    if (forceMinimized) setIsMinimized(true);
+  }, [forceMinimized]);
 
   // Split files into pending and reviewed
   const pendingFiles = unreviewedFiles.filter(f => f.status !== 'reviewed');

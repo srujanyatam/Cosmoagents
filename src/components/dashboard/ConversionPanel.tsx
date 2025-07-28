@@ -48,6 +48,7 @@ interface ConversionPanelProps {
   onMoveToDevReview: () => void;
   canCompleteMigration: boolean;
   onDeleteFiles: (fileIds: string[]) => void;
+  forceMinimized?: boolean;
 }
 
 const ConversionPanel: React.FC<ConversionPanelProps> = ({
@@ -68,6 +69,7 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   onMoveToDevReview,
   canCompleteMigration,
   onDeleteFiles,
+  forceMinimized,
 }) => {
   const [selectedFileIds, setSelectedFileIds] = React.useState<string[]>([]);
   const [isSelectMode, setIsSelectMode] = React.useState(false);
@@ -76,6 +78,10 @@ const ConversionPanel: React.FC<ConversionPanelProps> = ({
   const [showResetDialog, setShowResetDialog] = React.useState(false);
   const [isMinimized, setIsMinimized] = React.useState(false);
   const [cacheEnabled, setCacheEnabledState] = React.useState(isCacheEnabled());
+
+  React.useEffect(() => {
+    if (forceMinimized) setIsMinimized(true);
+  }, [forceMinimized]);
 
   const handleToggleCache = () => {
     setCacheEnabled(!cacheEnabled);

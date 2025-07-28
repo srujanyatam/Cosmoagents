@@ -448,6 +448,7 @@ const Dashboard = () => {
                 onMoveToDevReview={handleMoveToDevReview}
                 canCompleteMigration={canCompleteMigration}
                 onDeleteFiles={handleDeleteFiles}
+                forceMinimized={isFullscreen}
               />
               {/* No fullscreen exit button */}
             </div>
@@ -491,6 +492,7 @@ const Dashboard = () => {
                 deleteUnreviewedFile={deleteUnreviewedFile}
                 updateUnreviewedFile={updateUnreviewedFile}
                 refreshUnreviewedFiles={refreshUnreviewedFiles}
+                forceMinimized={isFullscreen}
               />
               {/* No fullscreen exit button */}
             </div>
