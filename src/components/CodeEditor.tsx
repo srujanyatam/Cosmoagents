@@ -498,7 +498,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         
         {/* Full Screen Code Editor */}
         <div className={`flex-1 overflow-hidden relative ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
-          <div className={`h-full overflow-auto ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} ref={scrollContainerRef}>
+          <div 
+            className={`h-full overflow-auto custom-scrollbar ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} 
+            ref={scrollContainerRef}
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: isDarkMode ? '#4b5563 #1f2937' : '#d1d5db #f3f4f6'
+            }}
+          >
             <div className="flex font-mono text-sm w-full p-0 bg-white" style={{ height, minWidth: 'max-content' }}>
               {/* Line numbers column */}
               {showLineNumbers && (
@@ -704,7 +711,14 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   }
 
   return (
-    <div className="w-full relative h-full overflow-hidden" data-code-editor>
+    <div 
+      className="w-full relative h-full overflow-hidden" 
+      data-code-editor
+      style={{
+        '--scrollbar-thumb': isDarkMode ? '#4b5563' : '#d1d5db',
+        '--scrollbar-track': isDarkMode ? '#1f2937' : '#f3f4f6',
+      } as React.CSSProperties}
+    >
       <div className="rounded-md border bg-card h-full flex flex-col overflow-hidden">
         {/* Full Screen Button and actions in header */}
         <div className={`flex items-center justify-between p-2 border-b flex-shrink-0 ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
@@ -735,7 +749,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
         
-        <div className="flex-1 overflow-auto" ref={scrollContainerRef} style={{ height }}>
+        <div 
+          className="flex-1 overflow-auto custom-scrollbar" 
+          ref={scrollContainerRef} 
+          style={{ 
+            height,
+            scrollbarWidth: 'thin',
+            scrollbarColor: isDarkMode ? '#4b5563 #1f2937' : '#d1d5db #f3f4f6'
+          }}
+        >
           <div
             className={`flex font-mono text-sm w-full p-0 bg-white`}
             style={{ height, minWidth: 'max-content' }}

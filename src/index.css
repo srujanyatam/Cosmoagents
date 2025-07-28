@@ -132,3 +132,27 @@
   100% { background-position: -200% 0; }
 }
 .animate-progress-shimmer { animation: progress-shimmer 1.2s linear infinite; }
+
+/* Custom scrollbar styles */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, #f3f4f6);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #d1d5db);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #9ca3af);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track, #f3f4f6);
+}
