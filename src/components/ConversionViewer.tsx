@@ -126,7 +126,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
 
   // Calculate dynamic height based on content length
   const getDynamicHeight = (content: string) => {
-    return '400px';
+    return '300px';
   };
 
   const originalHeight = getDynamicHeight(file.content || '');
@@ -222,15 +222,15 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 {/* Left Column: Original Sybase Code with Prev Arrow */}
                 <div className="flex flex-col min-h-0 overflow-hidden">
                   <div className="flex items-center mb-2">
-                    {hasPrev && onPrevFile && (
-                      <button
-                        className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                        onClick={onPrevFile}
-                        aria-label="Previous file"
-                      >
-                        <ArrowLeft className="h-6 w-6" />
-                      </button>
-                    )}
+                  {hasPrev && onPrevFile && (
+                    <button
+                      className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                      onClick={onPrevFile}
+                      aria-label="Previous file"
+                    >
+                      <ArrowLeft className="h-6 w-6" />
+                    </button>
+                  )}
                     <h3 className="text-sm font-medium">Original Sybase Code:</h3>
                   </div>
                   <div className="flex-1 min-h-0 overflow-hidden">
@@ -250,15 +250,15 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-sm font-medium text-green-700">Converted Oracle Code:</h3>
                       {hasNext && onNextFile && (
-                        <button
+                    <button
                           className="bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                          onClick={onNextFile}
-                          aria-label="Next file"
-                        >
-                          <ArrowRight className="h-6 w-6" />
-                        </button>
-                      )}
-                    </div>
+                      onClick={onNextFile}
+                      aria-label="Next file"
+                    >
+                      <ArrowRight className="h-6 w-6" />
+                    </button>
+                  )}
+                </div>
                     <div className="flex-1 min-h-0 overflow-hidden">
                       {isEditing ? (
                         hideEdit ? (

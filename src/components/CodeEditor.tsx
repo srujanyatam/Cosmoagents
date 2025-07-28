@@ -467,7 +467,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Minimal Top Bar with filename on left and full-screen button on right */}
         <div className={`flex items-center justify-between px-4 py-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white'}`}>
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</span>
+            <span className={`text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</span>
           </div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
@@ -703,7 +703,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       <div className="rounded-md border bg-card h-full flex flex-col overflow-hidden">
         {/* Full Screen Button and actions in header */}
         <div className={`flex items-center justify-between p-2 border-b flex-shrink-0 ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
+          <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
             {typeof actions === 'function' && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
