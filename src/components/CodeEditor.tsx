@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, ChevronUp, ChevronDown, Replace, ChevronRight, ChevronLeft, Maximize2, Minimize2 } from 'lucide-react';
+import { Search, X, ChevronUp, ChevronDown, Replace, ChevronRight, ChevronLeft, Maximize2, Minimize2, Moon, Sun, Edit } from 'lucide-react';
 
 interface CodeEditorProps {
   initialCode: string;
@@ -19,7 +19,7 @@ interface CodeEditorProps {
   selection?: { start: number; end: number };
   onSelectionChange?: (sel: { start: number; end: number }) => void;
   filename?: string;
-  actions?: React.ReactNode; // New prop for action buttons
+  actions?: (isDarkMode: boolean) => React.ReactNode; // Now a function that receives isDarkMode
 }
 
 interface SearchMatch {
@@ -54,6 +54,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [useRegex, setUseRegex] = useState<boolean>(false);
   const [showReplace, setShowReplace] = useState<boolean>(false);
   const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { toast } = useToast();
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -402,24 +403,35 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   if (isFullScreen) {
     return (
-      <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      <div className={`fixed inset-0 z-50 flex flex-col ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
         {/* Minimal Top Bar with filename on left and full-screen button on right */}
-        <div className="flex items-center justify-between px-4 py-2 border-b bg-white">
+        <div className={`flex items-center justify-between px-4 py-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white'}`}>
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-700">{filename || 'main.py'}</span>
           </div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
-            {actions && <div className="flex items-center gap-2 mr-2">{actions}</div>}
+            {actions && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="h-8 w-8 p-0"
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
+            </Button>
             <span className="text-xs text-gray-500">Press F11 to exit</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleFullScreen}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-              title="Exit Full Screen (F11)"
+              className={`h-8 w-8 p-0 ${isDarkMode ? 'hover:bg-[#23232a]' : 'hover:bg-gray-100'}`}
+              title={isFullScreen ? 'Exit Full Screen (F11)' : 'Full Screen (F11)'}
             >
-              <Minimize2 className="h-4 w-4" />
+              {isFullScreen
+                ? <Minimize2 className={`h-4 w-4 ${isDarkMode ? 'text-gray-100 hover:text-gray-300' : 'text-gray-700 hover:text-black'}`} />
+                : <Maximize2 className={`h-4 w-4 ${isDarkMode ? 'text-gray-100 hover:text-gray-300' : 'text-gray-700 hover:text-black'}`} />}
             </Button>
           </div>
         </div>
@@ -432,7 +444,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 {/* Line numbers column */}
                 {showLineNumbers && (
                   <div
-                    className="select-none text-right pr-4 py-4 bg-gray-50/30 border-r border-gray-200/50 text-gray-400 sticky left-0"
+                    className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
                     style={{ userSelect: 'none', minWidth: '3.5em' }}
                     aria-hidden="true"
                   >
@@ -442,11 +454,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   </div>
                 )}
                 {/* Code column */}
-                <div className="flex-1 py-4 px-4 relative pl-3">
+                <div className={`flex-1 py-4 px-4 relative pl-3 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
                   {readOnly ? (
                     <pre
                       ref={preRef}
-                      className="w-full h-full bg-transparent text-gray-900 whitespace-pre-wrap focus:outline-none"
+                      className={`w-full h-full whitespace-pre-wrap focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                       style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                       tabIndex={0}
                       dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
@@ -458,7 +470,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                       value={code}
                       onChange={handleCodeChange}
                       onSelect={handleSelection}
-                      className="w-full h-full p-0 border-none focus-visible:ring-0 bg-transparent text-gray-900 resize-none"
+                      className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                       style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                     />
                   )}
@@ -589,19 +601,30 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     <div className="w-full relative">
       <div className="rounded-md border bg-card">
         {/* Full Screen Button and actions in header */}
-        <div className="flex items-center justify-between p-2 border-b bg-white">
-          <div className="text-sm text-gray-700">{filename || 'main.py'}</div>
+        <div className={`flex items-center justify-between p-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
-            {actions && <div className="flex items-center gap-2 mr-2">{actions}</div>}
+            {actions && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="h-8 w-8 p-0"
+              title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-gray-700" />}
+            </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleFullScreen}
-              className="h-8 w-8 p-0 hover:bg-gray-100"
-              title="Full Screen (F11)"
+              className={`h-8 w-8 p-0 ${isDarkMode ? 'hover:bg-[#23232a]' : 'hover:bg-gray-100'}`}
+              title={isFullScreen ? 'Exit Full Screen (F11)' : 'Full Screen (F11)'}
             >
-              <Maximize2 className="h-4 w-4" />
+              {isFullScreen
+                ? <Minimize2 className={`h-4 w-4 ${isDarkMode ? 'text-gray-100 hover:text-gray-300' : 'text-gray-700 hover:text-black'}`} />
+                : <Maximize2 className={`h-4 w-4 ${isDarkMode ? 'text-gray-100 hover:text-gray-300' : 'text-gray-700 hover:text-black'}`} />}
             </Button>
           </div>
         </div>
@@ -614,7 +637,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             {/* Line numbers column */}
             {showLineNumbers && (
               <div
-                 className="select-none text-right pr-4 py-4 bg-white border-r border-gray-200 text-gray-400"
+                 className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
                 style={{ userSelect: 'none', minWidth: '3em' }}
                 aria-hidden="true"
               >
@@ -624,11 +647,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               </div>
             )}
             {/* Code column */}
-            <div className="flex-1 py-4 px-4 relative pl-3">
+            <div className={`flex-1 py-4 px-4 relative pl-3 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
               {readOnly ? (
                 <pre
                   ref={preRef}
-                  className="w-full h-full bg-white text-black whitespace-pre-wrap focus:outline-none"
+                  className={`w-full h-full whitespace-pre-wrap focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                   tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
@@ -640,7 +663,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   value={code}
                   onChange={handleCodeChange}
                   onSelect={handleSelection}
-                  className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black resize-none"
+                  className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
                 />
               )}
