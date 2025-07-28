@@ -160,7 +160,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (activeTab === 'conversion' && e.shiftKey && e.key.toLowerCase() === 'f') {
+      if ((activeTab === 'conversion' || activeTab === 'devReview') && e.shiftKey && e.key.toLowerCase() === 'f') {
         setIsFullscreen((prev) => !prev);
       } else if (e.key === 'Escape') {
         setIsFullscreen(false);
@@ -170,9 +170,9 @@ const Dashboard = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTab]);
 
-  // Exit fullscreen if user leaves conversion tab
+  // Exit fullscreen if user leaves conversion or devReview tab
   useEffect(() => {
-    if (activeTab !== 'conversion' && isFullscreen) {
+    if ((activeTab !== 'conversion' && activeTab !== 'devReview') && isFullscreen) {
       setIsFullscreen(false);
     }
   }, [activeTab, isFullscreen]);
@@ -474,17 +474,26 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="devReview">
-            <DevReviewPanel
-              canCompleteMigration={canCompleteMigration}
-              onCompleteMigration={() => { handleCompleteMigration(); }}
-              onFileReviewed={handleFileReviewed}
-              unreviewedFiles={unreviewedFiles}
-              isLoading={isLoading}
-              markAsReviewed={markAsReviewed}
-              deleteUnreviewedFile={deleteUnreviewedFile}
-              updateUnreviewedFile={updateUnreviewedFile}
-              refreshUnreviewedFiles={refreshUnreviewedFiles}
-            />
+            <div
+              className={isFullscreen ?
+                'fixed inset-0 z-50 bg-white dark:bg-slate-900 overflow-auto flex flex-col' :
+                ''
+              }
+              style={isFullscreen ? { width: '100vw', height: '100vh', padding: 0, margin: 0 } : {}}
+            >
+              <DevReviewPanel
+                canCompleteMigration={canCompleteMigration}
+                onCompleteMigration={() => { handleCompleteMigration(); }}
+                onFileReviewed={handleFileReviewed}
+                unreviewedFiles={unreviewedFiles}
+                isLoading={isLoading}
+                markAsReviewed={markAsReviewed}
+                deleteUnreviewedFile={deleteUnreviewedFile}
+                updateUnreviewedFile={updateUnreviewedFile}
+                refreshUnreviewedFiles={refreshUnreviewedFiles}
+              />
+              {/* No fullscreen exit button */}
+            </div>
           </TabsContent>
         </Tabs>
       </main>
