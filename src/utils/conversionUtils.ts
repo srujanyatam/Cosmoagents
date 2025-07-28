@@ -336,9 +336,9 @@ const generatePerformanceMetrics = (
     ((originalComplexity.cyclomaticComplexity - convertedComplexity.cyclomaticComplexity) / originalComplexity.cyclomaticComplexity) * 100
   );
   
-  // Calculate lines reduced
-  const originalLines = originalComplexity.totalLines;
-  const convertedLines = convertedComplexity.totalLines;
+  // Calculate lines reduced (using codeLines to exclude empty lines)
+  const originalLines = originalComplexity.codeLines;
+  const convertedLines = convertedComplexity.codeLines;
   const linesReduced = originalLines - convertedLines;
 
   // Calculate loops reduced

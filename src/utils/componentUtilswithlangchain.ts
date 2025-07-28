@@ -383,8 +383,8 @@ const generateBalancedPerformanceMetrics = (
             maintainabilityScore: Math.round(convertedComplexity.commentRatio * 10 * 100) / 100
         },
         // Add these fields for dashboard and viewer
-        originalLines: originalComplexity.totalLines,
-        convertedLines: convertedComplexity.totalLines,
+        originalLines: originalComplexity.codeLines,
+        convertedLines: convertedComplexity.codeLines,
         originalLoops: originalComplexity.complexityScore && originalCode ? (originalCode.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length : 0,
         convertedLoops: convertedComplexity.complexityScore && convertedCode ? (convertedCode.match(/\b(LOOP|WHILE|FOR)\b/g) || []).length : 0
     };
