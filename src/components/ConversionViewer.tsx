@@ -126,12 +126,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
 
   // Calculate dynamic height based on content length
   const getDynamicHeight = (content: string) => {
-    const lineCount = content.split('\n').length;
-    if (lineCount > 400) return '1000px';
-    if (lineCount > 300) return '900px';
-    if (lineCount > 200) return '800px';
-    if (lineCount > 100) return '700px';
-    return '600px';
+    return '300px';
   };
 
   const originalHeight = getDynamicHeight(file.content || '');
@@ -223,22 +218,20 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
         
         <TabsContent value="code" className="space-y-4">
           {(file.content || file.convertedContent) ? (
-            <div className={`relative grid gap-6 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'} min-h-[800px]`}>
+            <div className={`relative grid gap-4 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Left Column: Original Sybase Code with Prev Arrow */}
-                <div className="flex flex-col min-h-0 overflow-hidden">
-                  <div className="flex items-center mb-2">
-                    {hasPrev && onPrevFile && (
-                      <button
-                        className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                        onClick={onPrevFile}
-                        aria-label="Previous file"
-                      >
-                        <ArrowLeft className="h-6 w-6" />
-                      </button>
-                    )}
-                    <h3 className="text-sm font-medium">Original Sybase Code:</h3>
-                  </div>
-                  <div className="flex-1 min-h-0 overflow-hidden">
+                <div className="flex items-start">
+                  {hasPrev && onPrevFile && (
+                    <button
+                      className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                      onClick={onPrevFile}
+                      aria-label="Previous file"
+                    >
+                      <ArrowLeft className="h-6 w-6" />
+                    </button>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
                     <CodeEditor
                       initialCode={file.content}
                       readOnly={true}
@@ -251,20 +244,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                 </div>
                 {/* Right Column: Converted Oracle Code (only if available) */}
                 {file.convertedContent && (
-                  <div className="flex flex-col min-h-0 overflow-hidden">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-sm font-medium text-green-700">Converted Oracle Code:</h3>
-                      {hasNext && onNextFile && (
-                        <button
-                          className="bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                          onClick={onNextFile}
-                          aria-label="Next file"
-                        >
-                          <ArrowRight className="h-6 w-6" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="flex-1 min-h-0 overflow-hidden">
+                  <div className="flex items-start">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
                       {isEditing ? (
                         hideEdit ? (
                           <CodeEditor
@@ -404,11 +386,20 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           />
                       )}
                     </div>
+                    {hasNext && onNextFile && (
+                      <button
+                        className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                        onClick={onNextFile}
+                        aria-label="Next file"
+                      >
+                        <ArrowRight className="h-6 w-6" />
+                      </button>
+                    )}
                   </div>
                 )}
                 
-
-               </div>
+ 
+                </div>
           ) : (
             <div className="text-center text-gray-400">No code available.</div>
           )}
