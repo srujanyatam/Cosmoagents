@@ -159,11 +159,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Debug: log when Ctrl+G is pressed
-      if (e.ctrlKey && e.key === 'g') {
-        console.log('Ctrl+G pressed, showGoToLine:', showGoToLine);
-      }
-      
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
         setShowSearch(true);
@@ -172,10 +167,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       
       if (e.ctrlKey && e.key === 'g') {
         e.preventDefault();
-        console.log('Setting showGoToLine to true');
         setShowGoToLine(true);
         setTimeout(() => {
-          console.log('Focusing goToLineInputRef:', goToLineInputRef.current);
           goToLineInputRef.current?.focus();
         }, 100);
       }
@@ -205,7 +198,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       
       if (showGoToLine && e.key === 'Enter') {
         e.preventDefault();
-        console.log('Enter pressed in goToLine, calling goToLine()');
         goToLine();
       }
       
@@ -247,13 +239,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [showSearch, matches, currentMatchIndex, showGoToLine]);
 
   const goToLine = () => {
-    console.log('goToLine called with lineNumber:', lineNumber);
     const lineNum = parseInt(lineNumber);
     const lines = code.split('\n');
-    console.log('Parsed lineNum:', lineNum, 'Total lines:', lines.length);
     
     if (isNaN(lineNum) || lineNum < 1 || lineNum > lines.length) {
-      console.log('Invalid line number, showing toast');
       toast({
         title: "Invalid line number",
         description: `Please enter a number between 1 and ${lines.length}`,
@@ -264,18 +253,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     
     // Find the scrollable container (ScrollArea's viewport)
     const scrollContainer = scrollContainerRef.current?.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
-    console.log('Scroll container found:', !!scrollContainer);
     if (!scrollContainer) return;
     
     // Calculate the position of the target line
     const lineHeight = 24; // More accurate line height including padding
     const padding = 16; // Top and bottom padding
     const targetLineTop = ((lineNum - 1) * lineHeight) + padding;
-    console.log('Target line top position:', targetLineTop);
     
     // Scroll to the target line
     scrollContainer.scrollTop = Math.max(0, targetLineTop - 20);
-    console.log('Scrolled to position:', scrollContainer.scrollTop);
     
     // Set cursor position for editable mode
     if (!readOnly && textareaRef.current) {
@@ -283,13 +269,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       const charIndex = linesBeforeTarget.join('\n').length + (lineNum > 1 ? 1 : 0); // +1 for newline
       textareaRef.current.setSelectionRange(charIndex, charIndex);
       textareaRef.current.focus();
-      console.log('Set cursor position to:', charIndex);
     }
     
     // Close the dialog
     setShowGoToLine(false);
     setLineNumber('');
-    console.log('Go to line completed');
   };
 
   const navigateToNextMatch = () => {
@@ -717,10 +701,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   }
 
   return (
-    <div className="w-full relative" data-code-editor>
-      <div className="rounded-md border bg-card">
+    <div className="w-full relative h-full overflow-hidden" data-code-editor>
+      <div className="rounded-md border bg-card h-full flex flex-col overflow-hidden">
         {/* Full Screen Button and actions in header */}
-        <div className={`flex items-center justify-between p-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className={`flex items-center justify-between p-2 border-b flex-shrink-0 ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
@@ -748,9 +732,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
         </div>
         
-        <ScrollArea ref={scrollContainerRef} style={{ height }}>
+        <ScrollArea ref={scrollContainerRef} style={{ height }} className="flex-1 overflow-hidden">
           <div
-            className={`flex font-mono text-sm w-full h-full p-0 bg-white`}
+            className={`flex font-mono text-sm w-full h-full p-0 bg-white overflow-hidden`}
             style={{ minHeight: height }}
           >
             {/* Line numbers column */}

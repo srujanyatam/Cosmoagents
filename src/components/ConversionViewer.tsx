@@ -116,10 +116,26 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
   const [rewritePrompt, setRewritePrompt] = useState('');
   const [isRewriting, setIsRewriting] = useState(false);
   const [selection, setSelection] = useState<{ start: number; end: number }>({ start: 0, end: 0 });
-  const [preservedSelection, setPreservedSelection] = useState<{ start: number; end: number } | null>(null);
+  const [preservedSelection, setPreservedSelection] = useState<{
+    start: number;
+    end: number;
+  }>({ start: 0, end: 0 });
   const [showExplainDialog, setShowExplainDialog] = useState(false);
-  const [isExplaining, setIsExplaining] = useState(false);
   const [explanation, setExplanation] = useState('');
+  const [isExplaining, setIsExplaining] = useState(false);
+
+  // Calculate dynamic height based on content length
+  const getDynamicHeight = (content: string) => {
+    const lineCount = content.split('\n').length;
+    if (lineCount > 400) return '1000px';
+    if (lineCount > 300) return '900px';
+    if (lineCount > 200) return '800px';
+    if (lineCount > 100) return '700px';
+    return '600px';
+  };
+
+  const originalHeight = getDynamicHeight(file.content || '');
+  const convertedHeight = getDynamicHeight(file.convertedContent || '');
 
   useEffect(() => {
     setEditedContent(file.convertedContent || '');
@@ -207,52 +223,55 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
         
         <TabsContent value="code" className="space-y-4">
           {(file.content || file.convertedContent) ? (
-            <div className={`relative grid gap-4 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div className={`relative grid gap-6 ${file.convertedContent ? 'grid-cols-2' : 'grid-cols-1'} min-h-[800px]`}>
                 {/* Left Column: Original Sybase Code with Prev Arrow */}
-                <div className="flex items-start">
-                  {hasPrev && onPrevFile && (
-                    <button
-                      className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                      onClick={onPrevFile}
-                      aria-label="Previous file"
-                    >
-                      <ArrowLeft className="h-6 w-6" />
-                    </button>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium mb-2">Original Sybase Code:</h3>
+                <div className="flex flex-col min-h-0 overflow-hidden">
+                  <div className="flex items-center mb-2">
+                    {hasPrev && onPrevFile && (
+                      <button
+                        className="mr-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                        onClick={onPrevFile}
+                        aria-label="Previous file"
+                      >
+                        <ArrowLeft className="h-6 w-6" />
+                      </button>
+                    )}
+                    <h3 className="text-sm font-medium">Original Sybase Code:</h3>
+                  </div>
+                  <div className="flex-1 min-h-0 overflow-hidden">
                     <CodeEditor
                       initialCode={file.content}
                       readOnly={true}
                       showLineNumbers={true}
-                      height="400px"
+                      height={originalHeight}
                       language="sql"
                       filename={file.name}
                     />
                   </div>
-                  {/* Next arrow for single column layout */}
-                  {!file.convertedContent && hasNext && onNextFile && (
-                    <button
-                      className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                      onClick={onNextFile}
-                      aria-label="Next file"
-                    >
-                      <ArrowRight className="h-6 w-6" />
-                    </button>
-                  )}
                 </div>
-                {/* Middle Column: Converted Oracle Code (only if available) */}
+                {/* Right Column: Converted Oracle Code (only if available) */}
                 {file.convertedContent && (
-                  <div className="flex items-start">
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium mb-2 text-green-700">Converted Oracle Code:</h3>
+                  <div className="flex flex-col min-h-0 overflow-hidden">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-green-700">Converted Oracle Code:</h3>
+                      {hasNext && onNextFile && (
+                        <button
+                          className="bg-white border rounded-full shadow p-1 hover:bg-gray-100"
+                          onClick={onNextFile}
+                          aria-label="Next file"
+                        >
+                          <ArrowRight className="h-6 w-6" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-hidden">
                       {isEditing ? (
                         hideEdit ? (
                           <CodeEditor
                             initialCode={file.convertedContent}
                             readOnly={true}
                             showLineNumbers={true}
-                            height="400px"
+                            height={convertedHeight}
                             language="plsql"
                             filename={convertedFilename || file.name}
                             actions={undefined}
@@ -265,7 +284,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               onChange={setEditedContent}
                               readOnly={false}
                               showLineNumbers={true}
-                              height="400px"
+                              height={convertedHeight}
                               language="plsql"
                               selection={selection}
                               onSelectionChange={setSelection}
@@ -328,7 +347,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             initialCode={file.convertedContent}
                             readOnly={true}
                             showLineNumbers={true}
-                            height="400px"
+                            height={convertedHeight}
                             language="plsql"
                             filename={convertedFilename || file.name}
                           actions={hideEdit ? undefined : (isDarkMode) => (
@@ -385,15 +404,6 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           />
                       )}
                     </div>
-                    {hasNext && onNextFile && (
-                      <button
-                        className="ml-2 bg-white border rounded-full shadow p-1 hover:bg-gray-100"
-                        onClick={onNextFile}
-                        aria-label="Next file"
-                      >
-                        <ArrowRight className="h-6 w-6" />
-                      </button>
-                    )}
                   </div>
                 )}
                 
