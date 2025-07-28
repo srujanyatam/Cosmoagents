@@ -126,12 +126,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
 
   // Calculate dynamic height based on content length
   const getDynamicHeight = (content: string) => {
-    const lineCount = content.split('\n').length;
-    if (lineCount > 400) return '1000px';
-    if (lineCount > 300) return '900px';
-    if (lineCount > 200) return '800px';
-    if (lineCount > 100) return '700px';
-    return '600px';
+    return '300px';
   };
 
   const originalHeight = getDynamicHeight(file.content || '');
