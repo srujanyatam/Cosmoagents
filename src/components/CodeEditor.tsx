@@ -514,8 +514,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   style={{ 
                     userSelect: 'none', 
                     minWidth: '3.5em',
-                    minHeight: `${code.split('\n').length * 1.5}em`,
-                    height: `${code.split('\n').length * 1.5}em`
+                    height: '100%'
                   }}
                   aria-hidden="true"
                 >
@@ -769,8 +768,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 style={{ 
                   userSelect: 'none', 
                   minWidth: '3em',
-                  minHeight: `${code.split('\n').length * 1.5}em`,
-                  height: `${code.split('\n').length * 1.5}em`
+                  height: '100%'
                 }}
                 aria-hidden="true"
               >
