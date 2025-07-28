@@ -703,18 +703,18 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
               </div>
             ) : (
               <>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rewrite Instructions (Optional)</label>
-                  <Textarea
-                    value={rewritePrompt}
-                    onChange={(e) => setRewritePrompt(e.target.value)}
-                    placeholder="Describe how you want the code to be rewritten (e.g., 'Add comments', 'Optimize performance', 'Improve readability')"
-                    rows={3}
-                  />
-                </div>
-                <div className="text-sm text-gray-600">
-                  <p>Selected code will be rewritten using AI. You can provide specific instructions or let AI optimize automatically.</p>
-                </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Rewrite Instructions (Optional)</label>
+              <Textarea
+                value={rewritePrompt}
+                onChange={(e) => setRewritePrompt(e.target.value)}
+                placeholder="Describe how you want the code to be rewritten (e.g., 'Add comments', 'Optimize performance', 'Improve readability')"
+                rows={3}
+              />
+            </div>
+            <div className="text-sm text-gray-600">
+              <p>Selected code will be rewritten using AI. You can provide specific instructions or let AI optimize automatically.</p>
+            </div>
               </>
             )}
           </div>

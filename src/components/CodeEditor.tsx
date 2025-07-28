@@ -59,6 +59,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
+  const currentMatchRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     if (value !== undefined && value !== code) setCode(value);
@@ -236,7 +237,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       textareaRef.current.setSelectionRange(match.start, match.end);
       textareaRef.current.focus();
     }
-    
+    // In both readOnly and editable mode, scroll to the match
     // Calculate the actual position of the match
     const lines = code.split('\n');
     const lineHeight = 24; // More accurate line height including padding
@@ -364,7 +365,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                               matches[currentMatchIndex]?.end === match.end;
         
         const highlightClass = isCurrentMatch ? 'bg-yellow-400' : 'bg-yellow-200';
-        highlightedLine = before + `<span class="${highlightClass}">${matchText}</span>` + after;
+        // Add ref only to the current match
+        const span = isCurrentMatch
+          ? `<span class="${highlightClass}" data-current-match="true" ref="currentMatchRef">${matchText}</span>`
+          : `<span class="${highlightClass}">${matchText}</span>`;
+        highlightedLine = before + span + after;
       }
       
       return highlightedLine;
@@ -372,6 +377,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     
     return highlightedLines.join('\n');
   };
+
+  // useEffect to scroll current match into view in readOnly mode
+  useEffect(() => {
+    if (readOnly && matches.length > 0 && currentMatchIndex >= 0) {
+      // Wait for DOM update
+      setTimeout(() => {
+        const pre = preRef.current;
+        if (!pre) return;
+        // Find the current match span
+        const span = pre.querySelector('span[data-current-match="true"]');
+        if (span && typeof span.scrollIntoView === 'function') {
+          span.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }, 50);
+    }
+  }, [readOnly, matches, currentMatchIndex]);
 
   const toggleFullScreen = () => {
     setIsFullScreen(!isFullScreen);
@@ -425,6 +446,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                       style={{ fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                       tabIndex={0}
                       dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
+                      data-has-current-match={matches.length > 0}
                     />
                   ) : (
                     <Textarea
@@ -581,18 +603,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             className={`flex font-mono text-sm w-full h-full p-0 bg-white`}
             style={{ minHeight: height }}
           >
-                         {/* Line numbers column */}
-             {showLineNumbers && (
-               <div
+            {/* Line numbers column */}
+            {showLineNumbers && (
+              <div
                  className="select-none text-right pr-4 py-4 bg-white border-r border-gray-200 text-gray-400"
-                 style={{ userSelect: 'none', minWidth: '3em' }}
-                 aria-hidden="true"
-               >
-                 {code.split('\n').map((_, i) => (
-                   <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
-                 ))}
-               </div>
-             )}
+                style={{ userSelect: 'none', minWidth: '3em' }}
+                aria-hidden="true"
+              >
+                {code.split('\n').map((_, i) => (
+                  <div key={i} style={{ height: '1.5em', lineHeight: '1.5em' }}>{i + 1}</div>
+                ))}
+              </div>
+            )}
             {/* Code column */}
             <div className="flex-1 py-4 relative">
               {readOnly ? (
@@ -602,6 +624,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
                   tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
+                  data-has-current-match={matches.length > 0}
                 />
               ) : (
                 <Textarea
