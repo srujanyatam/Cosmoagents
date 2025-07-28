@@ -407,7 +407,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         {/* Minimal Top Bar with filename on left and full-screen button on right */}
         <div className={`flex items-center justify-between px-4 py-2 border-b ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white'}`}>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-700">{filename || 'main.py'}</span>
+            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</span>
           </div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
@@ -437,9 +437,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         </div>
         
         {/* Full Screen Code Editor */}
-        <div className="flex-1 overflow-hidden relative">
-          <div className="h-full bg-white">
-            <ScrollArea ref={scrollContainerRef} className="h-full">
+        <div className={`flex-1 overflow-hidden relative ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+          <div className={`h-full ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+            <ScrollArea ref={scrollContainerRef} className={`h-full ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
               <div className="flex font-mono text-sm w-full h-full p-0 bg-white">
                 {/* Line numbers column */}
                 {showLineNumbers && (
