@@ -269,7 +269,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               selection={selection}
                               onSelectionChange={setSelection}
                               filename={convertedFilename || file.name}
-                              actions={
+                              actions={(isDarkMode) => (
                                 <div className="flex items-center gap-2 mt-0">
                                   <TooltipProvider>
                                     <Tooltip>
@@ -280,7 +280,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                                           onClick={handleSaveEdit}
                                           className="h-8 w-8 p-0"
                                         >
-                                          <Save className="h-5 w-5" />
+                                          <Save className={`h-5 w-5 ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`} />
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>Save</TooltipContent>
@@ -318,7 +318,7 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                                     </Tooltip>
                                   </TooltipProvider>
                                 </div>
-                              }
+                              )}
                             />
                           </>
                         )

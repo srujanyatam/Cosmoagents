@@ -411,7 +411,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
-            {actions && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
+            {typeof actions === 'function' && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
             <Button
               size="icon"
               variant="ghost"
@@ -605,7 +605,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           <div className={`text-sm ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
           <div className="flex items-center gap-2">
             {/* Render actions in header, before full screen button */}
-            {actions && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
+            {typeof actions === 'function' && <div className="flex items-center gap-2 mr-2">{actions(isDarkMode)}</div>}
             <Button
               size="icon"
               variant="ghost"
