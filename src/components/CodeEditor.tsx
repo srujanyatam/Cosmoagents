@@ -19,6 +19,7 @@ interface CodeEditorProps {
   selection?: { start: number; end: number };
   onSelectionChange?: (sel: { start: number; end: number }) => void;
   filename?: string;
+  actions?: React.ReactNode; // New prop for action buttons
 }
 
 interface SearchMatch {
@@ -40,6 +41,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   selection,
   onSelectionChange,
   filename,
+  actions,
 }) => {
   const [code, setCode] = useState<string>(value !== undefined ? value : initialCode);
   const [isRewriting, setIsRewriting] = useState<boolean>(false);
@@ -407,6 +409,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             <span className="text-sm font-medium text-gray-700">{filename || 'main.py'}</span>
           </div>
           <div className="flex items-center gap-2">
+            {/* Render actions in header, before full screen button */}
+            {actions && <div className="flex items-center gap-2 mr-2">{actions}</div>}
             <span className="text-xs text-gray-500">Press F11 to exit</span>
             <Button
               variant="ghost"
@@ -458,6 +462,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                       style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                     />
                   )}
+                  {/* Render actions below code area in full screen */}
+                  {actions && <div className="mt-4">{actions}</div>}
                 </div>
               </div>
             </ScrollArea>
@@ -584,18 +590,22 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   return (
     <div className="w-full relative">
       <div className="rounded-md border bg-card">
-        {/* Full Screen Button */}
+        {/* Full Screen Button and actions in header */}
         <div className="flex items-center justify-between p-2 border-b bg-white">
           <div className="text-sm text-gray-700">{filename || 'main.py'}</div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleFullScreen}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
-            title="Full Screen (F11)"
-          >
-            <Maximize2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Render actions in header, before full screen button */}
+            {actions && <div className="flex items-center gap-2 mr-2">{actions}</div>}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFullScreen}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+              title="Full Screen (F11)"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <ScrollArea ref={scrollContainerRef} style={{ height }}>
@@ -636,6 +646,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
                 />
               )}
+              {/* Render actions below code area */}
+              {actions && <div className="mt-4">{actions}</div>}
             </div>
           </div>
         </ScrollArea>

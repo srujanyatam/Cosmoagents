@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Save, Clock, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Edit, Save, X, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import ConversionIssuesPanel from './ConversionIssuesPanel';
 import FileDownloader from './FileDownloader';
 import { supabase } from '@/integrations/supabase/client';
@@ -269,43 +269,57 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                               selection={selection}
                               onSelectionChange={setSelection}
                               filename={convertedFilename || file.name}
+                              actions={
+                                <div className="flex items-center gap-2 mt-0">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={handleSaveEdit}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Save className="h-5 w-5" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Save</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={() => setIsEditing(false)}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <X className="h-5 w-5 text-red-500" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Cancel</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={() => setShowRewriteDialog(true)}
+                                          disabled={isRewriting || selection.start === selection.end}
+                                          className="h-8 w-8 p-0 bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200"
+                                        >
+                                          <Sparkles className="h-5 w-5 text-white drop-shadow" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Rewrite with AI</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              }
                             />
-                            <div className="flex items-center gap-2 mt-2">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={handleSaveEdit}
-                              >
-                                <Save className="h-4 w-4 mr-1" />
-                                Save
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setIsEditing(false)}
-                              >
-                                Cancel
-                              </Button>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setShowRewriteDialog(true)}
-                                      disabled={isRewriting || selection.start === selection.end}
-                                      className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-md hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 flex items-center gap-2"
-                                    >
-                                      <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
-                                      {isRewriting ? 'Rewriting...' : 'Rewrite with AI'}
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>Rewrite the code using AI to optimize performance, add comments, or improve readability.</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
                           </>
                         )
                       ) : (
@@ -317,45 +331,60 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                             height="400px"
                             language="plsql"
                             filename={convertedFilename || file.name}
+                            actions={
+                              !hideEdit && !isEditing && (
+                                <div className="flex items-center gap-2 mt-0">
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={() => setIsEditing(true)}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Edit className="h-5 w-5" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Edit</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          size="icon"
+                                          variant="ghost"
+                                          onClick={async () => {
+                                            setShowExplainDialog(true);
+                                            setIsExplaining(true);
+                                            setExplanation('');
+                                            try {
+                                              const res = await fetch('/.netlify/functions/ai-explain', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
+                                              });
+                                              const data = await res.json();
+                                              setExplanation(data.explanation || 'No explanation returned.');
+                                            } catch (err) {
+                                              setExplanation('Failed to get explanation.');
+                                            } finally {
+                                              setIsExplaining(false);
+                                            }
+                                          }}
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <Sparkles className="h-5 w-5 text-yellow-400" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>AI Code Analyzer</TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              )
+                            }
                           />
-                          {!hideEdit && !isEditing && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setIsEditing(true)}
-                              >
-                                <Edit className="h-4 w-4 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={async () => {
-                                  setShowExplainDialog(true);
-                                  setIsExplaining(true);
-                                  setExplanation('');
-                                  try {
-                                    const res = await fetch('/.netlify/functions/ai-explain', {
-                                      method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
-                                    });
-                                    const data = await res.json();
-                                    setExplanation(data.explanation || 'No explanation returned.');
-                                  } catch (err) {
-                                    setExplanation('Failed to get explanation.');
-                                  } finally {
-                                    setIsExplaining(false);
-                                  }
-                                }}
-                                className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 flex items-center gap-2"
-                              >
-                                <Sparkles className="h-4 w-4 mr-1 text-yellow-200" />
-                                AI Code Analyzer
-                              </Button>
-                            </div>
-                          )}
                         </>
                       )}
                     </div>
