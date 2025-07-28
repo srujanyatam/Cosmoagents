@@ -504,7 +504,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               {showLineNumbers && (
                 <div
                   className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 z-10 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
-                  style={{ userSelect: 'none', minWidth: '3.5em' }}
+                  style={{ 
+                    userSelect: 'none', 
+                    minWidth: '3.5em',
+                    minHeight: `${code.split('\n').length * 1.5}em`,
+                    height: `${code.split('\n').length * 1.5}em`
+                  }}
                   aria-hidden="true"
                 >
                   {code.split('\n').map((_, i) => (
@@ -513,12 +518,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                 </div>
               )}
               {/* Code column */}
-              <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+              <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} style={{ minHeight: `${code.split('\n').length * 1.5}em` }}>
                 {readOnly ? (
                   <pre
                     ref={preRef}
                     className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0, minHeight: `${code.split('\n').length * 1.5}em` }}
                     tabIndex={0}
                     dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
                     data-has-current-match={matches.length > 0}
@@ -530,7 +535,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                     onChange={handleCodeChange}
                     onSelect={handleSelection}
                     className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit' }}
+                    style={{ height, fontFamily: 'inherit', fontSize: 'inherit', minHeight: `${code.split('\n').length * 1.5}em` }}
                   />
                 )}
               </div>
@@ -739,7 +744,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
             {showLineNumbers && (
               <div
                  className={`select-none text-right pr-4 py-4 border-r text-gray-400 sticky left-0 z-10 ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}
-                style={{ userSelect: 'none', minWidth: '3em' }}
+                style={{ 
+                  userSelect: 'none', 
+                  minWidth: '3em',
+                  minHeight: `${code.split('\n').length * 1.5}em`,
+                  height: `${code.split('\n').length * 1.5}em`
+                }}
                 aria-hidden="true"
               >
                 {code.split('\n').map((_, i) => (
@@ -748,12 +758,12 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               </div>
             )}
             {/* Code column */}
-            <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}>
+            <div className={`flex-1 py-4 px-4 relative pl-3 min-w-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} style={{ minHeight: `${code.split('\n').length * 1.5}em` }}>
               {readOnly ? (
                 <pre
                   ref={preRef}
                   className={`w-full h-full whitespace-pre focus:outline-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0 }}
+                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit', margin: 0, minHeight: `${code.split('\n').length * 1.5}em` }}
                   tabIndex={0}
                   dangerouslySetInnerHTML={{ __html: highlightMatches(code) }}
                   data-has-current-match={matches.length > 0}
@@ -765,7 +775,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   onChange={handleCodeChange}
                   onSelect={handleSelection}
                   className={`w-full h-full p-0 border-none focus-visible:ring-0 resize-none ${isDarkMode ? 'bg-[#18181b] text-gray-100' : 'bg-white text-black'}`}
-                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit' }}
+                  style={{ height, fontFamily: 'inherit', fontSize: 'inherit', minHeight: `${code.split('\n').length * 1.5}em` }}
                 />
               )}
             </div>
