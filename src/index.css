@@ -186,3 +186,12 @@
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb, #d1d5db) var(--scrollbar-track, #f3f4f6);
 }
+
+/* Code editor dark mode fixes */
+[data-code-editor] .bg-\[#18181b\] {
+  background-color: #18181b !important;
+}
+
+[data-code-editor] .bg-\[#23232a\] {
+  background-color: #23232a !important;
+}

@@ -506,7 +506,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               scrollbarColor: isDarkMode ? '#4b5563 #1f2937' : '#d1d5db #f3f4f6'
             }}
           >
-            <div className="flex font-mono text-sm w-full p-0 bg-white" style={{ height, minWidth: 'max-content' }}>
+            <div className={`flex font-mono text-sm w-full p-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`} style={{ height, minWidth: 'max-content' }}>
               {/* Line numbers column */}
               {showLineNumbers && (
                 <div
@@ -666,9 +666,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
         {/* Go to Line Overlay */}
         {showGoToLine && (
-          <div className="absolute top-16 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-xl p-3 z-50 min-w-[300px]">
+          <div className={`absolute top-16 right-4 backdrop-blur-sm border rounded-lg shadow-xl p-3 z-50 min-w-[300px] ${isDarkMode ? 'bg-[#23232a]/95 border-gray-700' : 'bg-white/95 border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Go to Line</span>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Go to Line</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -719,7 +719,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         '--scrollbar-track': isDarkMode ? '#1f2937' : '#f3f4f6',
       } as React.CSSProperties}
     >
-      <div className="rounded-md border bg-card h-full flex flex-col overflow-hidden">
+      <div className={`rounded-md border h-full flex flex-col overflow-hidden ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
         {/* Full Screen Button and actions in header */}
         <div className={`flex items-center justify-between p-2 border-b flex-shrink-0 ${isDarkMode ? 'bg-[#18181b] border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className={`text-sm font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{filename || 'main.py'}</div>
@@ -750,7 +750,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         </div>
         
         <div 
-          className="flex-1 overflow-auto custom-scrollbar" 
+          className={`flex-1 overflow-auto custom-scrollbar ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}
           ref={scrollContainerRef} 
           style={{ 
             height,
@@ -759,7 +759,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
           }}
         >
           <div
-            className={`flex font-mono text-sm w-full p-0 bg-white`}
+            className={`flex font-mono text-sm w-full p-0 ${isDarkMode ? 'bg-[#18181b]' : 'bg-white'}`}
             style={{ height, minWidth: 'max-content' }}
           >
             {/* Line numbers column */}
@@ -807,7 +807,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
       {/* Search Overlay */}
       {showSearch && (
-        <div className="absolute top-2 right-2 bg-white border rounded-lg shadow-lg p-3 z-50 min-w-[400px]">
+        <div className={`absolute top-2 right-2 border rounded-lg shadow-lg p-3 z-50 min-w-[400px] ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center gap-2 mb-2">
             <Search className="h-4 w-4 text-gray-500" />
             <Input
@@ -921,9 +921,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
         {/* Go to Line Overlay */}
         {showGoToLine && (
-          <div className="absolute top-2 right-2 bg-white border rounded-lg shadow-lg p-3 z-50 min-w-[300px]">
+          <div className={`absolute top-2 right-2 border rounded-lg shadow-lg p-3 z-50 min-w-[300px] ${isDarkMode ? 'bg-[#23232a] border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-gray-700">Go to Line</span>
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Go to Line</span>
               <Button
                 variant="ghost"
                 size="sm"
