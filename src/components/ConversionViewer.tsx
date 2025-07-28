@@ -373,9 +373,9 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                                               setIsExplaining(false);
                                             }
                                           }}
-                                          className="h-8 w-8 p-0"
+                                          className="h-8 w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
                                         >
-                                          <Sparkles className="h-5 w-5 text-yellow-400" />
+                                          <Sparkles className="h-5 w-5 text-white drop-shadow" />
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>AI Code Analyzer</TooltipContent>
