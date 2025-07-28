@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Database, FileText, Upload, Clock, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,6 +53,8 @@ const Dashboard = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingCompleteMigration, setPendingCompleteMigration] = useState(false);
   const [cacheEnabled, setCacheEnabledState] = useState(isCacheEnabled());
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const conversionTabRef = useRef<HTMLDivElement>(null);
 
   const handleToggleCache = () => {
     setCacheEnabled(!cacheEnabled);
@@ -155,6 +157,25 @@ const Dashboard = () => {
       );
     }
   }, [activeTab, unreviewedFiles]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeTab === 'conversion' && e.shiftKey && e.key.toLowerCase() === 'f') {
+        setIsFullscreen((prev) => !prev);
+      } else if (e.key === 'Escape') {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab]);
+
+  // Exit fullscreen if user leaves conversion tab
+  useEffect(() => {
+    if (activeTab !== 'conversion' && isFullscreen) {
+      setIsFullscreen(false);
+    }
+  }, [activeTab, isFullscreen]);
 
   const handleDeleteFiles = (fileIds: string[]) => {
     setFiles(prevFiles => prevFiles.filter(file => !fileIds.includes(file.id)));
@@ -363,13 +384,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader
-        onGoToHistory={handleGoToHistory}
-        onGoHome={handleGoHome}
-        onShowHelp={() => setShowHelp(true)}
-      />
-
-      <main className="container mx-auto px-4 py-8">
+      {!isFullscreen && (
+        <DashboardHeader
+          onGoToHistory={handleGoToHistory}
+          onGoHome={handleGoHome}
+          onShowHelp={() => setShowHelp(true)}
+        />
+      )}
+      <main className={isFullscreen ? '' : 'container mx-auto px-4 py-8'}>
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'upload' | 'conversion' | 'devReview' | 'metrics')}>
           <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
             <TabsTrigger value="upload" className="flex items-center gap-2">
@@ -400,25 +422,43 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="conversion">
-            <ConversionPanel
-              files={files}
-              selectedFile={selectedFile}
-              isConverting={isConverting}
-              convertingFileIds={convertingFileIds}
-              onFileSelect={handleFileSelect}
-              onConvertFile={handleConvertFile}
-              onConvertAllByType={handleConvertAllByType}
-              onConvertAll={handleConvertAll}
-              onFixFile={handleFixFile}
-              onManualEdit={handleManualEdit}
-              onDismissIssue={handleDismissIssue}
-              onGenerateReport={handleGenerateReportWrapper}
-              onUploadRedirect={handleResetAndUpload}
-              onClear={handleResetAndUpload}
-              onMoveToDevReview={handleMoveToDevReview}
-              canCompleteMigration={canCompleteMigration}
-              onDeleteFiles={handleDeleteFiles}
-            />
+            <div
+              ref={conversionTabRef}
+              className={isFullscreen ?
+                'fixed inset-0 z-50 bg-white dark:bg-slate-900 overflow-auto flex flex-col' :
+                ''
+              }
+              style={isFullscreen ? { width: '100vw', height: '100vh', padding: 0, margin: 0 } : {}}
+            >
+              <ConversionPanel
+                files={files}
+                selectedFile={selectedFile}
+                isConverting={isConverting}
+                convertingFileIds={convertingFileIds}
+                onFileSelect={handleFileSelect}
+                onConvertFile={handleConvertFile}
+                onConvertAllByType={handleConvertAllByType}
+                onConvertAll={handleConvertAll}
+                onFixFile={handleFixFile}
+                onManualEdit={handleManualEdit}
+                onDismissIssue={handleDismissIssue}
+                onGenerateReport={handleGenerateReportWrapper}
+                onUploadRedirect={handleResetAndUpload}
+                onClear={handleResetAndUpload}
+                onMoveToDevReview={handleMoveToDevReview}
+                canCompleteMigration={canCompleteMigration}
+                onDeleteFiles={handleDeleteFiles}
+              />
+              {isFullscreen && (
+                <button
+                  onClick={() => setIsFullscreen(false)}
+                  className="absolute top-4 right-4 z-50 bg-gray-800 text-white px-4 py-2 rounded shadow-lg hover:bg-gray-700 focus:outline-none"
+                  style={{ fontSize: 18 }}
+                >
+                  Exit Fullscreen (Esc)
+                </button>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="metrics">
@@ -456,13 +496,14 @@ const Dashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
-
       {showHelp && (
         <Help onClose={() => setShowHelp(false)} />
       )}
-      <footer className="w-full text-center py-4 text-gray-500 text-sm border-t bg-white/80 mt-8">
-        © 2025 Migration Platform. All rights reserved. Developed by CosmoAgents | <a href="https://www.github.com/mouktikzz/oracle-ai-migrate" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>GitHub</a>
-      </footer>
+      {!isFullscreen && (
+        <footer className="w-full text-center py-4 text-gray-500 text-sm border-t bg-white/80 mt-8">
+          © 2025 Migration Platform. All rights reserved. Developed by CosmoAgents | <a href="https://www.github.com/mouktikzz/oracle-ai-migrate" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>GitHub</a>
+        </footer>
+      )}
     </div>
   );
 };
