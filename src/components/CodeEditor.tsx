@@ -438,7 +438,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   </div>
                 )}
                 {/* Code column */}
-                <div className="flex-1 py-4 px-4 relative">
+                <div className="flex-1 py-4 px-4 relative pl-3">
                   {readOnly ? (
                     <pre
                       ref={preRef}
@@ -616,7 +616,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
               </div>
             )}
             {/* Code column */}
-            <div className="flex-1 py-4 relative">
+            <div className="flex-1 py-4 px-4 relative pl-3">
               {readOnly ? (
                 <pre
                   ref={preRef}
@@ -632,7 +632,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   value={code}
                   onChange={handleCodeChange}
                   onSelect={handleSelection}
-                  className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black"
+                  className="w-full h-full p-0 border-none focus-visible:ring-0 bg-white text-black resize-none"
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
                 />
               )}
