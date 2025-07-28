@@ -462,8 +462,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                       style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                     />
                   )}
-                  {/* Render actions below code area in full screen */}
-                  {actions && <div className="mt-4">{actions}</div>}
                 </div>
               </div>
             </ScrollArea>
@@ -646,8 +644,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
                   style={{ minHeight: height, fontFamily: 'inherit', fontSize: 'inherit' }}
                 />
               )}
-              {/* Render actions below code area */}
-              {actions && <div className="mt-4">{actions}</div>}
             </div>
           </div>
         </ScrollArea>
