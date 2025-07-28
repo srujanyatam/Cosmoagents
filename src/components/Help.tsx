@@ -126,12 +126,38 @@ const Help: React.FC<HelpProps> = ({ onClose }) => {
         </div>
         
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          <Tabs defaultValue="faq" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="shortcuts" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="shortcuts">Shortcuts</TabsTrigger>
               <TabsTrigger value="faq">FAQs</TabsTrigger>
               <TabsTrigger value="contact">Contact Us</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="shortcuts" className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Keyboard Shortcuts</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 border rounded bg-gray-50">
+                    <span className="font-mono">Shift + F</span>
+                    <span className="text-sm text-gray-700">Toggle fullscreen mode (Conversion/Dev Review)</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded bg-gray-50">
+                    <span className="font-mono">Esc</span>
+                    <span className="text-sm text-gray-700">Exit fullscreen mode</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded bg-gray-50">
+                    <span className="font-mono">Ctrl + F / Cmd + F</span>
+                    <span className="text-sm text-gray-700">Find in code editor</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 border rounded bg-gray-50">
+                    <span className="font-mono">Ctrl + H / Cmd + H</span>
+                    <span className="text-sm text-gray-700">Replace in code editor</span>
+                  </div>
+                  {/* Add more shortcuts here as needed */}
+                </div>
+              </div>
+            </TabsContent>
             
             <TabsContent value="faq" className="space-y-6">
               <div>
