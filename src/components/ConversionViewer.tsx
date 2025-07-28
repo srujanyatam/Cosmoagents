@@ -324,65 +324,65 @@ const ConversionViewer: React.FC<ConversionViewerProps> = ({
                           </>
                         )
                       ) : (
-                        <CodeEditor
-                          initialCode={file.convertedContent}
-                          readOnly={true}
-                          showLineNumbers={true}
-                          height="400px"
-                          language="plsql"
-                          filename={convertedFilename || file.name}
+                          <CodeEditor
+                            initialCode={file.convertedContent}
+                            readOnly={true}
+                            showLineNumbers={true}
+                            height="400px"
+                            language="plsql"
+                            filename={convertedFilename || file.name}
                           actions={hideEdit ? undefined : (isDarkMode) => (
-                            <div className="flex items-center gap-2 mt-0">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      onClick={() => setIsEditing(true)}
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      <Edit className={`h-5 w-5 ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`} />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Edit</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      size="icon"
-                                      variant="ghost"
-                                      onClick={async () => {
-                                        setShowExplainDialog(true);
-                                        setIsExplaining(true);
-                                        setExplanation('');
-                                        try {
-                                          const res = await fetch('/.netlify/functions/ai-explain', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
-                                          });
-                                          const data = await res.json();
-                                          setExplanation(data.explanation || 'No explanation returned.');
-                                        } catch (err) {
-                                          setExplanation('Failed to get explanation.');
-                                        } finally {
-                                          setIsExplaining(false);
-                                        }
-                                      }}
-                                      className="h-8 w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
-                                    >
-                                      <Sparkles className="h-5 w-5 text-white drop-shadow" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>AI Code Analyzer</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            </div>
-                          )}
-                        />
+                              <div className="flex items-center gap-2 mt-0">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={() => setIsEditing(true)}
+                                        className="h-8 w-8 p-0"
+                                      >
+                                        <Edit className={`h-5 w-5 ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`} />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Edit</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        onClick={async () => {
+                                          setShowExplainDialog(true);
+                                          setIsExplaining(true);
+                                          setExplanation('');
+                                          try {
+                                            const res = await fetch('/.netlify/functions/ai-explain', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ code: file.convertedContent, language: 'oracle sql' }),
+                                            });
+                                            const data = await res.json();
+                                            setExplanation(data.explanation || 'No explanation returned.');
+                                          } catch (err) {
+                                            setExplanation('Failed to get explanation.');
+                                          } finally {
+                                            setIsExplaining(false);
+                                          }
+                                        }}
+                                        className="h-8 w-8 p-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md hover:from-blue-600 hover:to-cyan-700 transition-all duration-200"
+                                      >
+                                        <Sparkles className="h-5 w-5 text-white drop-shadow" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>AI Code Analyzer</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </div>
+                            )}
+                          />
                       )}
                     </div>
                     {hasNext && onNextFile && (
