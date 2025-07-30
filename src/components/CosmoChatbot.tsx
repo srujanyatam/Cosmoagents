@@ -68,17 +68,56 @@ const CosmoChatbot = () => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Call the Netlify function instead of direct API
+      const response = await fetch('/.netlify/functions/cosmo-chatbot', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          conversationHistory: messages.slice(-5) // Send last 5 messages for context
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.success || !data.response) {
+        throw new Error(data.error || 'Invalid response from API');
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `I understand you're asking about "${userMessage.content}". I'm here to help with your code migration and technical questions. How can I assist you further?`,
+        content: data.response,
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error calling chatbot API:', error);
+      
+      // Fallback to mock response if API fails
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `I apologize, but I'm having trouble connecting to my AI service right now. I understand you're asking about "${userMessage.content}". I'm here to help with your code migration and technical questions. Please try again in a moment or check your API configuration.`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, fallbackMessage]);
+      
+      toast({
+        title: 'API Error',
+        description: 'Failed to get AI response. Using fallback mode.',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
